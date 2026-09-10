@@ -1,0 +1,66 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Atmosphere } from "@/components/Atmosphere";
+import { Reveal } from "@/components/Reveal";
+import { Stagger, StaggerItem } from "@/components/Stagger";
+import { SectionHeading } from "@/components/SectionHeading";
+import { DestinationCard } from "@/components/DestinationCard";
+import { destinations as staticDestinations } from "@/data/destinations";
+import { fetchDestinations } from "@/lib/api";
+
+export const metadata: Metadata = {
+  title: "Destinations",
+  description:
+    "Explore the destinations of Bangladesh — Cox's Bazar, Sajek Valley, Sundarbans, Sylhet tea country, and more.",
+};
+
+export default async function DestinationsPage() {
+  // Live CMS data when the Django backend is reachable, falling back to the
+  // bundled static content otherwise (offline builds, backend not deployed
+  // yet). See src/lib/api.ts.
+  const destinations = (await fetchDestinations()) ?? staticDestinations;
+
+  return (
+    <>
+      <section className="relative overflow-hidden px-4 pb-16 pt-32 sm:px-6 sm:pt-40">
+        <Atmosphere intensity={0.25} />
+        <div className="relative z-10 mx-auto max-w-6xl">
+          <SectionHeading
+            eyebrow="Destinations"
+            title="Twelve regions. One extraordinary country."
+            description="Beaches, hill tracts, mangrove forests, tea gardens, and two millennia of history — every corner of Bangladesh, hosted by people who call it home."
+          />
+        </div>
+      </section>
+
+      <section className="px-4 pb-24 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
+            {destinations.map((d) => (
+              <StaggerItem key={d.slug}>
+                <DestinationCard destination={d} />
+              </StaggerItem>
+            ))}
+          </Stagger>
+
+          <Reveal className="mt-14">
+            <div className="glass glass-sweep flex flex-col items-center gap-4 rounded-3xl p-8 text-center sm:flex-row sm:justify-between sm:text-left">
+              <div>
+                <h2 className="font-display text-xl font-semibold text-ink">
+                  Can&apos;t decide?
+                </h2>
+                <p className="mt-1 text-sm text-ink-soft">
+                  Tell us your dates, group size, and what you love — we&apos;ll
+                  recommend the perfect destination.
+                </p>
+              </div>
+              <Link href="/contact" className="btn btn-emerald shrink-0">
+                Plan My Trip
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+    </>
+  );
+}

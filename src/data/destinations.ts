@@ -1,0 +1,412 @@
+import type { Destination } from "@/lib/types";
+
+export const destinations: Destination[] = [
+  {
+    slug: "coxs-bazar",
+    name: "Cox's Bazar",
+    bn: "কক্সবাজার",
+    tagline: "The world's longest natural sea beach",
+    region: "Chittagong Division",
+    description:
+      "Stretching 120 kilometres along the Bay of Bengal, Cox's Bazar is Bangladesh's crown jewel of the coast. Golden sands, rolling waves, fresh seafood, and a lively boardwalk make it the country's most beloved escape. Watch the sunset paint the horizon over Himchari, ride a motorbike along Marine Drive, and end the day with grilled pomfret by the shore.",
+    cover: { key: "coxsbazar", label: "Sunset over the Bay of Bengal" },
+    gallery: [
+      { key: "coxsbazar", label: "Sunset over the Bay of Bengal" },
+      { key: "stmartins", label: "Azure waters of Saint Martin's" },
+      { key: "sundarbans", label: "The Sundarbans mangrove canals" },
+    ],
+    bestTime: "November to March — cool, dry, and perfect beach weather",
+    weather: "Tropical monsoon; humid summers, mild winters, rainy June–September",
+    attractions: [
+      "Inani Beach — miles of golden sand and coral pebbles",
+      "Himchari National Park & waterfall viewpoint",
+      "Marine Drive — a 40km oceanfront scenic road",
+      "Laboni Beach boardwalk and night market",
+      "Ramu Buddhist temples and craft villages",
+      "Cox's Bazar Lighthouse viewpoint",
+    ],
+    accommodation:
+      "Beachfront resorts in Kolatoli, boutique guest houses near Sugandha Point, and budget stays along Laboni Road. Ocean-view rooms book out fast in December–January.",
+    travelTips: [
+      "Book beachfront hotels 2–4 weeks ahead in peak season",
+      "Carry light cotton clothing and reef-safe sunscreen",
+      "Try the fresh tiger prawns and churpi from local stalls",
+      "Use the Marine Drive route early morning to beat the sun",
+      "Keep a power bank — long beach walks drain phones fast",
+    ],
+    tourSlugs: [
+      "coxs-bazar-classic-3d2n",
+      "coxs-bazar-st-martins-combo",
+      "honeymoon-coxs-bazar",
+    ],
+  },
+  {
+    slug: "saint-martins",
+    name: "Saint Martin's Island",
+    bn: "সেন্ট মার্টিন",
+    tagline: "The turquoise gem of the Bay of Bengal",
+    region: "Teknaf, Cox's Bazar District",
+    description:
+      "Bangladesh's only coral island is a tiny teardrop of white sand and clear, turquoise water sitting at the southernmost point of the country. Coconut palms, fishing boats, and a slow island rhythm define Narikel Jinjira — the island of coconuts. Snorkel among coral reefs, eat crab curry on the beach, and fall asleep to the sound of the tide.",
+    cover: { key: "stmartins", label: "Turquoise water and white sand" },
+    gallery: [
+      { key: "stmartins", label: "Turquoise water and white sand" },
+      { key: "coxsbazar", label: "Cox's Bazar shoreline" },
+    ],
+    bestTime: "November to February — calm seas, clear visibility for snorkelling",
+    weather: "Tropical island climate; the island is closed to visitors during monsoon storms",
+    attractions: [
+      "Narikel Jinjira beach — the island's iconic sandbar",
+      "Snorkelling and coral reef spotting at the south point",
+      "Chhera Dwip — a separate islet reachable by foot at low tide",
+      "Fishermen's village and boat-building traditions",
+      "Sunset boat rides around the island",
+    ],
+    accommodation:
+      "Simple beach cottages and small resorts in the northern and middle parts of the island. Electricity is limited at night; generators and solar power are common.",
+    travelTips: [
+      "Access is by launch or speedboat from Teknaf (approx. 2–3 hours)",
+      "Island is reachable only in season — verify the ferry schedule",
+      "Carry cash; ATMs are unavailable on the island",
+      "Reef-safe sunscreen only — the coral ecosystem is fragile",
+      "Pack a torch for the island's limited night lighting",
+    ],
+    tourSlugs: ["coxs-bazar-st-martins-combo", "st-martins-island-escape"],
+  },
+  {
+    slug: "sundarbans",
+    name: "The Sundarbans",
+    bn: "সুন্দরবন",
+    tagline: "The mangrove kingdom of the Royal Bengal Tiger",
+    region: "Khulna & Satkhira Divisions",
+    description:
+      "The largest mangrove forest on Earth and a UNESCO World Heritage Site, the Sundarbans is a haunting maze of tidal rivers, mudflats, and dense mangrove. Home to the Royal Bengal Tiger, saltwater crocodiles, and the endangered Irrawaddy dolphin, it is Bangladesh's wildest frontier. Glide through silent creeks at dawn, watch deer and monkeys on the banks, and feel the pulse of a forest that has no equals.",
+    cover: { key: "sundarbans", label: "Silent mangrove creeks at dawn" },
+    gallery: [
+      { key: "sundarbans", label: "Silent mangrove creeks at dawn" },
+      { key: "khulna", label: "River journeys through the delta" },
+    ],
+    bestTime: "November to February — cool, dry weather and better wildlife sightings",
+    weather: "Humid and tropical; heavy rain June–October, strong tides year-round",
+    attractions: [
+      "Kotka & Kachikhali wildlife viewpoints",
+      "Tiger Point — best chance of pugmark and tiger sightings",
+      "Dublar Char — the fisherman island and sea-beach",
+      "Hiron Point — dolphin and crocodile spotting",
+      "Karambol forest watchtower",
+      "Traditional Mawali honey-collecting villages",
+    ],
+    accommodation:
+      "Tours typically stay aboard comfortable river cruise vessels with cabins, meals, and guides. Some forest camps offer basic eco-lodging at Kotka and Karambol.",
+    travelTips: [
+      "A forest permit is required and is arranged by your tour operator",
+      "Take an experienced guide — navigation is genuinely challenging",
+      "Book a multi-day cruise (2 nights+) to reach the deep forest",
+      "Bring insect repellent and long sleeves for evenings",
+      "Binoculars are essential for wildlife viewing",
+    ],
+    tourSlugs: ["sundarbans-cruise-3d2n", "sundarbans-express-2d1n"],
+  },
+  {
+    slug: "sylhet",
+    name: "Sylhet",
+    bn: "সিলেট",
+    tagline: "Tea gardens, waterfalls and rolling green hills",
+    region: "Sylhet Division",
+    description:
+      "Northeastern Bangladesh is a landscape of emerald tea gardens rolling into hazy hills. Sylhet's lush greenery, cool climate, and the famous water-meets-sky canals of Ratargul Swamp Forest make it a completely different Bangladesh. Chase the Jaflong river with its floating stone-laden boats, stand under the thunder of waterfalls, and sip fresh tea straight from the estate.",
+    cover: { key: "sylhet", label: "Striped tea gardens at golden hour" },
+    gallery: [
+      { key: "sylhet", label: "Striped tea gardens at golden hour" },
+      { key: "ratargul", label: "Ratargul Swamp Forest canals" },
+      { key: "jaflong", label: "Jaflong river and stone boats" },
+    ],
+    bestTime: "October to April — the greenery is lush and the hills are dry enough to hike",
+    weather: "Subtropical; Sylhet is one of Bangladesh's wettest regions, so pack for sudden rain",
+    attractions: [
+      "Ratargul Swamp Forest — boat rides through submerged trees",
+      "Jaflong — river, hills, and floating stone collection",
+      "Srimangal tea estates and tea-tasting sessions",
+      "Lalakhal — jade-green river surrounded by hills",
+      "Bichanakandi — a river confluence framed by tea gardens",
+      "Lawachara National Park for gibbon spotting",
+    ],
+    accommodation:
+      "Heritage tea-bungalow stays, boutique eco-resorts near Srimangal, and comfortable hotels in Sylhet city. The tea estate bungalows are a highlight experience.",
+    travelTips: [
+      "Srimangal is the best base for tea-country day trips",
+      "Hire a local guide for Lawachara — trails are poorly marked",
+      "Best photos of the tea gardens are early morning or late afternoon",
+      "The wet season can wash out Jaflong roads — check conditions",
+    ],
+    tourSlugs: ["sylhet-tea-country-3d2n", "sylhet-ratargul-jaflong"],
+  },
+  {
+    slug: "bandarban",
+    name: "Bandarban",
+    bn: "বান্দরবান",
+    tagline: "Clouds, cliffs and the highest peak of Bangladesh",
+    region: "Chittagong Hill Tracts",
+    description:
+      "Bandarban is where Bangladesh gets vertical. Home to Tajingdong — the country's highest peak — and the misty heights of Nilgiri, this hill district rewards travelers with layered mountain views that feel a world away from the plains. Trek through tribal villages, cross suspension bridges over emerald rivers, and sleep above the clouds.",
+    cover: { key: "bandarban", label: "Misty ridgelines at sunrise" },
+    gallery: [
+      { key: "bandarban", label: "Misty ridgelines at sunrise" },
+      { key: "sajek", label: "Sajek Valley cloud sea" },
+      { key: "rangamati", label: "Kaptai Lake in Rangamati" },
+    ],
+    bestTime: "November to March — clear skies and cool mountain air",
+    weather: "Cool and misty in the hills; rain is heavy during monsoon (June–September)",
+    attractions: [
+      "Nilgiri — panoramic viewpoints at 2,100ft",
+      "Boga Lake — a hidden lake cradled by peaks",
+      "Nafakhum & Amiakhum waterfalls in Remakri",
+      "Chimbuk hill and the tribal Mro villages",
+      "Thanchi bazaar and the stunning road along the Sangu river",
+      "Meghla tourist complex and the hanging bridge",
+    ],
+    accommodation:
+      "Hilltop resorts at Nilgiri, basic guest houses in Bandarban town, and eco-cabins for trekkers heading to Boga Lake. Book Nilgiri in advance for sunrise views.",
+    travelTips: [
+      "Hill district permits are needed for non-residents — your operator handles this",
+      "Trekking requires reasonable fitness; distances look short on maps only",
+      "Carry layers — evenings at altitude get genuinely cold",
+      "Avoid monsoon trekking; trails become dangerous",
+      "Hire a local guide for Boga Lake and beyond — it is mandatory in some areas",
+    ],
+    tourSlugs: ["bandarban-hills-2d1n", "boga-lake-trekking"],
+  },
+  {
+    slug: "rangamati",
+    name: "Rangamati",
+    bn: "রাঙ্গামাটি",
+    tagline: "The lake city of the hills",
+    region: "Chittagong Hill Tracts",
+    description:
+      "Set along the vast Kaptai Lake, Rangamati is the largest district of Bangladesh and the heart of the Chakma people. The lake — a drowned valley turned inland sea — stretches endlessly between green hills. Cruise between floating markets, visit the Hanging Bridge over the water, and explore the crafts and culture of the indigenous communities.",
+    cover: { key: "rangamati", label: "Kaptai Lake at dusk" },
+    gallery: [
+      { key: "rangamati", label: "Kaptai Lake at dusk" },
+      { key: "bandarban", label: "Bandarban hill ridges" },
+    ],
+    bestTime: "October to March — calm lake water and pleasant hills",
+    weather: "Subtropical highlands; cooler than the plains with distinct wet season",
+    attractions: [
+      "Kaptai Lake cruises between forested islands",
+      "Hanging Bridge (Jhulonto Bridge) over the lake",
+      "Buddha Dhatu Jadi — the golden pagoda",
+      "Chakma King's Palace and tribal museum",
+      "Floating markets and lake-side bazaars",
+      "Shuvolong waterfall reachable by boat",
+    ],
+    accommodation:
+      "Lake-facing resort cottages and tribal-style bungalows on the shore. Staying on the lake edge at sunrise is the memory people keep.",
+    travelTips: [
+      "A boat tour is the single best way to see Rangamati",
+      "Visit the museum early to avoid tour groups",
+      "Respect local customs when visiting tribal villages",
+      "Carry small notes for handicraft purchases at villages",
+    ],
+    tourSlugs: ["rangamati-lake-retreat-2d1n"],
+  },
+  {
+    slug: "sajek-valley",
+    name: "Sajek Valley",
+    bn: "সাজেক ভ্যালি",
+    tagline: "The cloud-sea kingdom above the world",
+    region: "Rangamati District",
+    description:
+      "Perched high in the folds of the Tripura hills, Sajek Valley has become the most loved mountain escape in Bangladesh. When the weather turns, a sea of clouds rolls through the valley floor and the hills turn into islands. Panoramic viewpoints, winding mountain roads, and the simple wooden cottages of the Kuki villages make Sajek feel suspended above everything.",
+    cover: { key: "sajek", label: "A sea of clouds below the ridge" },
+    gallery: [
+      { key: "sajek", label: "A sea of clouds below the ridge" },
+      { key: "bandarban", label: "Bandarban ridgelines" },
+      { key: "rangamati", label: "Kaptai Lake at dusk" },
+    ],
+    bestTime: "November to March — cloud-sea season with crisp mountain air",
+    weather: "Mountain climate; often foggy and cool, rainy in monsoon",
+    attractions: [
+      "Konglak Hill viewpoint — the classic Sajek panorama",
+      "Malampara viewpoint for sunrise",
+      "Kuki and Marma tribal villages",
+      "The winding Vangtlang mountain road itself",
+      "Stargazing on clear nights — Sajek has little light pollution",
+    ],
+    accommodation:
+      "Wooden and bamboo cottages with balconies facing the valley, plus a few more polished hilltop resorts. Wake up inside the clouds and watch them clear.",
+    travelTips: [
+      "The 2-hour jeep ride up from Dighinala is bumpy — pack light",
+      "Go early in the season for reliable cloud-sea mornings",
+      "Sunrise (6–7am) is the golden window for photography",
+      "Carry warm clothing; Sajek nights can drop to single digits",
+    ],
+    tourSlugs: ["sajek-valley-3d2n", "sajek-weekend-getaway"],
+  },
+  {
+    slug: "kuakata",
+    name: "Kuakata",
+    bn: "কুয়াকাটা",
+    tagline: "Where the sun rises and sets in the sea",
+    region: "Patuakhali District",
+    description:
+      "Known as Sagar Kannya — the daughter of the sea — Kuakata is one of the only beaches in the world where you can watch both sunrise and sunset over the water. Its wide, dark-golden beach and the gentle Bay of Bengal make it a quieter, more soulful alternative to Cox's Bazar, ringed by Buddhist temples and the fishing traditions of the Rakhine people.",
+    cover: { key: "kuakata", label: "Both sunrises and sunsets over the bay" },
+    gallery: [
+      { key: "kuakata", label: "Both sunrises and sunsets over the bay" },
+      { key: "coxsbazar", label: "Cox's Bazar shoreline" },
+    ],
+    bestTime: "October to March — calm sea and the full sunrise/sunset experience",
+    weather: "Tropical coastal; monsoon (June–September) brings heavy surf",
+    attractions: [
+      "Sunrise and sunset views from the eastern and western points",
+      "Fatrar Char — a scenic sandbar at the beach's east end",
+      "The 100-year-old Rakhine Buddhist temples (Misripara)",
+      "Rakhine fishing village and craft markets",
+      "Gangamati reserve forest near the coast",
+    ],
+    accommodation:
+      "Beach-facing hotels and cottages in Kuakata town. The quieter eastern side near Fatrar Char is best for a peaceful stay.",
+    travelTips: [
+      "Kuakata's beauty is wide, flat, and atmospheric — bring a good lens",
+      "Rent a bicycle or van to explore the long beach",
+      "Respect the fishing communities' evening rituals",
+      "Best visited midweek to avoid the weekend crowds",
+    ],
+    tourSlugs: ["kuakata-sea-of-sunsets-2d1n"],
+  },
+  {
+    slug: "srimangal",
+    name: "Srimangal",
+    bn: "শ্রীমঙ্গল",
+    tagline: "The tea capital of Bangladesh",
+    region: "Moulvibazar, Sylhet Division",
+    description:
+      "Billed as the 'land of two leaves and a bud', Srimangal is the heart of Bangladesh's tea country. Endless carpets of tea stretch toward low forested hills, and the whole town smells faintly of fresh leaves and rain. Walk the estates, taste seven-layer tea, spot gibbons in Lawachara, and cycle between villages that have grown tea for over a century.",
+    cover: { key: "srimangal", label: "Rolling tea estates in green light" },
+    gallery: [
+      { key: "srimangal", label: "Rolling tea estates in green light" },
+      { key: "sylhet", label: "Sylhet tea gardens" },
+      { key: "ratargul", label: "Ratargul Swamp Forest" },
+    ],
+    bestTime: "November to April — lush green and comfortable for cycling",
+    weather: "Cool mornings, warm days; monsoon turns the estate roads to mud",
+    attractions: [
+      "Tea estate walks and guided factory visits",
+      "Seven-layer tea tasting at the famous Nilkantha tea cabin",
+      "Lawachara National Park — gibbons, lemurs, and rainforest trails",
+      "Madhabpur Lake and the surrounding gardens",
+      "Bicycle tours through the tea country",
+      "Baikka Beel wetland sanctuary for birdwatching",
+    ],
+    accommodation:
+      "Charming heritage bungalows converted from colonial-era tea manager houses, plus boutique eco-resorts in the estates. These are among the most characterful stays in Bangladesh.",
+    travelTips: [
+      "Book a heritage tea bungalow for the full experience",
+      "Cycle early morning before the heat — the roads are gorgeous",
+      "Guided tea tours are worth the fee; you'll taste the difference",
+      "Lawachara is best visited with a local naturalist guide",
+    ],
+    tourSlugs: ["sylhet-tea-country-3d2n"],
+  },
+  {
+    slug: "sonargaon",
+    name: "Sonargaon & Panam City",
+    bn: "সোনারগাঁও",
+    tagline: "The abandoned capital of medieval Bengal",
+    region: "Narayanganj District",
+    description:
+      "Once the capital of the Bengal Sultanate and a fabled trading port, Sonargaon is a walk through a vanished golden age. The eerie, elegant ruins of Panam City — a row of decaying merchant mansions — are among the most photographed places in Bangladesh. Nearby, the Folk Arts and Crafts Museum preserves the textiles, boats, and traditions of the old riverside culture.",
+    cover: { key: "sonargaon", label: "The crumbling facades of Panam City" },
+    gallery: [
+      { key: "sonargaon", label: "The crumbling facades of Panam City" },
+      { key: "dhaka", label: "Dhaka's heritage streets" },
+    ],
+    bestTime: "November to March — pleasant weather for long walks through the ruins",
+    weather: "Subtropical; the site is exposed, so mornings and evenings are best",
+    attractions: [
+      "Panam City — the abandoned merchant quarter",
+      "Sonargaon Folk Arts and Crafts Museum",
+      "The tomb of Panch Pir and medieval Sultanate mosques",
+      "Traditional jamdani weaving villages",
+      "Boat-building communities along the riverbank",
+    ],
+    accommodation:
+      "Best explored as a day trip from Dhaka. A few heritage resorts near the river offer overnight stays if you want the ruins to yourself.",
+    travelTips: [
+      "Go on a weekday to avoid large school groups",
+      "The museum is small — allow an hour and you'll see it all",
+      "Combine with a trip to the nearby Jamdani weaving villages",
+      "Hire a guide to bring the Panam City mansions to life",
+    ],
+    tourSlugs: ["dhaka-heritage-day"],
+  },
+  {
+    slug: "paharpur",
+    name: "Paharpur & Mahasthangarh",
+    bn: "পাহাড়পুর ও মহাস্থানগড়",
+    tagline: "The ancient Buddhist monasteries of the north",
+    region: "Naogaon & Bogra Districts",
+    description:
+      "Northern Bangladesh holds some of South Asia's most significant archaeological sites. Somapura Mahavihara at Paharpur is the largest Buddhist monastery south of the Himalayas and a UNESCO World Heritage Site — a vast, haunting red-brick courtyard from the 8th century. Mahasthangarh is Bangladesh's oldest known city, a fortified citadel dating back over two millennia.",
+    cover: { key: "paharpur", label: "The vast red-brick monastery courtyard" },
+    gallery: [
+      { key: "paharpur", label: "The vast red-brick monastery courtyard" },
+      { key: "sonargaon", label: "Panam City ruins" },
+    ],
+    bestTime: "October to March — comfortable for exploring open archaeological sites",
+    weather: "Hot and dry in summer; the red-brick ruins need shade and morning visits",
+    attractions: [
+      "Somapura Mahavihara — the great monastery of Paharpur",
+      "The Paharpur museum and excavated stupas",
+      "Mahasthangarh — the 2,000-year-old citadel of Bogra",
+      "Gokul Medh and other ruins of Mahasthangarh",
+      "The museums and terracotta collections of both sites",
+    ],
+    accommodation:
+      "Explored as an overnight circuit from Dhaka. Comfortable town hotels in Bogra and Joypurhat are the practical base.",
+    travelTips: [
+      "The full circuit needs two days — Paharpur then Mahasthangarh",
+      "Visit Paharpur at opening time to feel the site in silence",
+      "Combine with the Bogra mango and sweets market in summer",
+      "A guide adds real depth to the archaeology here",
+    ],
+    tourSlugs: ["north-bangladesh-archaeology-2d1n"],
+  },
+  {
+    slug: "dhaka",
+    name: "Dhaka & Heritage",
+    bn: "ঢাকা",
+    tagline: "The beating heart of the nation",
+    region: "Dhaka Division",
+    description:
+      "Chaotic, vibrant, and utterly alive, Old Dhaka is a sensory overload of rickshaws, Mughal-era mansions, spice markets, and riverfront ferries. But the capital is also home to the striking National Parliament by Louis Kahn, serene river fortresses, and the world's finest jamdani weaving. A guided walk turns the chaos into one of Asia's most memorable urban experiences.",
+    cover: { key: "dhaka", label: "The city of rickshaws and rivers" },
+    gallery: [
+      { key: "dhaka", label: "The city of rickshaws and rivers" },
+      { key: "sonargaon", label: "Panam City near the capital" },
+    ],
+    bestTime: "November to February — the mild, dry season is kindest to city walks",
+    weather: "Hot and humid for most of the year; monsoon rains June–September",
+    attractions: [
+      "Old Dhaka's Lalbagh Fort and Mughal-era mosques",
+      "Sadarghat river port — the great launch terminal",
+      "Shankhari Bazaar and the Hindu heritage lane",
+      "National Parliament (Louis Kahn masterpiece)",
+      "Jamdani weaving in the Dhaka suburbs",
+      "The Dhaka rickshaw — a declared UNESCO Intangible Heritage",
+    ],
+    accommodation:
+      "Everything from heritage hotels in Gulshan to guest houses near Old Dhaka. For heritage walks, staying near Old Dhaka or the riverfront is best.",
+    travelTips: [
+      "Use an experienced guide — crossing Old Dhaka alone is overwhelming",
+      "Start at 7am to see the markets before the heat peaks",
+      "Rickshaw rides are a must — negotiate the fare first",
+      "A sunset Buriganga river cruise is the perfect finale",
+    ],
+    tourSlugs: ["dhaka-heritage-day"],
+  },
+];
+
+export function getDestination(slug: string): Destination | undefined {
+  return destinations.find((d) => d.slug === slug);
+}
