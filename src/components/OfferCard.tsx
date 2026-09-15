@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { Icon } from "@/components/Icon";
+import { normalizeImageUrl } from "@/lib/media";
 import type { Offer } from "@/lib/types";
 
 interface OfferCardProps {
@@ -10,15 +11,17 @@ interface OfferCardProps {
 }
 
 export function OfferCard({ offer }: OfferCardProps) {
+  const banner = normalizeImageUrl(offer.bannerUrl);
+
   return (
     <GlassCard
       lift={6}
       className="glass glass-sweep flex h-full flex-col overflow-hidden rounded-3xl shadow-glass transition-shadow duration-300 hover:shadow-glass-lg"
     >
-      {offer.bannerUrl && (
-        // eslint-disable-next-line @next/next/no-img-element -- see SceneBackdrop's note on why plain <img> is used for admin-uploaded media here.
+      {banner && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={offer.bannerUrl}
+          src={banner}
           alt={offer.title}
           className="h-36 w-full object-cover"
         />

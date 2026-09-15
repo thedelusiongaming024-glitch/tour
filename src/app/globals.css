@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap');
 @import "tailwindcss";
 
 /* Previously set as a per-request className by next/font/google
@@ -9,6 +10,7 @@
 :root {
   --font-fraunces: "Fraunces Variable";
   --font-jakarta: "Plus Jakarta Sans Variable";
+  --font-bengali: "Hind Siliguri", "Noto Sans Bengali", "Kalpurush", "SolaimanLipi", "Vrinda", system-ui, sans-serif;
 }
 
 @theme {
@@ -26,11 +28,35 @@
   --color-mist: #e3eaee;
   --color-mist-deep: #d6e4ec;
 
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), var(--font-bengali), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jakarta), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
+  --font-bengali: "Hind Siliguri", "Noto Sans Bengali", "Kalpurush", "SolaimanLipi", "Vrinda", system-ui, sans-serif;
 
   --shadow-glass: 0 8px 32px rgba(18, 38, 34, 0.08);
   --shadow-glass-lg: 0 24px 64px rgba(18, 38, 34, 0.14);
+}
+
+/* Bengali Typography Elevation when Bangla mode is active */
+html[lang="bn"],
+html.lang-bn {
+  --font-sans: "Hind Siliguri", "Noto Sans Bengali", "Kalpurush", "SolaimanLipi", "Vrinda", system-ui, sans-serif;
+  --font-display: "Hind Siliguri", "Tiro Bangla", var(--font-fraunces), serif;
+}
+
+html[lang="bn"] body,
+html.lang-bn body {
+  font-family: var(--font-sans);
+  line-height: 1.72;
+}
+
+html[lang="bn"] .font-display,
+html.lang-bn .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.font-bengali {
+  font-family: "Hind Siliguri", "Noto Sans Bengali", "Kalpurush", "SolaimanLipi", "Vrinda", system-ui, sans-serif !important;
 }
 
 :root {

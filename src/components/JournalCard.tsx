@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GlassCard } from "@/components/GlassCard";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { Icon } from "@/components/Icon";
+import { useLanguage } from "@/context/LanguageContext";
 import type { JournalPost } from "@/lib/types";
 
 interface JournalCardProps {
@@ -11,6 +12,18 @@ interface JournalCardProps {
 }
 
 export function JournalCard({ post }: JournalCardProps) {
+  const { isBn, formatNumber } = useLanguage();
+
+  const formattedReadTime = (() => {
+    if (!post.readTime) return isBn ? "৫ মিনিট পাঠ" : "5 min read";
+    if (!isBn) return post.readTime;
+    const match = post.readTime.match(/\d+/);
+    if (match) {
+      return `${formatNumber(match[0])} মিনিট পাঠ`;
+    }
+    return post.readTime;
+  })();
+
   return (
     <GlassCard className="group flex h-full flex-col overflow-hidden rounded-3xl shadow-glass transition-shadow duration-300 hover:shadow-glass-lg">
       <Link href={`/journal/${post.slug}`} className="flex flex-1 flex-col">
@@ -24,7 +37,7 @@ export function JournalCard({ post }: JournalCardProps) {
             <span className="rounded-full bg-gold/15 px-2.5 py-1 font-semibold text-gold">
               {post.category}
             </span>
-            <span>{post.readTime}</span>
+            <span>{formattedReadTime}</span>
           </div>
           <h3 className="font-display text-lg font-semibold leading-snug text-ink transition-colors group-hover:text-emerald-deep">
             {post.title}
@@ -37,7 +50,7 @@ export function JournalCard({ post }: JournalCardProps) {
               {post.author} · {post.date}
             </span>
             <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald">
-              Read
+              {isBn ? "পড়ুন" : "Read"}
               <Icon name="arrowRight" className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </div>

@@ -24,6 +24,7 @@ import {
   fetchDatabaseFromSupabase,
 } from "./supabase";
 import type {
+  AboutPageCmsContent,
   DatabaseSchema,
   DbAlert,
   DbBlogPost,
@@ -40,6 +41,8 @@ import type {
   DbSupplier,
   DbTestimonial,
   DbTour,
+  HomePageCmsContent,
+  JournalPageCmsContent,
 } from "./types";
 
 const DB_DIR = path.join(process.cwd(), ".data");
@@ -228,6 +231,9 @@ function loadDb(): DatabaseSchema {
       }
       const raw = fs.readFileSync(DB_FILE, "utf-8");
       memoryDb = JSON.parse(raw) as DatabaseSchema;
+      if (!Array.isArray(memoryDb.homepageBlocks)) {
+        memoryDb.homepageBlocks = [];
+      }
       lastDbMtime = stat.mtimeMs;
       return memoryDb;
     }
@@ -235,7 +241,12 @@ function loadDb(): DatabaseSchema {
     console.error("Failed to read database file, initializing from seed:", err);
   }
 
-  if (memoryDb) return memoryDb;
+  if (memoryDb) {
+    if (!Array.isArray(memoryDb.homepageBlocks)) {
+      memoryDb.homepageBlocks = [];
+    }
+    return memoryDb;
+  }
   memoryDb = createSeedData();
   saveDb(memoryDb);
   return memoryDb;
@@ -332,7 +343,16 @@ export function getTestimonials(onlyFeatured: boolean = false): DbTestimonial[] 
 
 export function getBlogPosts(): DbBlogPost[] {
   const db = loadDb();
-  return db.blogPosts.filter((p) => p.status === "published");
+  return db.blogPosts
+    .filter((p) => p.status === "published" || p.is_published !== false)
+    .sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return (
+        new Date(b.published_at || b.created_at || 0).getTime() -
+        new Date(a.published_at || a.created_at || 0).getTime()
+      );
+    });
 }
 
 export function getBlogPostBySlug(slug: string): DbBlogPost | null {
@@ -343,6 +363,279 @@ export function getBlogPostBySlug(slug: string): DbBlogPost | null {
 export function getHomepageBlocks(): DbHomepageBlock[] {
   const db = loadDb();
   return [...db.homepageBlocks].sort((a, b) => a.display_order - b.display_order);
+}
+
+export const DEFAULT_ABOUT_CMS: AboutPageCmsContent = {
+  hero_eyebrow: "Our story",
+  hero_title: "Built by people who call Bangladesh home",
+  hero_subtitle:
+    "Atithi (অতিথি) started with a simple frustration: booking a domestic trip meant middlemen, vague pricing, and cash changing hands with no record. We built the agency we wished existed — local hosts, honest pricing, and a payment system that leaves nothing to dispute.",
+  story_badge: "The Atithi Standard",
+  story_title: "Why we started",
+  story_paragraphs: [
+    "Most domestic travel in Bangladesh is organized through word-of-mouth recommendations, social media groups, or informal fixers. Prices shift depending on who's asking, booking confirmations are a verbal promise, and if something goes wrong, there's no recourse.",
+    "We wanted something different: trips you could book with complete confidence, hosted by people from the actual communities you're visiting, with clear itineraries and receipts for every taka paid.",
+    "Every route we offer is one we've traveled ourselves multiple times — staying at the same eco-cottages, riding the same wooden engine boats, and breaking bread with the same village hosts.",
+  ],
+  mission_title: "Our Mission",
+  mission_text:
+    "To connect travelers with authentic, dignified local hosting across every district of Bangladesh — backed by transparent pricing, flexible payments, and human support.",
+  values: [
+    {
+      icon: "shield",
+      title: "Radical transparency",
+      description:
+        "Every taka is accounted for — the price you see is the price you pay, and every payment is confirmed on both sides.",
+    },
+    {
+      icon: "users",
+      title: "Local, always",
+      description:
+        "No outsourced guides, no foreign templates. Every host is Bangladeshi, and every itinerary is built around real local knowledge.",
+    },
+    {
+      icon: "heart",
+      title: "Hospitality first",
+      description:
+        'Atithi — "guest" — is central to Bengali culture. We host you the way we\'d host family, not process you like a booking number.',
+    },
+    {
+      icon: "sparkle",
+      title: "Considered detail",
+      description:
+        "From the ridge walk only locals know to the candlelit dinner arranged without being asked — the small things are the trip.",
+    },
+  ],
+  booking_eyebrow: "How booking works",
+  booking_title: "Zero-friction, start to finish",
+  booking_description:
+    "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity.",
+  team_eyebrow: "The team",
+  team_title: "A few of the people who'll host you",
+  team: [
+    {
+      name: "Raisa Chowdhury",
+      role: "Co-founder & Head of Experience",
+      bio: "Ten years guiding across the Chittagong Hill Tracts before building Atithi's tour design team.",
+      scene: "sajek",
+    },
+    {
+      name: "Tanvir Hasan",
+      role: "Co-founder & Head of Operations",
+      bio: "Runs the host network and on-ground logistics across all twelve destinations.",
+      scene: "sundarbans",
+    },
+    {
+      name: "Mehedi Hasan",
+      role: "Head of Finance",
+      bio: "Built the payment and QR clearance system so every advance and balance is tracked without ambiguity.",
+      scene: "coxsbazar",
+    },
+  ],
+  payment_badge: "Payment & QR clearance",
+  payment_title: "How your money is handled, end to end",
+  payment_description:
+    "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself. The moment it clears, both you and our team get a WhatsApp and email confirmation, so there's a clean record of what was paid, when, on both sides.",
+  payment_cta_label: "Talk to us",
+  payment_cta_href: "/contact",
+  cta_title: "Ready to plan your own story?",
+  cta_description:
+    "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.",
+  cta_label: "Plan My Trip",
+  cta_href: "/contact",
+};
+
+export const DEFAULT_JOURNAL_CMS: JournalPageCmsContent = {
+  header_eyebrow: "Travel Journal",
+  header_title: "Stories from the road",
+  header_description:
+    "Field guides, food trails, and honest travel writing from our hosts and guests across Bangladesh.",
+  featured_badge: "Latest story",
+  empty_title: "No articles published yet",
+  empty_description:
+    "Stories, packing guides, and field notes will appear here once written and published from the Super Admin Panel.",
+};
+
+export function getAboutPageCms(): AboutPageCmsContent {
+  const db = loadDb();
+  const block = db.homepageBlocks.find(
+    (b) => b.block_type === "about_page" || b.id === "block-about-page"
+  );
+  if (!block || !block.content) return DEFAULT_ABOUT_CMS;
+  return { ...DEFAULT_ABOUT_CMS, ...(block.content as Partial<AboutPageCmsContent>) };
+}
+
+export function saveAboutPageCms(content: Partial<AboutPageCmsContent>): DbHomepageBlock {
+  const current = getAboutPageCms();
+  const merged = { ...current, ...content };
+  return saveHomepageBlock("block-about-page", "about_page", merged as Record<string, unknown>);
+}
+
+export function getJournalPageCms(): JournalPageCmsContent {
+  const db = loadDb();
+  const block = db.homepageBlocks.find(
+    (b) => b.block_type === "journal_page" || b.id === "block-journal-page"
+  );
+  if (!block || !block.content) return DEFAULT_JOURNAL_CMS;
+  return { ...DEFAULT_JOURNAL_CMS, ...(block.content as Partial<JournalPageCmsContent>) };
+}
+
+export function saveJournalPageCms(content: Partial<JournalPageCmsContent>): DbHomepageBlock {
+  const current = getJournalPageCms();
+  const merged = { ...current, ...content };
+  return saveHomepageBlock("block-journal-page", "journal_page", merged as Record<string, unknown>);
+}
+
+export const DEFAULT_HOME_CMS: HomePageCmsContent = {
+  // 1. Hero
+  hero_eyebrow: "Domestic tours across Bangladesh",
+  hero_headline: "Discover Bangladesh,",
+  hero_highlight: "your way",
+  hero_subheadline: "Curated domestic tours. Trusted local hosts. Book with an advance and clear the balance on tour day.",
+  hero_primary_cta_label: "Explore Tours",
+  hero_primary_cta_href: "/tours",
+  hero_secondary_cta_label: "Plan My Trip",
+  hero_secondary_cta_href: "/contact",
+
+  // 2. Destinations
+  destinations_eyebrow: "Destinations",
+  destinations_title: "Popular destinations across Bangladesh",
+  destinations_description: "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest.",
+  destinations_cta_label: "All destinations",
+  destinations_cta_href: "/destinations",
+  destinations_hidden: false,
+
+  // 3. Tours
+  tours_eyebrow: "Tour Packages",
+  tours_title: "Popular tour packages",
+  tours_description: "Small groups, local hosts, and everything included. Filter by place, duration, or price to find your trip in seconds.",
+  tours_cta_label: "Browse all tours",
+  tours_cta_href: "/tours",
+  tours_hidden: false,
+
+  // 4. Why Us
+  why_us_eyebrow: "Why ATITHI",
+  why_us_title: "Travel with people who call Bangladesh home",
+  why_us_description: "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides.",
+  why_us_items: [
+    {
+      title: "Trusted local hosts",
+      description: "Every tour is led by a verified Bangladeshi host who knows their district like family — not a scripted guide.",
+      icon: "users",
+    },
+    {
+      title: "Transparent pricing",
+      description: "The price you see is the price you pay. No hidden fees, no last-minute 'fuel surcharges', no surprises.",
+      icon: "receipt",
+    },
+    {
+      title: "Flexible payment",
+      description: "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
+      icon: "qr",
+    },
+    {
+      title: "Zero-friction booking",
+      description: "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+      icon: "ticket",
+    },
+    {
+      title: "Real 24/7 support",
+      description: "A human answers on WhatsApp throughout your trip — not a chatbot that loops you in circles.",
+      icon: "support",
+    },
+    {
+      title: "Money, fully accounted",
+      description: "Every payment is tracked end-to-end and confirmed to you and our team, so there's never a dispute about what was paid.",
+      icon: "shield",
+    },
+  ],
+  why_us_hidden: false,
+
+  // 5. Services
+  services_eyebrow: "Services",
+  services_title: "Every kind of trip, handled",
+  services_description: "Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it.",
+  services_items: [
+    {
+      title: "Group Tours",
+      description: "Curated group departures to every corner of Bangladesh, led by a local host and priced all-inclusive.",
+      icon: "users",
+    },
+    {
+      title: "Private & Custom Trips",
+      description: "Your dates, your pace, your budget. We design a private itinerary around exactly what you want to do.",
+      icon: "route",
+    },
+    {
+      title: "Honeymoon Packages",
+      description: "Ocean-view suites, candlelit dinners, and private moments — built for two, from arrival flowers to departure.",
+      icon: "heart",
+    },
+    {
+      title: "Family Holidays",
+      description: "Kids-first pacing, safe transport, and hosts who handle the logistics so parents actually relax.",
+      icon: "home",
+    },
+    {
+      title: "Corporate Retreats",
+      description: "Team trips to the hills or the coast with planning, logistics, and bonding activities handled end to end.",
+      icon: "briefcase",
+    },
+    {
+      title: "Adventure & Trekking",
+      description: "Hill-tract treks, forest cruises, and off-the-map experiences with certified local guides and permits arranged.",
+      icon: "mountain",
+    },
+  ],
+  services_hidden: false,
+
+  // 6. Offers
+  offers_eyebrow: "Special Offers",
+  offers_title: "A little reason to book today",
+  offers_description: "Seasonal savings and group perks — applied automatically at checkout with the right code.",
+  offers_hidden: false,
+
+  // 7. Reviews
+  reviews_eyebrow: "Customer Reviews",
+  reviews_title: "Loved by travelers across Bangladesh",
+  reviews_description: "Real words from guests who booked, travelled, and settled their balances — all in one seamless flow.",
+  reviews_hidden: false,
+
+  // 8. Journal
+  journal_eyebrow: "Travel Journal",
+  journal_title: "Stories from the road",
+  journal_description: "Field guides, food trails, and honest travel writing from our hosts and guests.",
+  journal_cta_label: "All stories",
+  journal_cta_href: "/journal",
+  journal_hidden: false,
+
+  // 9. CTA Banner
+  cta_eyebrow: "Atithi — the guest is God",
+  cta_title: "Plan your next journey across Bangladesh",
+  cta_description: "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
+  cta_primary_label: "Plan My Trip",
+  cta_primary_href: "/contact",
+  cta_secondary_label: "Browse Tours",
+  cta_secondary_href: "/tours",
+  cta_hidden: false,
+};
+
+export function getHomePageCms(): HomePageCmsContent {
+  const db = loadDb();
+  if (!Array.isArray(db.homepageBlocks)) {
+    db.homepageBlocks = [];
+  }
+  const block = db.homepageBlocks.find(
+    (b) => b.block_type === "home_page" || b.id === "block-home-page"
+  );
+  if (!block || !block.content) return DEFAULT_HOME_CMS;
+  return { ...DEFAULT_HOME_CMS, ...(block.content as Partial<HomePageCmsContent>) };
+}
+
+export function saveHomePageCms(content: Partial<HomePageCmsContent>): DbHomepageBlock {
+  const current = getHomePageCms();
+  const merged = { ...current, ...content };
+  return saveHomepageBlock("block-home-page", "home_page", merged as Record<string, unknown>);
 }
 
 // ---------------------------------------------------------------------------
@@ -852,17 +1145,25 @@ export function saveBlogPost(postData: Partial<DbBlogPost>): DbBlogPost {
   const id = postData.id || `post-${Date.now()}`;
   const index = db.blogPosts.findIndex((p) => p.id === id);
 
+  const rawBody = postData.body || postData.content || "";
   const defaultPost: DbBlogPost = {
     id,
     title: postData.title || "Untitled Post",
     slug: postData.slug || `post-${Date.now()}`,
     category: postData.category || { name: "Travel Tips" },
-    author_name: postData.author_name || "Atithi Editorial",
-    cover_image: postData.cover_image || null,
-    excerpt: postData.excerpt || "",
-    body: postData.body || "",
+    author_name: postData.author_name || postData.author || "Atithi Editorial",
+    author: postData.author || postData.author_name || "Atithi Editorial",
+    cover_image: postData.cover_image || postData.hero_image || null,
+    hero_image: postData.hero_image || postData.cover_image || null,
+    excerpt: postData.excerpt || rawBody.slice(0, 160),
+    body: rawBody,
+    content: rawBody,
+    read_time_minutes: Number(postData.read_time_minutes || 5),
+    tags: postData.tags || [],
     published_at: postData.published_at || new Date().toISOString(),
-    status: postData.status || "published",
+    status: postData.status || (postData.is_published === false ? "draft" : "published"),
+    is_published: postData.status ? postData.status === "published" : postData.is_published !== false,
+    is_featured: Boolean(postData.is_featured),
   };
 
   if (index !== -1) {

@@ -110,6 +110,155 @@ export interface DbBlogPost {
   created_at?: string;
   status: "published" | "draft";
   is_published?: boolean;
+  is_featured?: boolean;
+}
+
+export interface AboutValueItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface AboutTeamMember {
+  name: string;
+  role: string;
+  bio: string;
+  scene?: string;
+  image_url?: string;
+}
+
+export interface AboutPageCmsContent {
+  // Hero
+  hero_eyebrow?: string;
+  hero_title?: string;
+  hero_subtitle?: string;
+  
+  // Story & Mission
+  story_badge?: string;
+  story_title?: string;
+  story_paragraphs?: string[];
+  mission_title?: string;
+  mission_text?: string;
+  
+  // Core Values
+  values?: AboutValueItem[];
+  
+  // How Booking Works / Why Us
+  booking_eyebrow?: string;
+  booking_title?: string;
+  booking_description?: string;
+  
+  // Team / Local Hosts
+  team_eyebrow?: string;
+  team_title?: string;
+  team?: AboutTeamMember[];
+  
+  // Payment & QR Clearance
+  payment_badge?: string;
+  payment_title?: string;
+  payment_description?: string;
+  payment_cta_label?: string;
+  payment_cta_href?: string;
+  
+  // Bottom CTA
+  cta_title?: string;
+  cta_description?: string;
+  cta_label?: string;
+  cta_href?: string;
+}
+
+export interface WhyUsItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface ServiceItem {
+  icon: string;
+  title: string;
+  description: string;
+  href?: string;
+}
+
+export interface HomePageCmsContent {
+  // 1. Hero
+  hero_eyebrow?: string;
+  hero_headline?: string;
+  hero_highlight?: string;
+  hero_subheadline?: string;
+  hero_primary_cta_label?: string;
+  hero_primary_cta_href?: string;
+  hero_secondary_cta_label?: string;
+  hero_secondary_cta_href?: string;
+
+  // 2. Destinations Section
+  destinations_eyebrow?: string;
+  destinations_title?: string;
+  destinations_description?: string;
+  destinations_cta_label?: string;
+  destinations_cta_href?: string;
+  destinations_hidden?: boolean;
+
+  // 3. Tours Section
+  tours_eyebrow?: string;
+  tours_title?: string;
+  tours_description?: string;
+  tours_cta_label?: string;
+  tours_cta_href?: string;
+  tours_hidden?: boolean;
+
+  // 4. Why Us / Value Proposition
+  why_us_eyebrow?: string;
+  why_us_title?: string;
+  why_us_description?: string;
+  why_us_items?: WhyUsItem[];
+  why_us_hidden?: boolean;
+
+  // 5. Services Section
+  services_eyebrow?: string;
+  services_title?: string;
+  services_description?: string;
+  services_items?: ServiceItem[];
+  services_hidden?: boolean;
+
+  // 6. Special Offers Section
+  offers_eyebrow?: string;
+  offers_title?: string;
+  offers_description?: string;
+  offers_hidden?: boolean;
+
+  // 7. Testimonials / Reviews Section
+  reviews_eyebrow?: string;
+  reviews_title?: string;
+  reviews_description?: string;
+  reviews_hidden?: boolean;
+
+  // 8. Travel Journal Section
+  journal_eyebrow?: string;
+  journal_title?: string;
+  journal_description?: string;
+  journal_cta_label?: string;
+  journal_cta_href?: string;
+  journal_hidden?: boolean;
+
+  // 9. Bottom CTA Banner
+  cta_eyebrow?: string;
+  cta_title?: string;
+  cta_description?: string;
+  cta_primary_label?: string;
+  cta_primary_href?: string;
+  cta_secondary_label?: string;
+  cta_secondary_href?: string;
+  cta_hidden?: boolean;
+}
+
+export interface JournalPageCmsContent {
+  header_eyebrow?: string;
+  header_title?: string;
+  header_description?: string;
+  featured_badge?: string;
+  empty_title?: string;
+  empty_description?: string;
 }
 
 export interface DbHomepageBlock {
@@ -122,7 +271,12 @@ export interface DbHomepageBlock {
     | "destination_grid"
     | "testimonials"
     | "cta"
-    | "gallery";
+    | "gallery"
+    | "hero_banner"
+    | "service_list"
+    | "about_page"
+    | "journal_page"
+    | "home_page";
   display_order: number;
   content: Record<string, unknown>;
 }

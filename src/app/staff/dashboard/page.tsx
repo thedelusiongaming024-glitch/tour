@@ -12,6 +12,13 @@ import type {
   DbBooking,
   DbContactInquiry,
   DbHomepageBlock,
+  AboutPageCmsContent,
+  JournalPageCmsContent,
+  AboutValueItem,
+  AboutTeamMember,
+  HomePageCmsContent,
+  WhyUsItem,
+  ServiceItem,
 } from "@/server/types";
 
 interface AgencyOverview {
@@ -41,11 +48,228 @@ type ActiveTab =
   | "tours"
   | "destinations"
   | "cms"
+  | "about_cms"
   | "blog"
   | "offers"
   | "reviews"
   | "bookings"
   | "inquiries";
+
+const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
+  hero_eyebrow: "About Atithi",
+  hero_title: "Thoughtful journeys across Bangladesh",
+  hero_subtitle:
+    "Built by local travelers who believe the best trips happen when you're hosted like family, not processed like a transaction.",
+  story_badge: "Our Story",
+  story_title: "Born out of a simple conviction",
+  story_paragraphs: [
+    "Most domestic travel in Bangladesh was broken in two ways: either you were on your own navigating erratic transport, unverified hotels, and hidden costs — or you were packed into a thirty-person bus tour with fixed buffets and thirty-minute photo stops.",
+    "We wanted something different: trips designed the way an experienced friend would show you their hometown. Small groups, handpicked local hosts, honest pricing, and genuine hospitality.",
+    "Today, Atithi runs curated journeys to twelve destinations across Bangladesh — from the tea valleys of Sreemangal to the coral reefs of Saint Martin. Every trip is led by someone who actually lives there.",
+  ],
+  mission_title: "Our Mission",
+  mission_text:
+    "To make domestic travel across Bangladesh seamless, transparent, and genuinely memorable — while ensuring tourism directly benefits the local communities and guides who make these places special.",
+  values: [
+    {
+      icon: "shield",
+      title: "Radical transparency",
+      description:
+        "No hidden resort fees, surprise fuel charges, or mandatory tips. Every BDT is accounted for upfront.",
+    },
+    {
+      icon: "users",
+      title: "Local, always",
+      description:
+        "No outsourced guides, no foreign templates. Every host is Bangladeshi, and every itinerary is built around real local knowledge.",
+    },
+    {
+      icon: "heart",
+      title: "Hospitality first",
+      description:
+        'Atithi — "guest" — is central to Bengali culture. We host you the way we\'d host family, not process you like a booking number.',
+    },
+    {
+      icon: "sparkle",
+      title: "Considered detail",
+      description:
+        "From the ridge walk only locals know to the candlelit dinner arranged without being asked — the small things are the trip.",
+    },
+  ],
+  booking_eyebrow: "How booking works",
+  booking_title: "Zero-friction, start to finish",
+  booking_description:
+    "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity.",
+  team_eyebrow: "The team",
+  team_title: "A few of the people who'll host you",
+  team: [
+    {
+      name: "Raisa Chowdhury",
+      role: "Co-founder & Head of Experience",
+      bio: "Ten years guiding across the Chittagong Hill Tracts before building Atithi's tour design team.",
+      scene: "sajek",
+    },
+    {
+      name: "Tanvir Hasan",
+      role: "Co-founder & Head of Operations",
+      bio: "Runs the host network and on-ground logistics across all twelve destinations.",
+      scene: "sundarbans",
+    },
+    {
+      name: "Mehedi Hasan",
+      role: "Head of Finance",
+      bio: "Built the payment and QR clearance system so every advance and balance is tracked without ambiguity.",
+      scene: "coxsbazar",
+    },
+  ],
+  payment_badge: "Payment & QR clearance",
+  payment_title: "How your money is handled, end to end",
+  payment_description:
+    "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself. The moment it clears, both you and our team get a WhatsApp and email confirmation, so there's a clean record of what was paid, when, on both sides.",
+  payment_cta_label: "Talk to us",
+  payment_cta_href: "/contact",
+  cta_title: "Ready to plan your own story?",
+  cta_description:
+    "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.",
+  cta_label: "Plan My Trip",
+  cta_href: "/contact",
+};
+
+const DEFAULT_JOURNAL_PAGE_CMS: JournalPageCmsContent = {
+  header_eyebrow: "Travel Journal",
+  header_title: "Stories from the road",
+  header_description:
+    "Field guides, food trails, and honest travel writing from our hosts and guests across Bangladesh.",
+  featured_badge: "Latest story",
+  empty_title: "No articles published yet",
+  empty_description:
+    "Stories, packing guides, and field notes will appear here once written and published from the Super Admin Panel.",
+};
+
+const DEFAULT_HOME_PAGE_CMS: HomePageCmsContent = {
+  hero_eyebrow: "Domestic tours across Bangladesh",
+  hero_headline: "Discover Bangladesh,",
+  hero_highlight: "your way",
+  hero_subheadline: "Curated domestic tours. Trusted local hosts. Book with an advance and clear the balance on tour day.",
+  hero_primary_cta_label: "Explore Tours",
+  hero_primary_cta_href: "/tours",
+  hero_secondary_cta_label: "Plan My Trip",
+  hero_secondary_cta_href: "/contact",
+
+  destinations_eyebrow: "Destinations",
+  destinations_title: "Popular destinations across Bangladesh",
+  destinations_description: "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest.",
+  destinations_cta_label: "All destinations",
+  destinations_cta_href: "/destinations",
+  destinations_hidden: false,
+
+  tours_eyebrow: "Tour Packages",
+  tours_title: "Popular tour packages",
+  tours_description: "Small groups, local hosts, and everything included. Filter by place, duration, or price to find your trip in seconds.",
+  tours_cta_label: "Browse all tours",
+  tours_cta_href: "/tours",
+  tours_hidden: false,
+
+  why_us_eyebrow: "Why ATITHI",
+  why_us_title: "Travel with people who call Bangladesh home",
+  why_us_description: "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides.",
+  why_us_items: [
+    {
+      title: "Trusted local hosts",
+      description: "Every tour is led by a verified Bangladeshi host who knows their district like family — not a scripted guide.",
+      icon: "users",
+    },
+    {
+      title: "Transparent pricing",
+      description: "The price you see is the price you pay. No hidden fees, no last-minute 'fuel surcharges', no surprises.",
+      icon: "receipt",
+    },
+    {
+      title: "Flexible payment",
+      description: "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
+      icon: "qr",
+    },
+    {
+      title: "Zero-friction booking",
+      description: "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+      icon: "ticket",
+    },
+    {
+      title: "Real 24/7 support",
+      description: "A human answers on WhatsApp throughout your trip — not a chatbot that loops you in circles.",
+      icon: "support",
+    },
+    {
+      title: "Money, fully accounted",
+      description: "Every payment is tracked end-to-end and confirmed to you and our team, so there's never a dispute about what was paid.",
+      icon: "shield",
+    },
+  ],
+  why_us_hidden: false,
+
+  services_eyebrow: "Services",
+  services_title: "Every kind of trip, handled",
+  services_description: "Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it.",
+  services_items: [
+    {
+      title: "Group Tours",
+      description: "Curated group departures to every corner of Bangladesh, led by a local host and priced all-inclusive.",
+      icon: "users",
+    },
+    {
+      title: "Private & Custom Trips",
+      description: "Your dates, your pace, your budget. We design a private itinerary around exactly what you want to do.",
+      icon: "route",
+    },
+    {
+      title: "Honeymoon Packages",
+      description: "Ocean-view suites, candlelit dinners, and private moments — built for two, from arrival flowers to departure.",
+      icon: "heart",
+    },
+    {
+      title: "Family Holidays",
+      description: "Kids-first pacing, safe transport, and hosts who handle the logistics so parents actually relax.",
+      icon: "home",
+    },
+    {
+      title: "Corporate Retreats",
+      description: "Team trips to the hills or the coast with planning, logistics, and bonding activities handled end to end.",
+      icon: "briefcase",
+    },
+    {
+      title: "Adventure & Trekking",
+      description: "Hill-tract treks, forest cruises, and off-the-map experiences with certified local guides and permits arranged.",
+      icon: "mountain",
+    },
+  ],
+  services_hidden: false,
+
+  offers_eyebrow: "Special Offers",
+  offers_title: "A little reason to book today",
+  offers_description: "Seasonal savings and group perks — applied automatically at checkout with the right code.",
+  offers_hidden: false,
+
+  reviews_eyebrow: "Customer Reviews",
+  reviews_title: "Loved by travelers across Bangladesh",
+  reviews_description: "Real words from guests who booked, travelled, and settled their balances — all in one seamless flow.",
+  reviews_hidden: false,
+
+  journal_eyebrow: "Travel Journal",
+  journal_title: "Stories from the road",
+  journal_description: "Field guides, food trails, and honest travel writing from our hosts and guests.",
+  journal_cta_label: "All stories",
+  journal_cta_href: "/journal",
+  journal_hidden: false,
+
+  cta_eyebrow: "Atithi — the guest is God",
+  cta_title: "Plan your next journey across Bangladesh",
+  cta_description: "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
+  cta_primary_label: "Plan My Trip",
+  cta_primary_href: "/contact",
+  cta_secondary_label: "Browse Tours",
+  cta_secondary_href: "/tours",
+  cta_hidden: false,
+};
 
 function formatBDT(amount: string | number): string {
   return "৳" + Math.round(Number(amount)).toLocaleString("en-BD");
@@ -106,6 +330,7 @@ function StaffDashboardContent() {
   const [inquiryModal, setInquiryModal] = useState<{ isOpen: boolean; inquiry: DbContactInquiry | null }>({ isOpen: false, inquiry: null });
 
   // CMS state
+  const [homeCms, setHomeCms] = useState<HomePageCmsContent>(DEFAULT_HOME_PAGE_CMS);
   const [heroCms, setHeroCms] = useState({
     eyebrow: "Premium domestic tours across Bangladesh",
     headline: "Discover Bangladesh,",
@@ -116,6 +341,8 @@ function StaffDashboardContent() {
     secondary_cta_label: "Plan My Trip",
     secondary_cta_href: "/contact",
   });
+  const [aboutCms, setAboutCms] = useState<AboutPageCmsContent>(DEFAULT_ABOUT_PAGE_CMS);
+  const [journalCms, setJournalCms] = useState<JournalPageCmsContent>(DEFAULT_JOURNAL_PAGE_CMS);
   const [sectionToggles, setSectionToggles] = useState({
     hideDestinations: false,
     hideFeaturedTours: false,
@@ -174,9 +401,21 @@ function StaffDashboardContent() {
       if (cmsRes.ok) {
         const blocks: DbHomepageBlock[] = (await cmsRes.json()).results || [];
         setHomepageBlocks(blocks);
+        const homeBlock = blocks.find((b) => b.block_type === "home_page" || b.id === "block-home-page");
+        if (homeBlock && homeBlock.content) {
+          setHomeCms((prev) => ({ ...prev, ...(homeBlock.content as Partial<HomePageCmsContent>) }));
+        }
         const heroBlock = blocks.find((b) => b.block_type === "hero");
         if (heroBlock && heroBlock.content) {
           setHeroCms((prev) => ({ ...prev, ...(heroBlock.content as Record<string, string>) }));
+        }
+        const aboutBlock = blocks.find((b) => b.block_type === "about_page" || b.id === "block-about-page");
+        if (aboutBlock && aboutBlock.content) {
+          setAboutCms((prev) => ({ ...prev, ...(aboutBlock.content as Partial<AboutPageCmsContent>) }));
+        }
+        const journalBlock = blocks.find((b) => b.block_type === "journal_page" || b.id === "block-journal-page");
+        if (journalBlock && journalBlock.content) {
+          setJournalCms((prev) => ({ ...prev, ...(journalBlock.content as Partial<JournalPageCmsContent>) }));
         }
         const destBlock = blocks.find((b) => b.block_type === "destination_grid");
         const tourBlock = blocks.find((b) => b.block_type === "featured_tours");
@@ -360,6 +599,8 @@ function StaffDashboardContent() {
     const catName = (formData.get("category") as string) || "Travel Guide";
     const author = (formData.get("author") as string) || "Atithi Editorial Team";
     const heroImage = (formData.get("hero_image") as string) || null;
+    const excerpt = (formData.get("excerpt") as string) || content.slice(0, 160);
+    const isFeatured = formData.get("is_featured") === "on";
 
     const payload: Partial<DbBlogPost> = {
       id: post.id,
@@ -370,13 +611,14 @@ function StaffDashboardContent() {
       category: { name: catName },
       body: content,
       content,
-      excerpt: content.slice(0, 160),
+      excerpt,
       cover_image: heroImage,
       hero_image: heroImage,
       read_time_minutes: Number(formData.get("read_time_minutes") || 5),
       tags: ((formData.get("tags") as string) || "").split(",").map((s) => s.trim()).filter(Boolean),
       status: formData.get("is_published") === "on" ? "published" : "draft",
       is_published: formData.get("is_published") === "on",
+      is_featured: isFeatured,
     };
 
     const isEdit = Boolean(post.id);
@@ -388,6 +630,8 @@ function StaffDashboardContent() {
       showNotification("success", `Article ${isEdit ? "updated" : "published"} successfully.`);
       setBlogModal({ isOpen: false, post: null });
       loadData();
+    } else {
+      showNotification("error", "Failed to save article.");
     }
   }
 
@@ -396,6 +640,32 @@ function StaffDashboardContent() {
     const res = await staffFetch(`/admin/blog-posts/${id}`, { method: "DELETE" });
     if (res.ok) {
       showNotification("success", "Article removed.");
+      loadData();
+    } else {
+      showNotification("error", "Failed to delete article.");
+    }
+  }
+
+  async function handleToggleBlogStatus(post: DbBlogPost) {
+    const nextStatus = post.status === "published" ? "draft" : "published";
+    const res = await staffFetch(`/admin/blog-posts/${post.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ ...post, status: nextStatus, is_published: nextStatus === "published" }),
+    });
+    if (res.ok) {
+      showNotification("success", `Article status changed to ${nextStatus}.`);
+      loadData();
+    }
+  }
+
+  async function handleToggleBlogFeatured(post: DbBlogPost) {
+    const nextFeatured = !post.is_featured;
+    const res = await staffFetch(`/admin/blog-posts/${post.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ ...post, is_featured: nextFeatured }),
+    });
+    if (res.ok) {
+      showNotification("success", nextFeatured ? "Article marked as featured!" : "Article unmarked from featured.");
       loadData();
     }
   }
@@ -490,43 +760,66 @@ function StaffDashboardContent() {
   // CMS Handlers
   async function handleSaveCms() {
     try {
-      await Promise.all([
-        staffFetch("/admin/cms", {
-          method: "POST",
-          body: JSON.stringify({
-            id: "block-hero-1",
-            block_type: "hero",
-            content: heroCms,
-          }),
+      const res = await staffFetch("/admin/cms", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "block-home-page",
+          block_type: "home_page",
+          content: homeCms,
         }),
-        staffFetch("/admin/cms", {
-          method: "POST",
-          body: JSON.stringify({
-            id: "block-dest-grid-2",
-            block_type: "destination_grid",
-            content: { hidden: sectionToggles.hideDestinations },
-          }),
-        }),
-        staffFetch("/admin/cms", {
-          method: "POST",
-          body: JSON.stringify({
-            id: "block-tours-3",
-            block_type: "featured_tours",
-            content: { hidden: sectionToggles.hideFeaturedTours },
-          }),
-        }),
-        staffFetch("/admin/cms", {
-          method: "POST",
-          body: JSON.stringify({
-            id: "block-testimonials-4",
-            block_type: "testimonials",
-            content: { hidden: sectionToggles.hideTestimonials },
-          }),
-        }),
-      ]);
-      showNotification("success", "Homepage configurations updated live.");
+      });
+      if (res.ok) {
+        showNotification("success", "Homepage configurations updated and published live!");
+        loadData();
+      } else {
+        showNotification("error", "Failed to save CMS configurations.");
+      }
     } catch {
       showNotification("error", "Failed to save CMS configurations.");
+    }
+  }
+
+  // About Page CMS Handler
+  async function handleSaveAboutCms() {
+    try {
+      const res = await staffFetch("/admin/cms", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "block-about-page",
+          block_type: "about_page",
+          content: aboutCms,
+        }),
+      });
+      if (res.ok) {
+        showNotification("success", "About page customization saved and live!");
+        loadData();
+      } else {
+        showNotification("error", "Failed to save About page customization.");
+      }
+    } catch {
+      showNotification("error", "Failed to save About page customization.");
+    }
+  }
+
+  // Journal Page CMS Settings Handler
+  async function handleSaveJournalCms() {
+    try {
+      const res = await staffFetch("/admin/cms", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "block-journal-page",
+          block_type: "journal_page",
+          content: journalCms,
+        }),
+      });
+      if (res.ok) {
+        showNotification("success", "Journal page settings saved and live!");
+        loadData();
+      } else {
+        showNotification("error", "Failed to save Journal page settings.");
+      }
+    } catch {
+      showNotification("error", "Failed to save Journal page settings.");
     }
   }
 
@@ -679,6 +972,7 @@ function StaffDashboardContent() {
                   { id: "tours", label: "Tours", count: tours.length },
                   { id: "destinations", label: "Destinations", count: destinations.length },
                   { id: "cms", label: "Homepage CMS", count: null },
+                  { id: "about_cms", label: "About Page CMS", count: null },
                   { id: "blog", label: "Travel Journal", count: blogPosts.length },
                   { id: "offers", label: "Special Offers", count: offers.length },
                   { id: "reviews", label: "Testimonials", count: testimonials.length },
@@ -747,6 +1041,12 @@ function StaffDashboardContent() {
                       className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
                     >
                       Configure Homepage
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("about_cms")}
+                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      Configure About Us Page
                     </button>
                     <button
                       onClick={() => setBlogModal({ isOpen: true, post: null })}
@@ -1158,42 +1458,55 @@ function StaffDashboardContent() {
         {/* ================= FRONTEND CMS CUSTOMIZER TAB ================= */}
         {activeTab === "cms" && (
           <div className="max-w-4xl space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">Homepage Live Customizer</h2>
-              <p className="text-sm text-slate-500">
-                Configure headline copy, call-to-action links, and toggle homepage section visibility in real-time
-              </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Homepage Full Live Customizer</h2>
+                <p className="text-sm text-slate-500">
+                  Full control over all 9 sections: headlines, subtitles, feature cards, services, and display toggles
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveCms}
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
+              >
+                Publish Changes to Homepage
+              </button>
             </div>
 
-            <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Hero Section Headlines</h3>
+            {/* 1. HERO SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">1. Hero Section (Top Banner)</h3>
               
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
                   Eyebrow Badge Text
                   <input
-                    value={heroCms.eyebrow}
-                    onChange={(e) => setHeroCms({ ...heroCms, eyebrow: e.target.value })}
+                    value={homeCms.hero_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, hero_eyebrow: e.target.value })}
                     className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                    placeholder="e.g. Domestic tours across Bangladesh"
                   />
                 </label>
 
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
                   Headline (Line 1)
                   <input
-                    value={heroCms.headline}
-                    onChange={(e) => setHeroCms({ ...heroCms, headline: e.target.value })}
+                    value={homeCms.hero_headline ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, hero_headline: e.target.value })}
                     className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                    placeholder="e.g. Discover Bangladesh,"
                   />
                 </label>
               </div>
 
               <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
-                Highlighted Phrase (Line 2)
+                Highlighted Phrase (Line 2 - Emerald Accent)
                 <input
-                  value={heroCms.highlight}
-                  onChange={(e) => setHeroCms({ ...heroCms, highlight: e.target.value })}
+                  value={homeCms.hero_highlight ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, hero_highlight: e.target.value })}
                   className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  placeholder="e.g. your way"
                 />
               </label>
 
@@ -1201,27 +1514,28 @@ function StaffDashboardContent() {
                 Subheadline Description
                 <textarea
                   rows={3}
-                  value={heroCms.subheadline}
-                  onChange={(e) => setHeroCms({ ...heroCms, subheadline: e.target.value })}
+                  value={homeCms.hero_subheadline ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, hero_subheadline: e.target.value })}
                   className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  placeholder="Describe your agency's promise..."
                 />
               </label>
 
-              <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t border-slate-100">
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
                   Primary Button Label
                   <input
-                    value={heroCms.primary_cta_label}
-                    onChange={(e) => setHeroCms({ ...heroCms, primary_cta_label: e.target.value })}
+                    value={homeCms.hero_primary_cta_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, hero_primary_cta_label: e.target.value })}
                     className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>
 
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
-                  Primary Button Target URL
+                  Primary Button URL
                   <input
-                    value={heroCms.primary_cta_href}
-                    onChange={(e) => setHeroCms({ ...heroCms, primary_cta_href: e.target.value })}
+                    value={homeCms.hero_primary_cta_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, hero_primary_cta_href: e.target.value })}
                     className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>
@@ -1231,62 +1545,1055 @@ function StaffDashboardContent() {
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
                   Secondary Button Label
                   <input
-                    value={heroCms.secondary_cta_label}
-                    onChange={(e) => setHeroCms({ ...heroCms, secondary_cta_label: e.target.value })}
+                    value={homeCms.hero_secondary_cta_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, hero_secondary_cta_label: e.target.value })}
                     className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>
 
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
-                  Secondary Button Target URL
+                  Secondary Button URL
                   <input
-                    value={heroCms.secondary_cta_href}
-                    onChange={(e) => setHeroCms({ ...heroCms, secondary_cta_href: e.target.value })}
+                    value={homeCms.hero_secondary_cta_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, hero_secondary_cta_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 2. POPULAR DESTINATIONS SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">2. Popular Destinations Grid</h3>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={homeCms.destinations_hidden === true}
+                    onChange={(e) => setHomeCms({ ...homeCms, destinations_hidden: e.target.checked })}
+                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                  />
+                  Hide this section on homepage
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.destinations_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, destinations_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.destinations_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, destinations_title: e.target.value })}
                     className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>
               </div>
 
-              {/* Section Visibility */}
-              <div className="pt-4 border-t border-slate-100">
-                <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-3">Homepage Section Display Controls</h4>
-                <div className="space-y-2.5">
-                  <label className="flex items-center gap-2.5 text-sm text-slate-700 cursor-pointer">
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.destinations_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, destinations_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Action Button Label
+                  <input
+                    value={homeCms.destinations_cta_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, destinations_cta_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Action Button URL
+                  <input
+                    value={homeCms.destinations_cta_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, destinations_cta_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 3. POPULAR TOURS SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">3. Popular Tour Packages Explorer</h3>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={homeCms.tours_hidden === true}
+                    onChange={(e) => setHomeCms({ ...homeCms, tours_hidden: e.target.checked })}
+                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                  />
+                  Hide this section on homepage
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.tours_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, tours_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.tours_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, tours_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.tours_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, tours_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Action Button Label
+                  <input
+                    value={homeCms.tours_cta_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, tours_cta_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Action Button URL
+                  <input
+                    value={homeCms.tours_cta_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, tours_cta_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 4. WHY US SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">4. Why Choose Us (Value Proposition)</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Edit section headings and dynamically add or remove feature cards</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={!sectionToggles.hideDestinations}
-                      onChange={(e) => setSectionToggles({ ...sectionToggles, hideDestinations: !e.target.checked })}
-                      className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 h-4 w-4"
+                      checked={homeCms.why_us_hidden === true}
+                      onChange={(e) => setHomeCms({ ...homeCms, why_us_hidden: e.target.checked })}
+                      className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
                     />
-                    Display Destinations Grid Section
+                    Hide section
                   </label>
-                  <label className="flex items-center gap-2.5 text-sm text-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={!sectionToggles.hideFeaturedTours}
-                      onChange={(e) => setSectionToggles({ ...sectionToggles, hideFeaturedTours: !e.target.checked })}
-                      className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 h-4 w-4"
-                    />
-                    Display Featured Tour Explorer Section
-                  </label>
-                  <label className="flex items-center gap-2.5 text-sm text-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={!sectionToggles.hideTestimonials}
-                      onChange={(e) => setSectionToggles({ ...sectionToggles, hideTestimonials: !e.target.checked })}
-                      className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 h-4 w-4"
-                    />
-                    Display Customer Testimonials Section
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHomeCms({
+                        ...homeCms,
+                        why_us_items: [
+                          ...(homeCms.why_us_items || []),
+                          { icon: "shield", title: "New Reason", description: "Why travelers trust your agency." },
+                        ],
+                      })
+                    }
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+                  >
+                    + Add Card
+                  </button>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.why_us_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, why_us_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.why_us_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, why_us_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.why_us_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, why_us_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              {/* Cards List */}
+              <div className="grid gap-3 sm:grid-cols-2 pt-2">
+                {(homeCms.why_us_items || []).map((card, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-2.5 relative">
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={card.icon || "shield"}
+                        onChange={(e) => {
+                          const updated = [...(homeCms.why_us_items || [])];
+                          updated[idx] = { ...updated[idx], icon: e.target.value };
+                          setHomeCms({ ...homeCms, why_us_items: updated });
+                        }}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none"
+                      >
+                        <option value="users">Icon: Users (Local hosts)</option>
+                        <option value="receipt">Icon: Receipt (Transparent pricing)</option>
+                        <option value="qr">Icon: QR Code (Flexible payment)</option>
+                        <option value="ticket">Icon: Ticket (Zero-friction booking)</option>
+                        <option value="support">Icon: Support (24/7 human support)</option>
+                        <option value="shield">Icon: Shield (Money security)</option>
+                        <option value="heart">Icon: Heart (Hospitality)</option>
+                        <option value="sparkle">Icon: Sparkle (Special experience)</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = (homeCms.why_us_items || []).filter((_, i) => i !== idx);
+                          setHomeCms({ ...homeCms, why_us_items: updated });
+                        }}
+                        className="text-rose-600 hover:text-rose-800 text-xs font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input
+                      value={card.title}
+                      onChange={(e) => {
+                        const updated = [...(homeCms.why_us_items || [])];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        setHomeCms({ ...homeCms, why_us_items: updated });
+                      }}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-600"
+                      placeholder="Card Title"
+                    />
+                    <textarea
+                      rows={2}
+                      value={card.description}
+                      onChange={(e) => {
+                        const updated = [...(homeCms.why_us_items || [])];
+                        updated[idx] = { ...updated[idx], description: e.target.value };
+                        setHomeCms({ ...homeCms, why_us_items: updated });
+                      }}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 outline-none focus:border-emerald-600"
+                      placeholder="Card Description"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 5. SERVICES SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">5. Services Section</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Control trip service categories and custom tour solutions</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={homeCms.services_hidden === true}
+                      onChange={(e) => setHomeCms({ ...homeCms, services_hidden: e.target.checked })}
+                      className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                    />
+                    Hide section
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHomeCms({
+                        ...homeCms,
+                        services_items: [
+                          ...(homeCms.services_items || []),
+                          { icon: "users", title: "New Tour Service", description: "Details of this tour service category." },
+                        ],
+                      })
+                    }
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+                  >
+                    + Add Service
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.services_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, services_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.services_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, services_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.services_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, services_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              {/* Service Cards List */}
+              <div className="grid gap-3 sm:grid-cols-2 pt-2">
+                {(homeCms.services_items || []).map((srv, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-2.5 relative">
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={srv.icon || "users"}
+                        onChange={(e) => {
+                          const updated = [...(homeCms.services_items || [])];
+                          updated[idx] = { ...updated[idx], icon: e.target.value };
+                          setHomeCms({ ...homeCms, services_items: updated });
+                        }}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none"
+                      >
+                        <option value="users">Icon: Users (Group tours)</option>
+                        <option value="route">Icon: Route (Private trips)</option>
+                        <option value="heart">Icon: Heart (Honeymoon)</option>
+                        <option value="home">Icon: Home (Family holidays)</option>
+                        <option value="briefcase">Icon: Briefcase (Corporate)</option>
+                        <option value="mountain">Icon: Mountain (Trekking / Adventure)</option>
+                        <option value="compass">Icon: Compass (Exploration)</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = (homeCms.services_items || []).filter((_, i) => i !== idx);
+                          setHomeCms({ ...homeCms, services_items: updated });
+                        }}
+                        className="text-rose-600 hover:text-rose-800 text-xs font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input
+                      value={srv.title}
+                      onChange={(e) => {
+                        const updated = [...(homeCms.services_items || [])];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        setHomeCms({ ...homeCms, services_items: updated });
+                      }}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-600"
+                      placeholder="Service Title"
+                    />
+                    <textarea
+                      rows={2}
+                      value={srv.description}
+                      onChange={(e) => {
+                        const updated = [...(homeCms.services_items || [])];
+                        updated[idx] = { ...updated[idx], description: e.target.value };
+                        setHomeCms({ ...homeCms, services_items: updated });
+                      }}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 outline-none focus:border-emerald-600"
+                      placeholder="Service Description"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 6. SPECIAL OFFERS SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">6. Special Offers Banner Section</h3>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={homeCms.offers_hidden === true}
+                    onChange={(e) => setHomeCms({ ...homeCms, offers_hidden: e.target.checked })}
+                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                  />
+                  Hide this section on homepage
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.offers_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, offers_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.offers_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, offers_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.offers_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, offers_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+            </div>
+
+            {/* 7. CUSTOMER REVIEWS SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">7. Customer Reviews & Testimonials</h3>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={homeCms.reviews_hidden === true}
+                    onChange={(e) => setHomeCms({ ...homeCms, reviews_hidden: e.target.checked })}
+                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                  />
+                  Hide this section on homepage
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.reviews_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, reviews_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.reviews_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, reviews_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.reviews_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, reviews_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+            </div>
+
+            {/* 8. TRAVEL JOURNAL SECTION */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">8. Travel Journal & Stories Preview</h3>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={homeCms.journal_hidden === true}
+                    onChange={(e) => setHomeCms({ ...homeCms, journal_hidden: e.target.checked })}
+                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                  />
+                  Hide this section on homepage
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.journal_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, journal_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={homeCms.journal_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, journal_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Section Description
+                <textarea
+                  rows={2}
+                  value={homeCms.journal_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, journal_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Action Button Label
+                  <input
+                    value={homeCms.journal_cta_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, journal_cta_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Action Button URL
+                  <input
+                    value={homeCms.journal_cta_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, journal_cta_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 9. BOTTOM CTA BANNER */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">9. Bottom Call-To-Action Banner</h3>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={homeCms.cta_hidden === true}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_hidden: e.target.checked })}
+                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
+                  />
+                  Hide banner on homepage
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Eyebrow Badge Text
+                  <input
+                    value={homeCms.cta_eyebrow ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Banner Headline
+                  <input
+                    value={homeCms.cta_title ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Banner Description
+                <textarea
+                  rows={2}
+                  value={homeCms.cta_description ?? ""}
+                  onChange={(e) => setHomeCms({ ...homeCms, cta_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Primary Button Label
+                  <input
+                    value={homeCms.cta_primary_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_primary_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Primary Button URL
+                  <input
+                    value={homeCms.cta_primary_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_primary_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Secondary Button Label
+                  <input
+                    value={homeCms.cta_secondary_label ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_secondary_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Secondary Button URL
+                  <input
+                    value={homeCms.cta_secondary_href ?? ""}
+                    onChange={(e) => setHomeCms({ ...homeCms, cta_secondary_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Bottom sticky publish button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleSaveCms}
+                className="w-full rounded-xl bg-emerald-700 py-3 text-sm font-semibold text-white hover:bg-emerald-800 transition shadow-md"
+              >
+                Publish All Changes to Homepage
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ================= ABOUT PAGE CMS TAB ================= */}
+        {activeTab === "about_cms" && (
+          <div className="max-w-4xl space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">About Us Page Live Customizer</h2>
+                <p className="text-sm text-slate-500">
+                  Full control over narrative copy, mission statements, core values, team/hosts, and payment explainer
+                </p>
+              </div>
+              <button
+                onClick={handleSaveAboutCms}
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
+              >
+                Publish Changes to About Page
+              </button>
+            </div>
+
+            {/* 1. Hero & Mission Section */}
+            <div className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">1. Hero & Story Narrative</h3>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Hero Eyebrow Badge
+                  <input
+                    value={aboutCms.hero_eyebrow || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, hero_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Hero Headline Title
+                  <input
+                    value={aboutCms.hero_title || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, hero_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Hero Subtitle
+                <textarea
+                  rows={2}
+                  value={aboutCms.hero_subtitle || ""}
+                  onChange={(e) => setAboutCms({ ...aboutCms, hero_subtitle: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Story Badge Label
+                  <input
+                    value={aboutCms.story_badge || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, story_badge: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Story Section Title
+                  <input
+                    value={aboutCms.story_title || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, story_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                Story Paragraphs (Separate each paragraph with a blank line)
+                <textarea
+                  rows={6}
+                  value={(aboutCms.story_paragraphs || []).join("\n\n")}
+                  onChange={(e) =>
+                    setAboutCms({
+                      ...aboutCms,
+                      story_paragraphs: e.target.value.split("\n\n").map((s) => s.trim()).filter(Boolean),
+                    })
+                  }
+                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Mission Statement Title
+                  <input
+                    value={aboutCms.mission_title || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, mission_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                  Mission Statement Copy
+                  <textarea
+                    rows={2}
+                    value={aboutCms.mission_text || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, mission_text: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 2. Core Values Section */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">2. Core Values</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Edit, add, or remove company values showcased in the grid</p>
+                </div>
                 <button
-                  onClick={handleSaveCms}
+                  type="button"
+                  onClick={() =>
+                    setAboutCms({
+                      ...aboutCms,
+                      values: [
+                        ...(aboutCms.values || []),
+                        { icon: "sparkle", title: "New Value", description: "Value description goes here." },
+                      ],
+                    })
+                  }
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+                >
+                  + Add Value
+                </button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(aboutCms.values || []).map((val, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-2.5 relative">
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={val.icon || "sparkle"}
+                        onChange={(e) => {
+                          const updated = [...(aboutCms.values || [])];
+                          updated[idx] = { ...updated[idx], icon: e.target.value };
+                          setAboutCms({ ...aboutCms, values: updated });
+                        }}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none"
+                      >
+                        <option value="shield">Icon: Shield (Security / Transparency)</option>
+                        <option value="users">Icon: Users (Local People / Guides)</option>
+                        <option value="heart">Icon: Heart (Hospitality / Care)</option>
+                        <option value="sparkle">Icon: Sparkle (Considered Detail)</option>
+                        <option value="compass">Icon: Compass (Exploration)</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = (aboutCms.values || []).filter((_, i) => i !== idx);
+                          setAboutCms({ ...aboutCms, values: updated });
+                        }}
+                        className="text-rose-600 hover:text-rose-800 text-xs font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input
+                      value={val.title}
+                      onChange={(e) => {
+                        const updated = [...(aboutCms.values || [])];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        setAboutCms({ ...aboutCms, values: updated });
+                      }}
+                      placeholder="Value title"
+                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-600"
+                    />
+                    <textarea
+                      rows={2}
+                      value={val.description}
+                      onChange={(e) => {
+                        const updated = [...(aboutCms.values || [])];
+                        updated[idx] = { ...updated[idx], description: e.target.value };
+                        setAboutCms({ ...aboutCms, values: updated });
+                      }}
+                      placeholder="Value description"
+                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Team & Local Hosts Section */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">3. Team & Local Hosts</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Founders, tour leaders, and on-ground hosts</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAboutCms({
+                      ...aboutCms,
+                      team: [
+                        ...(aboutCms.team || []),
+                        {
+                          name: "Host Name",
+                          role: "Lead Guide",
+                          bio: "Experienced storyteller and expedition leader.",
+                          scene: "sajek",
+                        },
+                      ],
+                    })
+                  }
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+                >
+                  + Add Host / Team Member
+                </button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Section Eyebrow
+                  <input
+                    value={aboutCms.team_eyebrow || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, team_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Section Title
+                  <input
+                    value={aboutCms.team_title || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, team_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                {(aboutCms.team || []).map((member, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-2 relative flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-slate-400">Member #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (aboutCms.team || []).filter((_, i) => i !== idx);
+                            setAboutCms({ ...aboutCms, team: updated });
+                          }}
+                          className="text-rose-600 hover:text-rose-800 text-xs font-medium"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <input
+                        value={member.name}
+                        onChange={(e) => {
+                          const updated = [...(aboutCms.team || [])];
+                          updated[idx] = { ...updated[idx], name: e.target.value };
+                          setAboutCms({ ...aboutCms, team: updated });
+                        }}
+                        placeholder="Full Name"
+                        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-600"
+                      />
+                      <input
+                        value={member.role}
+                        onChange={(e) => {
+                          const updated = [...(aboutCms.team || [])];
+                          updated[idx] = { ...updated[idx], role: e.target.value };
+                          setAboutCms({ ...aboutCms, team: updated });
+                        }}
+                        placeholder="Role / Title"
+                        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 outline-none focus:border-emerald-600"
+                      />
+                      <input
+                        value={member.image_url || ""}
+                        onChange={(e) => {
+                          const updated = [...(aboutCms.team || [])];
+                          updated[idx] = { ...updated[idx], image_url: e.target.value };
+                          setAboutCms({ ...aboutCms, team: updated });
+                        }}
+                        placeholder="Custom Image URL (optional)"
+                        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] text-slate-600 outline-none focus:border-emerald-600"
+                      />
+                      <textarea
+                        rows={3}
+                        value={member.bio}
+                        onChange={(e) => {
+                          const updated = [...(aboutCms.team || [])];
+                          updated[idx] = { ...updated[idx], bio: e.target.value };
+                          setAboutCms({ ...aboutCms, team: updated });
+                        }}
+                        placeholder="Brief bio"
+                        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 outline-none focus:border-emerald-600"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 4. Payment & QR Clearance Explainer */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">4. Payment & QR Clearance Section</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Explains the transparent partial advance and on-tour QR settlement</p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Badge Label
+                  <input
+                    value={aboutCms.payment_badge || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, payment_badge: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Headline Title
+                  <input
+                    value={aboutCms.payment_title || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, payment_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                Detailed Explainer Text
+                <textarea
+                  rows={4}
+                  value={aboutCms.payment_description || ""}
+                  onChange={(e) => setAboutCms({ ...aboutCms, payment_description: e.target.value })}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Button Label
+                  <input
+                    value={aboutCms.payment_cta_label || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, payment_cta_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Button Target Link
+                  <input
+                    value={aboutCms.payment_cta_href || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, payment_cta_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* 5. Bottom Call-To-Action Banner */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="border-b border-slate-100 pb-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">5. Bottom CTA Banner</h3>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Banner Title
+                  <input
+                    value={aboutCms.cta_title || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, cta_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Button Label
+                  <input
+                    value={aboutCms.cta_label || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, cta_label: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Banner Description
+                  <textarea
+                    rows={2}
+                    value={aboutCms.cta_description || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, cta_description: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Button Destination URL
+                  <input
+                    value={aboutCms.cta_href || ""}
+                    onChange={(e) => setAboutCms({ ...aboutCms, cta_href: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100">
+                <button
+                  onClick={handleSaveAboutCms}
                   className="w-full rounded-lg bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
                 >
-                  Publish Changes to Frontend
+                  Publish Changes to About Page
                 </button>
               </div>
             </div>
@@ -1295,46 +2602,187 @@ function StaffDashboardContent() {
 
         {/* ================= BLOG TAB ================= */}
         {activeTab === "blog" && (
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Travel Journal & Guides</h2>
-                <p className="text-sm text-slate-500">Editorial travel writings, destination field reports, and packing advice</p>
+          <div className="space-y-6 max-w-5xl">
+            {/* Journal Page Header & Settings CMS Card */}
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">Travel Journal Page Header & Settings</h3>
+                  <p className="text-xs text-slate-500">Customize the top headline, description, and empty state text shown on /journal</p>
+                </div>
+                <button
+                  onClick={handleSaveJournalCms}
+                  className="rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
+                >
+                  Save Journal Settings
+                </button>
               </div>
-              <button
-                onClick={() => setBlogModal({ isOpen: true, post: null })}
-                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
-              >
-                + Write Article
-              </button>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Page Eyebrow
+                  <input
+                    value={journalCms.header_eyebrow || ""}
+                    onChange={(e) => setJournalCms({ ...journalCms, header_eyebrow: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Page Headline Title
+                  <input
+                    value={journalCms.header_title || ""}
+                    onChange={(e) => setJournalCms({ ...journalCms, header_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Editorial Subtitle / Description
+                  <textarea
+                    rows={2}
+                    value={journalCms.header_description || ""}
+                    onChange={(e) => setJournalCms({ ...journalCms, header_description: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Featured Story Badge
+                  <input
+                    value={journalCms.featured_badge || ""}
+                    onChange={(e) => setJournalCms({ ...journalCms, featured_badge: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Empty State Title
+                  <input
+                    value={journalCms.empty_title || ""}
+                    onChange={(e) => setJournalCms({ ...journalCms, empty_title: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+                  Empty State Description
+                  <input
+                    value={journalCms.empty_description || ""}
+                    onChange={(e) => setJournalCms({ ...journalCms, empty_description: e.target.value })}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {blogPosts.map((p) => (
-                <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs hover:border-slate-300 transition">
-                  <div>
-                    <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">{p.category?.name || "Travel"}</span>
-                    <h3 className="font-semibold text-base text-slate-900 mt-0.5">{p.title}</h3>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Author: {p.author_name || p.author} · {p.read_time_minutes || 5} min read · Published {p.published_at?.slice(0, 10)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setBlogModal({ isOpen: true, post: p })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteBlog(p.id)}
-                      className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3.5 py-1.5 text-xs font-medium hover:bg-rose-100 transition"
-                    >
-                      Delete
-                    </button>
-                  </div>
+            {/* Articles List */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900">Articles & Editorial Stories ({blogPosts.length})</h2>
+                  <p className="text-xs text-slate-500">Draft, publish, and toggle featured articles shown prominently at the top of the Journal</p>
                 </div>
-              ))}
+                <button
+                  onClick={() => setBlogModal({ isOpen: true, post: null })}
+                  className="rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
+                >
+                  + Write Article
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {blogPosts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                    No articles written yet. Click &ldquo;+ Write Article&rdquo; above to publish your first story.
+                  </div>
+                ) : (
+                  blogPosts.map((p) => {
+                    const isPublished = p.status === "published" || p.is_published === true;
+                    const isFeatured = p.is_featured === true;
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="rounded-xl border border-slate-200 bg-white p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs hover:border-slate-300 transition"
+                      >
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">
+                              {p.category?.name || "Travel"}
+                            </span>
+                            {isFeatured && (
+                              <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-semibold text-amber-800 flex items-center gap-1">
+                                ★ Featured Story
+                              </span>
+                            )}
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-medium border ${
+                                isPublished
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-slate-100 text-slate-600 border-slate-200"
+                              }`}
+                            >
+                              {isPublished ? "Published" : "Draft"}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-base text-slate-900">{p.title}</h3>
+                          {p.excerpt && (
+                            <p className="text-xs text-slate-600 line-clamp-2 mt-1 leading-relaxed">
+                              {p.excerpt}
+                            </p>
+                          )}
+                          <p className="text-xs text-slate-400 mt-2">
+                            Slug: <span className="font-mono text-slate-600">/{p.slug}</span> · Author: {p.author_name || p.author} · {p.read_time_minutes || 5} min read
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleBlogFeatured(p)}
+                            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                              isFeatured
+                                ? "bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100"
+                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            }`}
+                            title={isFeatured ? "Unmark from featured" : "Mark as featured story"}
+                          >
+                            {isFeatured ? "★ Featured" : "☆ Make Featured"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleBlogStatus(p)}
+                            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                              isPublished
+                                ? "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                            }`}
+                          >
+                            {isPublished ? "Unpublish" : "Publish"}
+                          </button>
+
+                          <button
+                            onClick={() => setBlogModal({ isOpen: true, post: p })}
+                            className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteBlog(p.id)}
+                            className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3.5 py-1.5 text-xs font-medium hover:bg-rose-100 transition"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -2022,15 +3470,26 @@ function StaffDashboardContent() {
             </div>
 
             <form onSubmit={handleSaveBlog} className="space-y-4 text-sm">
-              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
-                Article Title *
-                <input
-                  required
-                  name="title"
-                  defaultValue={blogModal.post?.title}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                />
-              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                  Article Title *
+                  <input
+                    required
+                    name="title"
+                    defaultValue={blogModal.post?.title}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                  URL Slug
+                  <input
+                    name="slug"
+                    defaultValue={blogModal.post?.slug}
+                    placeholder="e.g. sajek-travel-guide (auto-generated if empty)"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs font-mono"
+                  />
+                </label>
+              </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
@@ -2073,6 +3532,17 @@ function StaffDashboardContent() {
               </div>
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                Article Excerpt / Preview Summary
+                <textarea
+                  rows={2}
+                  name="excerpt"
+                  defaultValue={blogModal.post?.excerpt}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                  placeholder="Short summary displayed on cards and search results..."
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                 Article Body (Markdown supported)
                 <textarea
                   required
@@ -2093,7 +3563,7 @@ function StaffDashboardContent() {
                 />
               </label>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex flex-wrap items-center gap-6 pt-2">
                 <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
                   <input
                     type="checkbox"
@@ -2102,6 +3572,15 @@ function StaffDashboardContent() {
                     className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
                   />
                   Publish Immediately
+                </label>
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="is_featured"
+                    defaultChecked={blogModal.post?.is_featured === true}
+                    className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                  />
+                  Feature this Story (Hero display on Travel Journal)
                 </label>
               </div>
 

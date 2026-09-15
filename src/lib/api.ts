@@ -322,7 +322,7 @@ export async function fetchTestimonials(): Promise<Review[] | null> {
 export async function fetchJournalPosts(): Promise<JournalPost[] | null> {
   try {
     const list = await apiFetch<{ results: any[] }>("/blog-posts/");
-    if (list && Array.isArray(list.results) && list.results.length > 0) {
+    if (list && Array.isArray(list.results)) {
       return list.results.map((p) => ({
         slug: p.slug,
         title: p.title || "Untitled Article",
@@ -335,6 +335,7 @@ export async function fetchJournalPosts(): Promise<JournalPost[] | null> {
         readTime: `${p.read_time_minutes || 4} min read`,
         cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
         body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
+        isFeatured: Boolean(p.is_featured),
       }));
     }
   } catch {}
@@ -353,6 +354,7 @@ export async function fetchJournalPosts(): Promise<JournalPost[] | null> {
       readTime: `${p.read_time_minutes || 4} min read`,
       cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
       body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
+      isFeatured: Boolean(p.is_featured),
     }));
   } catch {
     return [];
@@ -376,6 +378,7 @@ export async function fetchJournalPost(slug: string): Promise<JournalPost | null
         readTime: `${p.read_time_minutes || 4} min read`,
         cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
         body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
+        isFeatured: Boolean(p.is_featured),
       };
     }
   } catch {}
@@ -396,6 +399,7 @@ export async function fetchJournalPost(slug: string): Promise<JournalPost | null
       readTime: `${p.read_time_minutes || 4} min read`,
       cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
       body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
+      isFeatured: Boolean(p.is_featured),
     };
   } catch {
     return null;
@@ -429,5 +433,29 @@ export async function fetchHomepageBlocks(): Promise<HomepageBlock[] | null> {
       .sort((a, b) => a.displayOrder - b.displayOrder);
   } catch {
     return [];
+  }
+}
+
+export async function fetchAboutPageCms() {
+  try {
+    return db.getAboutPageCms();
+  } catch {
+    return db.DEFAULT_ABOUT_CMS;
+  }
+}
+
+export async function fetchJournalPageCms() {
+  try {
+    return db.getJournalPageCms();
+  } catch {
+    return db.DEFAULT_JOURNAL_CMS;
+  }
+}
+
+export async function fetchHomePageCms() {
+  try {
+    return db.getHomePageCms();
+  } catch {
+    return db.DEFAULT_HOME_CMS;
   }
 }

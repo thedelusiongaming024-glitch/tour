@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { getScene } from "@/lib/scenes";
+import { normalizeImageUrl, normalizeVideoUrl } from "@/lib/media";
 import type { Scene } from "@/lib/types";
 
 interface SceneProps {
@@ -17,9 +18,7 @@ interface SceneProps {
  * scene" as both a loading-state base layer and the fallback for anything
  * that hasn't had a photo uploaded yet — so the site never regresses to a
  * broken image icon, it just quietly shows the gradient it always showed
- * before real media existed. Previously this ignored imageUrl/videoUrl
- * entirely and always rendered the gradient, even when the backend had a
- * real photo for that destination/tour.
+ * before real media existed. Supports standard URLs, Google Drive links, and videos.
  */
 export function SceneBackdrop({ scene, className, showLabel = true }: SceneProps) {
   const def = getScene(scene.key);
@@ -27,8 +26,11 @@ export function SceneBackdrop({ scene, className, showLabel = true }: SceneProps
   const [videoFailed, setVideoFailed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 
-  const showVideo = Boolean(scene.videoUrl) && !videoFailed;
-  const showImage = !showVideo && Boolean(scene.imageUrl) && !imageFailed;
+  const normalizedImage = normalizeImageUrl(scene.imageUrl);
+  const videoSource = normalizeVideoUrl(scene.videoUrl);
+
+  const showVideo = Boolean(videoSource.url) && !videoFailed;
+  const showImage = !showVideo && Boolean(normalizedImage) && !imageFailed;
 
   return (
     <motion.div
@@ -41,28 +43,31 @@ export function SceneBackdrop({ scene, className, showLabel = true }: SceneProps
       transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
     >
       {showVideo && (
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          src={scene.videoUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster={scene.imageUrl}
-          onError={() => setVideoFailed(true)}
-        />
+        videoSource.isIframe ? (
+          <iframe
+            className="absolute inset-0 h-full w-full object-cover pointer-events-none border-0 scale-125"
+            src={videoSource.url}
+            allow="autoplay; encrypted-media"
+            onError={() => setVideoFailed(true)}
+          />
+        ) : (
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={videoSource.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={normalizedImage}
+            onError={() => setVideoFailed(true)}
+          />
+        )
       )}
       {showImage && (
-        // media host isn't known at build time (local dev vs. whatever
-        // production domain), so next/image's remotePatterns allowlist
-        // can't be set once and trusted; a plain <img> works everywhere
-        // without that config and the gradient fallback above already
-        // covers the "no photo yet" case next/image would otherwise help
-        // with via blur placeholders.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           className="absolute inset-0 h-full w-full object-cover"
-          src={scene.imageUrl}
+          src={normalizedImage}
           alt={scene.label}
           onError={() => setImageFailed(true)}
         />

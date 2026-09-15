@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { Icon } from "@/components/Icon";
+import { normalizeImageUrl } from "@/lib/media";
 import type { Review } from "@/lib/types";
 
 interface ReviewCardProps {
@@ -10,6 +11,8 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
+  const photo = normalizeImageUrl(review.photoUrl);
+
   return (
     <GlassCard
       as="figure"
@@ -36,10 +39,10 @@ export function ReviewCard({ review }: ReviewCardProps) {
         &ldquo;{review.text}&rdquo;
       </blockquote>
       <figcaption className="mt-5 flex items-center gap-3 border-t border-white/60 pt-4">
-        {review.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- see SceneBackdrop's note on why plain <img> is used for admin-uploaded media here.
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={review.photoUrl}
+            src={photo}
             alt={review.name}
             className="h-10 w-10 shrink-0 rounded-full object-cover"
           />

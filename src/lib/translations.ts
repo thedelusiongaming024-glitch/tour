@@ -88,15 +88,41 @@ export interface TranslationDictionary {
     brandSpirit: string;
   };
   about: {
+    heroEyebrow: string;
     title: string;
     subtitle: string;
+    storyBadge: string;
+    storyTitle: string;
+    storyParagraphs: string[];
     ourMission: string;
     missionText: string;
+    valuesEyebrow: string;
     valuesTitle: string;
+    bookingEyebrow: string;
+    bookingTitle: string;
+    bookingDescription: string;
+    hostsEyebrow: string;
     hostsTitle: string;
+    paymentBadge: string;
+    paymentTitle: string;
+    paymentDescription: string;
+    paymentCta: string;
     ctaHeadline: string;
     ctaSubheadline: string;
     ctaButton: string;
+  };
+  journalPage: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    featuredBadge: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    readMore: string;
+    minRead: string;
+    backToJournal: string;
+    authorPrefix: string;
+    publishedOn: string;
   };
   contact: {
     title: string;
@@ -236,18 +262,52 @@ export const translations: Record<Language, TranslationDictionary> = {
       brandSpirit: '— "guest", in the spirit of Bengali hospitality.',
     },
     about: {
-      title: "Built by travelers who love this country.",
+      heroEyebrow: "Our Story",
+      title: "Built by people who call Bangladesh home",
       subtitle:
-        "Atithi was born from a simple belief: Bangladesh has some of the most stunning landscapes and warmest people on earth, yet domestic travel has remained confusing and opaque. We are fixing that.",
+        "Atithi was born from a simple belief: booking a domestic trip shouldn't mean middlemen, vague pricing, and cash changing hands with no record. We host you the way we'd host family.",
+      storyBadge: "Where it started",
+      storyTitle: "From a shared frustration to a proper agency",
+      storyParagraphs: [
+        "Most domestic travel in Bangladesh was broken in two ways: either you were on your own navigating erratic transport, unverified hotels, and hidden costs — or you were packed into a thirty-person bus tour with fixed buffets and thirty-minute photo stops.",
+        "We wanted something different: trips designed the way an experienced friend would show you their hometown. Small groups, handpicked local hosts, honest pricing, and genuine hospitality.",
+        "Today, Atithi runs curated journeys to twelve destinations across Bangladesh — from the tea valleys of Sreemangal to the coral reefs of Saint Martin. Every trip is led by someone who actually lives there.",
+      ],
       ourMission: "Our Mission",
       missionText:
         "To connect travelers with authentic, dignified local hosting across every district of Bangladesh — backed by transparent pricing, flexible payments, and human support.",
-      valuesTitle: "What Guides Every Tour We Run",
-      hostsTitle: "The Hosts Behind the Journeys",
-      ctaHeadline: "Ready to see Bangladesh with fresh eyes?",
+      valuesEyebrow: "What we stand for",
+      valuesTitle: "The values behind every trip",
+      bookingEyebrow: "How booking works",
+      bookingTitle: "Zero-friction, start to finish",
+      bookingDescription:
+        "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity.",
+      hostsEyebrow: "The team",
+      hostsTitle: "A few of the people who'll host you",
+      paymentBadge: "Payment & QR clearance",
+      paymentTitle: "How your money is handled, end to end",
+      paymentDescription:
+        "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself.",
+      paymentCta: "Talk to us",
+      ctaHeadline: "Ready to plan your own story?",
       ctaSubheadline:
-        "Whether you seek the misty valleys of Sajek, the ancient silence of the Sundarbans, or the golden reefs of Saint Martin, we have a route ready for you.",
-      ctaButton: "Explore Tours",
+        "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.",
+      ctaButton: "Plan My Trip",
+    },
+    journalPage: {
+      eyebrow: "Travel Journal",
+      title: "Stories from the road",
+      description:
+        "Field guides, food trails, and honest travel writing from our hosts and guests across Bangladesh.",
+      featuredBadge: "Latest story",
+      emptyTitle: "No articles published yet",
+      emptyDescription:
+        "Stories, packing guides, and field notes will appear here once written and published from the Super Admin Panel.",
+      readMore: "Read",
+      minRead: "min read",
+      backToJournal: "Journal",
+      authorPrefix: "Author",
+      publishedOn: "Published",
     },
     contact: {
       title: "Let's plan your journey.",
@@ -386,18 +446,52 @@ export const translations: Record<Language, TranslationDictionary> = {
       brandSpirit: '— বাঙালির চিরায়ত আতিথেয়তার উজ্জ্বল প্রতীক।',
     },
     about: {
-      title: "দেশপ্রেমিক ভ্রমণপিপাসুদের দ্বারা তৈরি।",
+      heroEyebrow: "আমাদের গল্প",
+      title: "বাংলাদেশকে ভালোবেসে স্থানীয়দের হাতে গড়া",
       subtitle:
-        "অতিথির সূচনা একটি সহজ উপলব্ধি থেকে: বাংলাদেশে রয়েছে অপরূপ সৌন্দর্য আর অমায়িক মানুষ, অথচ অভ্যন্তরীণ ভ্রমণ এখনও জটিল ও অনিশ্চিত। আমরা তা সহজ ও সুন্দর করছি।",
+        "অতিথির জন্ম এক সহজ ভাবনা থেকে: দেশে ভ্রমণ করার অর্থ অযথা মধ্যস্থতাকারী, অস্পষ্ট মূল্যতালিকা বা প্রমাণহীন লেনদেন নয়। আমরা আপনাকে ঘরের মানুষের মতোই আতিথেয়তা জানাই।",
+      storyBadge: "কোথা থেকে শুরু",
+      storyTitle: "একটি সাধারণ অসন্তোষ থেকে এক নির্ভরযোগ্য এজেন্সি",
+      storyParagraphs: [
+        "বাংলাদেশে সাধারণ অভ্যন্তরীণ ভ্রমণে দুটি সমস্যা প্রধান ছিল: হয় অনিশ্চিত গাড়ি, অপরীক্ষিত হোটেল ও লুকানো খরচে একা ভ্রমণ করতে হতো — অথবা ত্রিশ জনের বাসে নির্ধারিত খাবার আর আধ ঘণ্টার ফটো স্টপে আটকে থাকতে হতো।",
+        "আমরা ভিন্ন কিছু চেয়েছিলাম: এমন এক ভ্রমণ, যেখানে একজন অভিজ্ঞ বন্ধু নিজের শহর যেভাবে ঘুরিয়ে দেখান, ঠিক সেভাবে আপনি দেশকে জানবেন। ছোট দল, বাছাইকৃত স্থানীয় হোস্ট, শতভাগ স্বচ্ছ দাম এবং আন্তরিক আতিথেয়তা।",
+        "আজ অতিথি সারা বাংলাদেশে ১২টি বিখ্যাত অঞ্চলে যত্নশীল ভ্রমণ পরিচালনা করছে — শ্রীমঙ্গলের চায়ের উপত্যকা থেকে সেন্টমার্টিনের প্রবাল দ্বীপ পর্যন্ত। প্রতিটি দলের নেতৃত্ব দেন এমন একজন, যিনি সত্যিকার অর্থে সেই অঞ্চলের মানুষ।",
+      ],
       ourMission: "আমাদের লক্ষ্য",
       missionText:
-        "বাংলাদেশের প্রতিটি জেলায় ভ্রমণকারীদের সাথে আন্তরিক স্থানীয় হোস্টদের সংযোগ স্থাপন করা — নিশ্চিত স্বচ্ছতা, সহজ পেমেন্ট এবং সার্বক্ষণিক মানবিক সহায়তায়।",
+        "বাংলাদেশের প্রতিটি জেলায় ভ্রমণকারীদের সাথে আন্তরিক ও মর্যাদাশীল স্থানীয় হোস্টদের সংযোগ স্থাপন করা — নিশ্চিত স্বচ্ছতা, সহজ পেমেন্ট এবং সার্বক্ষণিক মানবিক সহায়তায়।",
+      valuesEyebrow: "আমাদের নীতি",
       valuesTitle: "আমাদের প্রতিটি ট্যুরের মূল ভিত্তি",
+      bookingEyebrow: "বুকিং যেভাবে কাজ করে",
+      bookingTitle: "সহজ ও ঝামেলামুক্ত অভিজ্ঞতা",
+      bookingDescription:
+        "প্রথম অনুসন্ধান থেকে শুরু করে কিউআর স্ক্যানে ব্যালেন্স ক্লিয়ারেন্স পর্যন্ত — প্রতিটি ধাপ সাজানো হয়েছে সম্পূর্ণ স্বাচ্ছন্দ্যে।",
+      hostsEyebrow: "আমাদের টিম",
       hostsTitle: "ভ্রমণের নেপথ্যে থাকা স্থানীয় হোস্টগণ",
+      paymentBadge: "পেমেন্ট ও কিউআর ক্লিয়ারেন্স",
+      paymentTitle: "আপনার অর্থের সুরক্ষা ও স্বচ্ছতা",
+      paymentDescription:
+        "বুকিংয়ের সময় বিকাশ, নগদ, রকেট বা কার্ডে পুরো মূল্য বা ছোট একটি অগ্রিম দিন। বাকি অংশ ট্যুরের দিন কিউআর স্ক্যান বা লগইন করে দিন। সাথে সাথেই উভয় পক্ষ হোয়াটসঅ্যাপ ও ইমেইল নিশ্চয়তা পাবেন।",
+      paymentCta: "কথা বলুন",
       ctaHeadline: "নতুন চোখে বাংলাদেশকে দেখতে প্রস্তুত?",
       ctaSubheadline:
         "সাজেকের মেঘের উপত্যকা হোক, সুন্দরবনের রোমাঞ্চ কিংবা সেন্টমার্টিনের নীল জলরাশি — আপনার জন্য চমৎকার রুট প্রস্তুত।",
-      ctaButton: "ট্যুর প্যাকেজ দেখুন",
+      ctaButton: "ভ্রমণ পরিকল্পনা করুন",
+    },
+    journalPage: {
+      eyebrow: "ভ্রমণ জার্নাল",
+      title: "পথের গল্প ও অভিজ্ঞতা",
+      description:
+        "আমাদের স্থানীয় হোস্ট ও পর্যটকদের স্বচক্ষে দেখা অভিজ্ঞতা, রোমাঞ্চ, খাদ্য অন্বেষণ ও খাঁটি ফিল্ড নোটস।",
+      featuredBadge: "বিশেষ গল্প",
+      emptyTitle: "এখনও কোনো গল্প প্রকাশিত হয়নি",
+      emptyDescription:
+        "সুপার অ্যাডমিন প্যানেল থেকে লেখা ও প্রকাশিত হলে এখানে সব গল্প ও ভ্রমণ নির্দেশিকা দেখা যাবে।",
+      readMore: "পড়ুন",
+      minRead: "মিনিট পাঠ",
+      backToJournal: "ভ্রমণ কথা",
+      authorPrefix: "লেখক",
+      publishedOn: "প্রকাশের তারিখ",
     },
     contact: {
       title: "চলুন আপনার ভ্রমণের পরিকল্পনা সাজাই।",

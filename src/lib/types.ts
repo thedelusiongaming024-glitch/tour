@@ -115,6 +115,7 @@ export interface JournalPost {
   readTime: string;
   cover: Scene;
   body: JournalBlock[];
+  isFeatured?: boolean;
 }
 
 export interface Review {

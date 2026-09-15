@@ -36,6 +36,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLangState(init);
     setMounted(true);
     document.documentElement.lang = init;
+    document.documentElement.classList.toggle("lang-bn", init === "bn");
   }, []);
 
   const setLanguage = useCallback((lang: Language) => {
@@ -44,6 +45,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_KEY, lang);
       document.cookie = `${COOKIE_NAME}=${lang}; path=/; max-age=31536000; SameSite=Lax`;
       document.documentElement.lang = lang;
+      document.documentElement.classList.toggle("lang-bn", lang === "bn");
     } catch {}
   }, []);
 

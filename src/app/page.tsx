@@ -17,6 +17,7 @@ import { CtaBanner } from "@/components/CtaBanner";
 import { HomeHero } from "@/components/HomeHero";
 import { LocalizedButtonLink } from "@/components/LocalizedButtonLink";
 import { Icon } from "@/components/Icon";
+import { normalizeImageUrl } from "@/lib/media";
 import { destinations as staticDestinations } from "@/data/destinations";
 import { tours as staticTours } from "@/data/tours";
 import { journalPosts as staticJournalPosts } from "@/data/journal";
@@ -30,7 +31,7 @@ import {
   siteName,
   siteNameBn,
 } from "@/data/site";
-import { fetchDestinations, fetchHomepageBlocks, fetchJournalPosts, fetchOffers, fetchTestimonials, fetchTours } from "@/lib/api";
+import { fetchDestinations, fetchHomePageCms, fetchHomepageBlocks, fetchJournalPosts, fetchOffers, fetchTestimonials, fetchTours } from "@/lib/api";
 
 /** Reads a string field out of a block's loosely-typed JSON content, or null. */
 function str(content: Record<string, unknown>, key: string): string | null {
@@ -39,13 +40,14 @@ function str(content: Record<string, unknown>, key: string): string | null {
 }
 
 export default async function Home() {
-  const [liveDestinations, liveTours, liveJournal, liveOffers, liveReviews, liveBlocks] = await Promise.all([
+  const [liveDestinations, liveTours, liveJournal, liveOffers, liveReviews, liveBlocks, homeCms] = await Promise.all([
     fetchDestinations(),
     fetchTours(),
     fetchJournalPosts(),
     fetchOffers(),
     fetchTestimonials(),
     fetchHomepageBlocks(),
+    fetchHomePageCms(),
   ]);
 
   const destinations = liveDestinations ?? staticDestinations;
@@ -94,22 +96,34 @@ export default async function Home() {
   const destinationGridBlock = blocks.find((b) => b.blockType === "destination_grid");
   const featuredToursBlock = blocks.find((b) => b.blockType === "featured_tours");
   const testimonialsBlock = blocks.find((b) => b.blockType === "testimonials");
-  const showDestinationsSection = destinationGridBlock?.content.hidden !== true && featuredDestinations.length > 0;
-  const showFeaturedToursSection = featuredToursBlock?.content.hidden !== true && popularTours.length > 0;
-  const showTestimonialsSection = testimonialsBlock?.content.hidden !== true && reviews.length > 0;
+  const showDestinationsSection =
+    homeCms.destinations_hidden !== true &&
+    destinationGridBlock?.content.hidden !== true &&
+    featuredDestinations.length > 0;
+  const showFeaturedToursSection =
+    homeCms.tours_hidden !== true &&
+    featuredToursBlock?.content.hidden !== true &&
+    popularTours.length > 0;
+  const showTestimonialsSection =
+    homeCms.reviews_hidden !== true &&
+    testimonialsBlock?.content.hidden !== true &&
+    reviews.length > 0;
+
+  const whyUsList = homeCms.why_us_items && homeCms.why_us_items.length > 0 ? homeCms.why_us_items : whyUs;
+  const servicesList = homeCms.services_items && homeCms.services_items.length > 0 ? homeCms.services_items : services;
 
   return (
     <>
       {/* ============ HERO ============ */}
       <HomeHero
-        eyebrow={str(heroContent, "eyebrow")}
-        headline={str(heroContent, "headline")}
-        highlight={str(heroContent, "highlight")}
-        subheadline={str(heroContent, "subheadline")}
-        primaryCtaLabel={str(heroContent, "primary_cta_label")}
-        primaryCtaHref={str(heroContent, "primary_cta_href")}
-        secondaryCtaLabel={str(heroContent, "secondary_cta_label")}
-        secondaryCtaHref={str(heroContent, "secondary_cta_href")}
+        eyebrow={homeCms.hero_eyebrow || str(heroContent, "eyebrow")}
+        headline={homeCms.hero_headline || str(heroContent, "headline")}
+        highlight={homeCms.hero_highlight || str(heroContent, "highlight")}
+        subheadline={homeCms.hero_subheadline || str(heroContent, "subheadline")}
+        primaryCtaLabel={homeCms.hero_primary_cta_label || str(heroContent, "primary_cta_label")}
+        primaryCtaHref={homeCms.hero_primary_cta_href || str(heroContent, "primary_cta_href")}
+        secondaryCtaLabel={homeCms.hero_secondary_cta_label || str(heroContent, "secondary_cta_label")}
+        secondaryCtaHref={homeCms.hero_secondary_cta_href || str(heroContent, "secondary_cta_href")}
         statsOverride={heroStatsOverride}
       />
 
@@ -141,7 +155,7 @@ export default async function Home() {
           );
         }
         if (block.blockType === "image") {
-          const imageUrl = str(c, "image_url");
+          const imageUrl = normalizeImageUrl(str(c, "image_url"));
           if (!imageUrl) return null;
           const img = (
             // eslint-disable-next-line @next/next/no-img-element
@@ -193,7 +207,7 @@ export default async function Home() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           key={i}
-                          src={img.url}
+                          src={normalizeImageUrl(img.url)}
                           alt={typeof img.caption === "string" ? img.caption : ""}
                           className="aspect-square w-full rounded-2xl object-cover"
                         />
@@ -219,19 +233,20 @@ export default async function Home() {
           <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
             <SectionHeading
               align="left"
-              eyebrow={str(destinationGridBlock?.content ?? {}, "eyebrow") ?? "Destinations"}
+              eyebrow={homeCms.destinations_eyebrow || str(destinationGridBlock?.content ?? {}, "eyebrow") || "Destinations"}
               eyebrowBn="গন্তব্যসমূহ"
-              title={str(destinationGridBlock?.content ?? {}, "heading") ?? "Popular destinations across Bangladesh"}
+              title={homeCms.destinations_title || str(destinationGridBlock?.content ?? {}, "heading") || "Popular destinations across Bangladesh"}
               titleBn="বাংলাদেশ জুড়ে জনপ্রিয় ভ্রমণ গন্তব্য"
               description={
-                str(destinationGridBlock?.content ?? {}, "description") ??
+                homeCms.destinations_description ||
+                str(destinationGridBlock?.content ?? {}, "description") ||
                 "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest."
               }
               descriptionBn="সমুদ্র সৈকত, সবুজ পাহাড়, ম্যানগ্রোভ বন আর চায়ের বাগান — স্থান নির্বাচন করুন, বাকি দায়িত্ব আমাদের।"
             />
             <LocalizedButtonLink
-              href="/destinations"
-              labelEn="All destinations"
+              href={homeCms.destinations_cta_href || "/destinations"}
+              labelEn={homeCms.destinations_cta_label || "All destinations"}
               labelBn="সকল গন্তব্য"
             />
           </div>
@@ -252,12 +267,13 @@ export default async function Home() {
         <Atmosphere intensity={0.18} />
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
-            eyebrow={str(featuredToursBlock?.content ?? {}, "eyebrow") ?? "Tour Packages"}
+            eyebrow={homeCms.tours_eyebrow || str(featuredToursBlock?.content ?? {}, "eyebrow") || "Tour Packages"}
             eyebrowBn="ট্যুর প্যাকেজ"
-            title={str(featuredToursBlock?.content ?? {}, "heading") ?? "Popular tour packages"}
+            title={homeCms.tours_title || str(featuredToursBlock?.content ?? {}, "heading") || "Popular tour packages"}
             titleBn="জনপ্রিয় ট্যুর প্যাকেজসমূহ"
             description={
-              str(featuredToursBlock?.content ?? {}, "description") ??
+              homeCms.tours_description ||
+              str(featuredToursBlock?.content ?? {}, "description") ||
               "Small groups, local hosts, and everything included. Filter by place, duration, or price to find your trip in seconds."
             }
             descriptionBn="ছোট গ্রুপ, অভিজ্ঞ লোকাল হোস্ট এবং সকল সুবিধা সহ। স্থান, সময়কাল বা বাজেট দিয়ে সহজে পছন্দমতো ট্যুর খুঁজুন।"
@@ -267,8 +283,8 @@ export default async function Home() {
           </Reveal>
           <Reveal className="mt-10 text-center">
             <LocalizedButtonLink
-              href="/tours"
-              labelEn="Browse all tours"
+              href={homeCms.tours_cta_href || "/tours"}
+              labelEn={homeCms.tours_cta_label || "Browse all tours"}
               labelBn="সকল ট্যুর প্যাকেজ দেখুন"
               className="btn btn-emerald"
             />
@@ -278,20 +294,24 @@ export default async function Home() {
       )}
 
       {/* ============ WHY US ============ */}
+      {homeCms.why_us_hidden !== true && (
       <section className="px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.2fr]">
             <SectionHeading
               align="left"
-              eyebrow={`Why ${siteName}`}
+              eyebrow={homeCms.why_us_eyebrow || `Why ${siteName}`}
               eyebrowBn={`কেন ${siteName}`}
-              title="Travel with people who call Bangladesh home"
+              title={homeCms.why_us_title || "Travel with people who call Bangladesh home"}
               titleBn="ভ্রমণ করুন যাদের ঘর এই বাংলাদেশ"
-              description="We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides."
+              description={
+                homeCms.why_us_description ||
+                "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides."
+              }
               descriptionBn="আমরা কোনো থার্ড-পার্টি বুকিং সাইট নই যারা অপরিচিতদের হাতে আপনার ভ্রমণ ছেড়ে দেয়। আমরা লোকাল হোস্ট যারা সবকিছু পরিকল্পনা করে, সাথে থাকে এবং শতভাগ স্বচ্ছতা নিশ্চিত করে।"
             />
             <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2" stagger={0.08}>
-              {whyUs.map((item) => (
+              {whyUsList.map((item) => (
                 <StaggerItem key={item.title}>
                   <div className="glass glass-sweep flex h-full flex-col gap-3 rounded-3xl p-5">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold/15 text-gold">
@@ -310,21 +330,26 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ============ SERVICES ============ */}
+      {homeCms.services_hidden !== true && (
       <section className="relative bg-pearl-deep/60 px-4 py-16 sm:px-6 sm:py-24">
         <Atmosphere intensity={0.15} />
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
-            eyebrow="Services"
+            eyebrow={homeCms.services_eyebrow || "Services"}
             eyebrowBn="আমাদের সেবাসমূহ"
-            title="Every kind of trip, handled"
+            title={homeCms.services_title || "Every kind of trip, handled"}
             titleBn="সব ধরণের ভ্রমণের পরিপূর্ণ সমাধান"
-            description="Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it."
+            description={
+              homeCms.services_description ||
+              "Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it."
+            }
             descriptionBn="গ্রুপ বা ব্যক্তিগত, পরিবার কিংবা হানিমুন, উইকেন্ড ট্রিপ বা অ্যাডভেঞ্চার — বাংলাদেশে যে কোনো ভ্রমণ আয়োজনে আমরা আছি।"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
-            {services.map((service) => (
+            {servicesList.map((service) => (
               <StaggerItem key={service.title} className="h-full">
                 <ServiceCard service={service} />
               </StaggerItem>
@@ -332,17 +357,21 @@ export default async function Home() {
           </Stagger>
         </div>
       </section>
+      )}
 
       {/* ============ SPECIAL OFFERS ============ */}
-      {specialOffers.length > 0 && (
+      {homeCms.offers_hidden !== true && specialOffers.length > 0 && (
         <section className="px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-6xl">
             <SectionHeading
-              eyebrow="Special Offers"
+              eyebrow={homeCms.offers_eyebrow || "Special Offers"}
               eyebrowBn="বিশেষ অফার"
-              title="A little reason to book today"
+              title={homeCms.offers_title || "A little reason to book today"}
               titleBn="আজই বুক করার বিশেষ সুযোগ"
-              description="Seasonal savings and group perks — applied automatically at checkout with the right code."
+              description={
+                homeCms.offers_description ||
+                "Seasonal savings and group perks — applied automatically at checkout with the right code."
+              }
               descriptionBn="মৌসুমি ছাড় এবং গ্রুপ ডিসকাউন্ট — সঠিক কোড ব্যবহারে বুকিংয়ে পান বিশেষ সুবিধা।"
             />
             <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
@@ -362,12 +391,13 @@ export default async function Home() {
         <Atmosphere intensity={0.15} />
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
-            eyebrow={str(testimonialsBlock?.content ?? {}, "eyebrow") ?? "Customer Reviews"}
+            eyebrow={homeCms.reviews_eyebrow || str(testimonialsBlock?.content ?? {}, "eyebrow") || "Customer Reviews"}
             eyebrowBn="ভ্রমণকারীদের মন্তব্য"
-            title={str(testimonialsBlock?.content ?? {}, "heading") ?? "Loved by travelers across Bangladesh"}
+            title={homeCms.reviews_title || str(testimonialsBlock?.content ?? {}, "heading") || "Loved by travelers across Bangladesh"}
             titleBn="ভ্রমণকারীদের বিশ্বাস ও ভালোবাসা"
             description={
-              str(testimonialsBlock?.content ?? {}, "description") ??
+              homeCms.reviews_description ||
+              str(testimonialsBlock?.content ?? {}, "description") ||
               "Real words from guests who booked, travelled, and settled their balances — all in one seamless flow."
             }
             descriptionBn="আমাদের সাথে যারা পাহাড়, নদী এবং সমুদ্র চষে বেড়িয়েছেন তাদের বাস্তব অভিজ্ঞতা।"
@@ -384,22 +414,25 @@ export default async function Home() {
       )}
 
       {/* ============ JOURNAL ============ */}
-      {journalPreview.length > 0 && (
+      {homeCms.journal_hidden !== true && journalPreview.length > 0 && (
         <section className="px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
               <SectionHeading
                 align="left"
-                eyebrow="Travel Journal"
+                eyebrow={homeCms.journal_eyebrow || "Travel Journal"}
                 eyebrowBn="ভ্রমণ কথা"
-                title="Stories from the road"
+                title={homeCms.journal_title || "Stories from the road"}
                 titleBn="পথের গল্প ও দিকনির্দেশনা"
-                description="Field guides, food trails, and honest travel writing from our hosts and guests."
+                description={
+                  homeCms.journal_description ||
+                  "Field guides, food trails, and honest travel writing from our hosts and guests."
+                }
                 descriptionBn="আমাদের হোস্ট এবং ভ্রমণকারীদের চোখ দিয়ে দেখা বাংলাদেশ, লোকাল গাইড ও বাস্তব অভিজ্ঞতা।"
               />
               <LocalizedButtonLink
-                href="/journal"
-                labelEn="All stories"
+                href={homeCms.journal_cta_href || "/journal"}
+                labelEn={homeCms.journal_cta_label || "All stories"}
                 labelBn="সকল ভ্রমণ গল্প"
               />
             </div>
@@ -415,7 +448,17 @@ export default async function Home() {
       )}
 
       {/* ============ CTA ============ */}
-      <CtaBanner />
+      {homeCms.cta_hidden !== true && (
+        <CtaBanner
+          eyebrow={homeCms.cta_eyebrow}
+          title={homeCms.cta_title}
+          description={homeCms.cta_description}
+          ctaLabel={homeCms.cta_primary_label}
+          ctaHref={homeCms.cta_primary_href}
+          secondaryCtaLabel={homeCms.cta_secondary_label}
+          secondaryCtaHref={homeCms.cta_secondary_href}
+        />
+      )}
 
       {/* Hidden bilingual touch */}
       <div className="sr-only">

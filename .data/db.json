@@ -509,7 +509,7 @@
       "block_type": "destination_grid",
       "display_order": 5,
       "content": {
-        "hidden": true
+        "hidden": false
       },
       "updated_at": "2026-09-15T03:12:25.327+00:00"
     },
@@ -530,6 +530,216 @@
         "hidden": false
       },
       "updated_at": "2026-09-15T03:12:25.351+00:00"
+    },
+    {
+      "id": "block-about-page",
+      "block_type": "about_page",
+      "display_order": 8,
+      "content": {
+        "hero_eyebrow": "Our story",
+        "hero_title": "Built by people who call Bangladesh home",
+        "hero_subtitle": "Atithi (অতিথি) started with a simple frustration: booking a domestic trip meant middlemen, vague pricing, and cash changing hands with no record. We built the agency we wished existed — local hosts, honest pricing, and a payment system that leaves nothing to dispute.",
+        "story_badge": "The Atithi Standard",
+        "story_title": "Why we started",
+        "story_paragraphs": [
+          "Most domestic travel in Bangladesh is organized through word-of-mouth recommendations, social media groups, or informal fixers. Prices shift depending on who's asking, booking confirmations are a verbal promise, and if something goes wrong, there's no recourse.",
+          "We wanted something different: trips you could book with complete confidence, hosted by people from the actual communities you're visiting, with clear itineraries and receipts for every taka paid.",
+          "Every route we offer is one we've traveled ourselves multiple times — staying at the same eco-cottages, riding the same wooden engine boats, and breaking bread with the same village hosts."
+        ],
+        "mission_title": "Our Mission",
+        "mission_text": "To connect travelers with authentic, dignified local hosting across every district of Bangladesh — backed by transparent pricing, flexible payments, and human support.",
+        "values": [
+          {
+            "icon": "shield",
+            "title": "Radical transparency",
+            "description": "Every taka is accounted for — the price you see is the price you pay, and every payment is confirmed on both sides."
+          },
+          {
+            "icon": "users",
+            "title": "Local, always",
+            "description": "No outsourced guides, no foreign templates. Every host is Bangladeshi, and every itinerary is built around real local knowledge."
+          },
+          {
+            "icon": "heart",
+            "title": "Hospitality first",
+            "description": "Atithi — \"guest\" — is central to Bengali culture. We host you the way we'd host family, not process you like a booking number."
+          },
+          {
+            "icon": "sparkle",
+            "title": "Considered detail",
+            "description": "From the ridge walk only locals know to the candlelit dinner arranged without being asked — the small things are the trip."
+          }
+        ],
+        "booking_eyebrow": "How booking works",
+        "booking_title": "Zero-friction, start to finish",
+        "booking_description": "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity.",
+        "team_eyebrow": "The team",
+        "team_title": "A few of the people who'll host you",
+        "team": [
+          {
+            "name": "Prince Chowdhury",
+            "role": "Co-founder & Head of Experience",
+            "bio": "Ten years guiding across the Chittagong Hill Tracts before building Atithi's tour design team.",
+            "scene": "sajek",
+            "image_url": "https://drive.google.com/file/d/1xOBIQDNWFlHiu0jDCaABEKWHXMZ2UZi-/view?usp=sharing"
+          },
+          {
+            "name": "Tanvir Hasan",
+            "role": "Co-founder & Head of Operations",
+            "bio": "Runs the host network and on-ground logistics across all twelve destinations.",
+            "scene": "sundarbans"
+          },
+          {
+            "name": "Mehedi Hasan",
+            "role": "Head of Finance",
+            "bio": "Built the payment and QR clearance system so every advance and balance is tracked without ambiguity.",
+            "scene": "coxsbazar"
+          }
+        ],
+        "payment_badge": "Payment & QR clearance",
+        "payment_title": "How your money is handled, end to end",
+        "payment_description": "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself. The moment it clears, both you and our team get a WhatsApp and email confirmation, so there's a clean record of what was paid, when, on both sides.",
+        "payment_cta_label": "Talk to us",
+        "payment_cta_href": "/contact",
+        "cta_title": "Ready to plan your own story?",
+        "cta_description": "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.",
+        "cta_label": "Plan My Trip",
+        "cta_href": "/contact"
+      }
+    },
+    {
+      "id": "block-journal-page",
+      "block_type": "journal_page",
+      "display_order": 9,
+      "content": {
+        "header_eyebrow": "Travel Journal",
+        "header_title": "Stories from the road",
+        "header_description": "Field guides, food trails, and honest travel writing from our hosts and guests across Bangladesh.",
+        "featured_badge": "Latest story",
+        "empty_title": "No articles published yet",
+        "empty_description": "Stories, packing guides, and field notes will appear here once written and published from the Super Admin Panel."
+      }
+    },
+    {
+      "id": "block-home-page",
+      "block_type": "home_page",
+      "display_order": 10,
+      "content": {
+        "hero_eyebrow": "বাংলাদেশ জুড়ে প্রিমিয়াম লোকাল ভ্রমণ",
+        "hero_headline": "Discover Bangladesh Together,",
+        "hero_highlight": "your way",
+        "hero_subheadline": "Curated domestic tours. Trusted local hosts. Book with an advance and clear the balance on tour day.",
+        "hero_primary_cta_label": "Explore Tours",
+        "hero_primary_cta_href": "/tours",
+        "hero_secondary_cta_label": "Plan My Trip",
+        "hero_secondary_cta_href": "/contact",
+        "destinations_eyebrow": "Destinations",
+        "destinations_title": "Popular destinations across Bangladesh",
+        "destinations_description": "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest.",
+        "destinations_cta_label": "All destinations",
+        "destinations_cta_href": "/destinations",
+        "destinations_hidden": false,
+        "tours_eyebrow": "Tour Packages",
+        "tours_title": "Popular tour packages",
+        "tours_description": "Small groups, local hosts, and everything included. Filter by place, duration, or price to find your trip in seconds.",
+        "tours_cta_label": "Browse all tours",
+        "tours_cta_href": "/tours",
+        "tours_hidden": false,
+        "why_us_eyebrow": "Why ATITHI",
+        "why_us_title": "Verified Local Hospitality",
+        "why_us_description": "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides.",
+        "why_us_items": [
+          {
+            "title": "Trusted local hosts",
+            "description": "Every tour is led by a verified Bangladeshi host who knows their district like family — not a scripted guide.",
+            "icon": "users"
+          },
+          {
+            "title": "Transparent pricing",
+            "description": "The price you see is the price you pay. No hidden fees, no last-minute 'fuel surcharges', no surprises.",
+            "icon": "receipt"
+          },
+          {
+            "title": "Flexible payment",
+            "description": "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
+            "icon": "qr"
+          },
+          {
+            "title": "Zero-friction booking",
+            "description": "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+            "icon": "ticket"
+          },
+          {
+            "title": "Real 24/7 support",
+            "description": "A human answers on WhatsApp throughout your trip — not a chatbot that loops you in circles.",
+            "icon": "support"
+          },
+          {
+            "title": "Money, fully accounted",
+            "description": "Every payment is tracked end-to-end and confirmed to you and our team, so there's never a dispute about what was paid.",
+            "icon": "shield"
+          }
+        ],
+        "why_us_hidden": false,
+        "services_eyebrow": "Services",
+        "services_title": "Every kind of trip, handled",
+        "services_description": "Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it.",
+        "services_items": [
+          {
+            "title": "Group Tours",
+            "description": "Curated group departures to every corner of Bangladesh, led by a local host and priced all-inclusive.",
+            "icon": "users"
+          },
+          {
+            "title": "Private & Custom Trips",
+            "description": "Your dates, your pace, your budget. We design a private itinerary around exactly what you want to do.",
+            "icon": "route"
+          },
+          {
+            "title": "Honeymoon Packages",
+            "description": "Ocean-view suites, candlelit dinners, and private moments — built for two, from arrival flowers to departure.",
+            "icon": "heart"
+          },
+          {
+            "title": "Family Holidays",
+            "description": "Kids-first pacing, safe transport, and hosts who handle the logistics so parents actually relax.",
+            "icon": "home"
+          },
+          {
+            "title": "Corporate Retreats",
+            "description": "Team trips to the hills or the coast with planning, logistics, and bonding activities handled end to end.",
+            "icon": "briefcase"
+          },
+          {
+            "title": "Adventure & Trekking",
+            "description": "Hill-tract treks, forest cruises, and off-the-map experiences with certified local guides and permits arranged.",
+            "icon": "mountain"
+          }
+        ],
+        "services_hidden": false,
+        "offers_eyebrow": "Special Offers",
+        "offers_title": "A little reason to book today",
+        "offers_description": "Seasonal savings and group perks — applied automatically at checkout with the right code.",
+        "offers_hidden": false,
+        "reviews_eyebrow": "Customer Reviews",
+        "reviews_title": "Loved by travelers across Bangladesh",
+        "reviews_description": "Real words from guests who booked, travelled, and settled their balances — all in one seamless flow.",
+        "reviews_hidden": false,
+        "journal_eyebrow": "Travel Journal",
+        "journal_title": "Stories from the road",
+        "journal_description": "Field guides, food trails, and honest travel writing from our hosts and guests.",
+        "journal_cta_label": "All stories",
+        "journal_cta_href": "/journal",
+        "journal_hidden": false,
+        "cta_eyebrow": "Atithi — the guest is God",
+        "cta_title": "Plan your next journey across Bangladesh",
+        "cta_description": "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
+        "cta_primary_label": "Plan My Trip",
+        "cta_primary_href": "/contact",
+        "cta_secondary_label": "Browse Tours",
+        "cta_secondary_href": "/tours",
+        "cta_hidden": false
+      }
     }
   ],
   "staffUsers": [
@@ -545,10 +755,83 @@
       "last_name": "Admin"
     }
   ],
-  "bookings": [],
-  "payments": [],
-  "clearanceTickets": [],
-  "alerts": [],
+  "bookings": [
+    {
+      "id": "book-1789458839783-560",
+      "reference": "AT-2026-00001",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban",
+      "traveler_count": 85,
+      "unit_price": "6000.00",
+      "total_price": "510000.00",
+      "final_price": "510000.00",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "204000.00",
+      "amount_paid": "204000.00",
+      "amount_due": "306000.00",
+      "due_date": "2026-09-15",
+      "status": "confirmed_advance_paid",
+      "customer_full_name": "Md Rakib Mia",
+      "customer_phone_number": "+8801410207483",
+      "customer_email": "thedelusiongaming024@gmail.com",
+      "special_requests": "",
+      "travelers": [
+        {
+          "id": "trav-book-1789458839783-560-1",
+          "full_name": "Md Rakib Mia",
+          "is_lead_traveler": true
+        }
+      ],
+      "created_at": "2026-09-15T07:53:59.783Z",
+      "updated_at": "2026-09-15T07:53:59.783Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "pay-1789458840023",
+      "booking_id": "book-1789458839783-560",
+      "amount": "204000.00",
+      "payment_type": "advance",
+      "payment_method": "sslcommerz",
+      "status": "success",
+      "tran_id": "TRAN-1789458840023-357",
+      "created_at": "2026-09-15T07:54:00.023Z",
+      "val_id": "SIM-1789458846147",
+      "card_type": "BKASH",
+      "paid_at": "2026-09-15T07:54:06.346Z"
+    }
+  ],
+  "clearanceTickets": [
+    {
+      "id": "ticket-book-1789458839783-560",
+      "booking_id": "book-1789458839783-560",
+      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NDU4ODM5NzgzLTU2MCIsImNyZWF0ZWRfYXQiOjE3ODk0NTg4NDZ9.6xrGRhT9wOJBLeBQH7Zlg55K7X-aJUHzLlooM0kqJFY",
+      "token_expires_at": "2026-09-22T07:54:06.347Z",
+      "is_cleared": false,
+      "created_at": "2026-09-15T07:54:06.347Z"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alt-pay-1789458846347",
+      "alert_type": "payment_confirmed",
+      "severity": "info",
+      "message": "Payment of ৳204,000 received for booking AT-2026-00001 (Md Rakib Mia).",
+      "is_acknowledged": true,
+      "created_at": "2026-09-15T07:54:06.347Z"
+    },
+    {
+      "id": "alt-book-1789458839783",
+      "alert_type": "new_booking",
+      "severity": "info",
+      "message": "New booking AT-2026-00001 created for Bandarban Hill & Cloud Package Tour (85 travelers).",
+      "is_acknowledged": true,
+      "created_at": "2026-09-15T07:53:59.783Z"
+    }
+  ],
   "expenses": [],
   "suppliers": [],
   "contactInquiries": []
