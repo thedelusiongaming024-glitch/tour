@@ -1,4 +1,7 @@
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { Atmosphere } from "@/components/Atmosphere";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { Reveal } from "@/components/Reveal";
@@ -64,13 +67,6 @@ export default async function Home() {
         .filter((s) => s.value && s.label)
     : null;
 
-  const destinationGridBlock = blocks.find((b) => b.blockType === "destination_grid");
-  const featuredToursBlock = blocks.find((b) => b.blockType === "featured_tours");
-  const testimonialsBlock = blocks.find((b) => b.blockType === "testimonials");
-  const showDestinationsSection = destinationGridBlock?.content.hidden !== true;
-  const showFeaturedToursSection = featuredToursBlock?.content.hidden !== true;
-  const showTestimonialsSection = testimonialsBlock?.content.hidden !== true;
-
   // Freeform blocks (rich_text / image / cta / gallery) render as extra
   // sections, in the order an admin arranges them, right after the hero —
   // this is the one place in the page an admin can add net-new content
@@ -92,6 +88,13 @@ export default async function Home() {
     (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))
   );
   const journalPreview = journalPosts.slice(0, 3);
+
+  const destinationGridBlock = blocks.find((b) => b.blockType === "destination_grid");
+  const featuredToursBlock = blocks.find((b) => b.blockType === "featured_tours");
+  const testimonialsBlock = blocks.find((b) => b.blockType === "testimonials");
+  const showDestinationsSection = destinationGridBlock?.content.hidden !== true && featuredDestinations.length > 0;
+  const showFeaturedToursSection = featuredToursBlock?.content.hidden !== true && popularTours.length > 0;
+  const showTestimonialsSection = testimonialsBlock?.content.hidden !== true && reviews.length > 0;
 
   return (
     <>
@@ -136,23 +139,25 @@ export default async function Home() {
           </div>
 
           {/* Stat panel */}
-          <Reveal delay={0.32} className="mx-auto mt-14 max-w-4xl">
-            <Stagger
-              className="glass glass-sweep grid grid-cols-2 gap-y-8 rounded-[2rem] p-6 sm:grid-cols-4 sm:p-8"
-              stagger={0.08}
-            >
-              {(heroStatsOverride ?? heroStats).map((stat) => (
-                <StaggerItem key={stat.label} className="text-center">
-                  <div className="font-display text-3xl font-semibold text-emerald-deep sm:text-4xl">
-                    {stat.value}
-                  </div>
-                  <div className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-faint sm:text-sm">
-                    {stat.label}
-                  </div>
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </Reveal>
+          {(heroStatsOverride ?? heroStats).length > 0 && (
+            <Reveal delay={0.32} className="mx-auto mt-14 max-w-4xl">
+              <Stagger
+                className="glass glass-sweep grid grid-cols-2 gap-y-8 rounded-[2rem] p-6 sm:grid-cols-4 sm:p-8"
+                stagger={0.08}
+              >
+                {(heroStatsOverride ?? heroStats).map((stat) => (
+                  <StaggerItem key={stat.label} className="text-center">
+                    <div className="font-display text-3xl font-semibold text-emerald-deep sm:text-4xl">
+                      {stat.value}
+                    </div>
+                    <div className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-faint sm:text-sm">
+                      {stat.label}
+                    </div>
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            </Reveal>
+          )}
         </div>
       </section>
 
@@ -362,22 +367,24 @@ export default async function Home() {
       </section>
 
       {/* ============ SPECIAL OFFERS ============ */}
-      <section className="px-4 py-16 sm:px-6 sm:py-24">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            eyebrow="Special Offers"
-            title="A little reason to book today"
-            description="Seasonal savings and group perks — applied automatically at checkout with the right code."
-          />
-          <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
-            {specialOffers.map((offer) => (
-              <StaggerItem key={offer.code} className="h-full">
-                <OfferCard offer={offer} />
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
-      </section>
+      {specialOffers.length > 0 && (
+        <section className="px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-6xl">
+            <SectionHeading
+              eyebrow="Special Offers"
+              title="A little reason to book today"
+              description="Seasonal savings and group perks — applied automatically at checkout with the right code."
+            />
+            <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
+              {specialOffers.map((offer) => (
+                <StaggerItem key={offer.code} className="h-full">
+                  <OfferCard offer={offer} />
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </section>
+      )}
 
       {showTestimonialsSection && (
       /* ============ REVIEWS ============ */
@@ -404,29 +411,31 @@ export default async function Home() {
       )}
 
       {/* ============ JOURNAL ============ */}
-      <section className="px-4 py-16 sm:px-6 sm:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-            <SectionHeading
-              align="left"
-              eyebrow="Travel Journal"
-              title="Stories from the road"
-              description="Field guides, food trails, and honest travel writing from our hosts and guests."
-            />
-            <Link href="/journal" className="btn btn-glass shrink-0">
-              All stories
-              <Icon name="arrowRight" className="h-4 w-4" />
-            </Link>
+      {journalPreview.length > 0 && (
+        <section className="px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+              <SectionHeading
+                align="left"
+                eyebrow="Travel Journal"
+                title="Stories from the road"
+                description="Field guides, food trails, and honest travel writing from our hosts and guests."
+              />
+              <Link href="/journal" className="btn btn-glass shrink-0">
+                All stories
+                <Icon name="arrowRight" className="h-4 w-4" />
+              </Link>
+            </div>
+            <Stagger className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
+              {journalPreview.map((post) => (
+                <StaggerItem key={post.slug} className="h-full">
+                  <JournalCard post={post} />
+                </StaggerItem>
+              ))}
+            </Stagger>
           </div>
-          <Stagger className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
-            {journalPreview.map((post) => (
-              <StaggerItem key={post.slug} className="h-full">
-                <JournalCard post={post} />
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ============ CTA ============ */}
       <CtaBanner />

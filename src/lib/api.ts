@@ -2,123 +2,82 @@ import type { Destination, Faq, HomepageBlock, HomepageBlockType, ItineraryDay, 
 import { scenes } from "@/lib/scenes";
 import * as db from "@/server/db";
 
-/**
- * Live data client for the Atithi backend (supports both native Next.js
- * backend and external API endpoints).
- *
- * Every fetch here is wrapped so an unreachable external backend never breaks
- * a build or a page render — callers fall back to the embedded database
- * engine in `src/server/db.ts` (and bundled static data in `src/data/*`).
- */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
-
-async function apiFetch<T>(path: string, revalidateSeconds: number = 300): Promise<T | null> {
+async function apiFetch<T>(path: string, revalidateSeconds: number = 0): Promise<T | null> {
   try {
-    // Only attempt external HTTP fetch if API_BASE is an absolute URL
     if (!API_BASE.startsWith("http://") && !API_BASE.startsWith("https://")) {
       return null;
     }
     const res = await fetch(`${API_BASE}${path}`, {
-      next: { revalidate: revalidateSeconds },
+      cache: "no-store",
     });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
-    // Backend unreachable (offline build, backend not deployed yet, etc).
     return null;
   }
 }
 
-// A destination/tour's "scene" is a purely visual, procedurally-rendered
-// backdrop (see src/lib/scenes.ts) — the backend has no equivalent field,
-// so we map a slug to the closest existing scene key, falling back to a
-// neutral default rather than leaving the page unstyled.
 const SCENE_KEYS = Object.keys(scenes) as Array<keyof typeof scenes>;
 function sceneForSlug(slug: string, label: string, imageUrl?: string | null, videoUrl?: string | null): Scene {
-  const normalized = slug.replace(/-/g, "");
+  const normalized = (slug || "").replace(/-/g, "");
   const match = SCENE_KEYS.find((key) => normalized.includes(key) || key.includes(normalized));
   return {
     key: (match ?? "dhaka") as Scene["key"],
-    label,
+    label: label || "Destination",
     imageUrl: imageUrl ?? undefined,
     videoUrl: videoUrl ?? undefined,
   };
 }
 
-// ---------------------------------------------------------------------------
-// Destinations
-// ---------------------------------------------------------------------------
-
-interface ApiDestinationListItem {
-  id: string;
-  name: string;
-  slug: string;
-  division: string;
-  cover_image: string | null;
-  is_featured: boolean;
-  status: string;
-}
-
-interface ApiDestinationDetail extends ApiDestinationListItem {
-  description: string;
-  best_time_to_visit: string;
-  weather_notes: string;
-  popular_attractions: string[];
-  recommended_accommodation: string;
-  travel_tips: string;
-  permits_required: string;
-  cover_video_url: string;
-  seo_title: string;
-  seo_description: string;
-  gallery: { id: string; image: string; caption: string }[];
-}
-
-function divisionLabel(division: string): string {
+function divisionLabel(division?: string): string {
+  if (!division) return "Bangladesh";
   return `${division.charAt(0).toUpperCase()}${division.slice(1)} Division`;
 }
 
-function adaptDestination(d: ApiDestinationDetail, tourSlugs: string[]): Destination {
+function adaptDestination(d: any, tourSlugs: string[] = []): Destination {
+  const name = d.name || "Destination";
+  const slug = d.slug || "destination";
+  const desc = d.description || "";
+  const coverImg = d.cover_image || null;
+  const coverVideo = d.cover_video_url || null;
+
   return {
-    slug: d.slug,
-    name: d.name,
-    bn: "",
-    tagline: d.seo_description || d.description.slice(0, 90),
+    slug,
+    name,
+    bn: d.bn || "",
+    tagline: d.tagline || d.seo_description || (desc ? desc.slice(0, 90) : ""),
     region: divisionLabel(d.division),
-    description: d.description,
-    cover: sceneForSlug(d.slug, d.name, d.cover_image, d.cover_video_url),
-    gallery: d.gallery.length
-      ? d.gallery.map((g) => sceneForSlug(d.slug, g.caption || d.name, g.image))
-      : [sceneForSlug(d.slug, d.name, d.cover_image, d.cover_video_url)],
-    bestTime: d.best_time_to_visit,
-    weather: d.weather_notes,
-    attractions: d.popular_attractions,
-    accommodation: d.recommended_accommodation,
-    travelTips: d.travel_tips ? d.travel_tips.split("\n").filter(Boolean) : [],
+    description: desc,
+    cover: sceneForSlug(slug, name, coverImg, coverVideo),
+    gallery: Array.isArray(d.gallery) && d.gallery.length > 0
+      ? d.gallery.map((g: any) => sceneForSlug(slug, g.caption || name, g.image || g.imageUrl))
+      : [sceneForSlug(slug, name, coverImg, coverVideo)],
+    bestTime: d.best_time_to_visit || "All year round",
+    weather: d.weather_notes || "Pleasant tropical climate",
+    attractions: Array.isArray(d.popular_attractions)
+      ? d.popular_attractions
+      : typeof d.popular_attractions === "string"
+      ? d.popular_attractions.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [],
+    accommodation: d.recommended_accommodation || "Local boutique resorts and hotels",
+    travelTips: Array.isArray(d.travel_tips)
+      ? d.travel_tips
+      : typeof d.travel_tips === "string"
+      ? d.travel_tips.split("\n").map((s: string) => s.trim()).filter(Boolean)
+      : [],
     tourSlugs,
   };
 }
 
 export async function fetchDestinations(): Promise<Destination[] | null> {
   try {
-    const list = await apiFetch<{ results: ApiDestinationListItem[] }>("/destinations/");
-    if (list && list.results.length > 0) {
-      const detailed = await Promise.all(
-        list.results.map(async (item) => {
-          const detail = await apiFetch<ApiDestinationDetail>(`/destinations/${item.slug}/`);
-          if (!detail) return null;
-          const tourList = await apiFetch<{ results: { slug: string }[] }>(
-            `/tours/?destination__slug=${item.slug}`
-          );
-          return adaptDestination(detail, (tourList?.results ?? []).map((t) => t.slug));
-        })
-      );
-      const filtered = detailed.filter((d): d is Destination => d !== null);
-      if (filtered.length > 0) return filtered;
+    const list = await apiFetch<{ results: any[] }>("/destinations/");
+    if (list && Array.isArray(list.results) && list.results.length > 0) {
+      return list.results.map((d) => adaptDestination(d));
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const list = db.getDestinations();
@@ -126,89 +85,34 @@ export async function fetchDestinations(): Promise<Destination[] | null> {
       const tourSlugs = db.getTours(d.slug).map((t) => t.slug);
       return adaptDestination(d, tourSlugs);
     });
-  } catch {
-    return null;
+  } catch (err) {
+    console.error("fetchDestinations error:", err);
+    return [];
   }
 }
 
 export async function fetchDestination(slug: string): Promise<Destination | null> {
   try {
-    const detail = await apiFetch<ApiDestinationDetail>(`/destinations/${slug}/`);
+    const detail = await apiFetch<any>(`/destinations/${slug}/`);
     if (detail) {
-      const tourList = await apiFetch<{ results: { slug: string }[] }>(`/tours/?destination__slug=${slug}`);
-      return adaptDestination(detail, (tourList?.results ?? []).map((t) => t.slug));
+      return adaptDestination(detail);
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const d = db.getDestinationBySlug(slug);
     if (!d) return null;
     const tourSlugs = db.getTours(slug).map((t) => t.slug);
     return adaptDestination(d, tourSlugs);
-  } catch {
+  } catch (err) {
+    console.error("fetchDestination error:", err);
     return null;
   }
 }
 
-// ---------------------------------------------------------------------------
-// Tours
-// ---------------------------------------------------------------------------
-
-interface ApiTourListItem {
-  id: string;
-  title: string;
-  slug: string;
-  destination: string;
-  destination_name: string;
-  category: string;
-  short_description: string;
-  hero_image: string | null;
-  duration_days: number;
-  duration_nights: number;
-  base_price: string;
-  final_price: string;
-  is_featured: boolean;
-  status: string;
-}
-
-interface ApiTourDetail {
-  id: string;
-  title: string;
-  slug: string;
-  destination: { slug: string; name: string };
-  category: string;
-  short_description: string;
-  full_description: string;
-  hero_image: string | null;
-  duration_days: number;
-  duration_nights: number;
-  base_price: string;
-  discount_type: string;
-  discount_value: string;
-  final_price: string;
-  allow_partial_payment: boolean;
-  advance_payment_percent: string;
-  advance_amount: string;
-  inclusions: string[];
-  exclusions: string[];
-  accommodation_notes: string;
-  transportation_notes: string;
-  meals_notes: string;
-  meeting_point: string;
-  departure_schedule: string;
-  total_seats: number;
-  departures: { id: string; departure_date: string; seats_remaining: number; is_active: boolean }[];
-  itinerary: { day_number: number; title: string; description: string }[];
-  gallery: { id: string; image: string; caption: string }[];
-  faqs: { question: string; answer: string }[];
-  is_featured: boolean;
-}
-
 const CATEGORY_LABELS: Record<string, string> = {
-  group: "Group Tour",
   group_tour: "Group Tour",
+  "group-tour": "Group Tour",
   private: "Private Tour",
   private_tour: "Private Tour",
   family: "Family Tour",
@@ -227,302 +131,281 @@ const CATEGORY_LABELS: Record<string, string> = {
   luxury_domestic_tour: "Luxury Domestic Tour",
 };
 
-function adaptTourListItem(t: ApiTourListItem): Tour {
-  return {
-    slug: t.slug,
-    title: t.title,
-    destinationSlug: t.destination ? t.destination : (t.destination_name ? slugifyFallback(t.destination_name) : ""),
-    duration: `${t.duration_days} Day${t.duration_days === 1 ? "" : "s"} / ${t.duration_nights} Night${t.duration_nights === 1 ? "" : "s"}`,
-    startingPrice: Math.round(parseFloat(t.base_price)),
-    discount: Math.max(0, Math.round(parseFloat(t.base_price) - parseFloat(t.final_price))),
-    advancePercent: 40,
-    category: CATEGORY_LABELS[t.category] ?? t.category,
-    summary: t.short_description,
-    description: t.short_description,
-    cover: sceneForSlug(t.slug, t.title, t.hero_image),
-    gallery: [sceneForSlug(t.slug, t.title, t.hero_image)],
-    itinerary: [],
-    inclusions: [],
-    exclusions: [],
-    accommodation: "",
-    transportation: "",
-    meals: "",
-    capacity: 0,
-    departure: "",
-    meetingPoint: "",
-    faqs: [],
-    featured: t.is_featured,
-  };
-}
-
-function adaptTourDetail(t: ApiTourDetail): Tour {
-  const itinerary: ItineraryDay[] = t.itinerary.map((d) => ({
-    day: d.day_number,
-    title: d.title,
-    description: d.description,
-  }));
-  const faqs: Faq[] = t.faqs.map((f) => ({ question: f.question, answer: f.answer }));
-
-  return {
-    id: t.id,
-    slug: t.slug,
-    title: t.title,
-    destinationSlug: t.destination.slug,
-    duration: `${t.duration_days} Day${t.duration_days === 1 ? "" : "s"} / ${t.duration_nights} Night${t.duration_nights === 1 ? "" : "s"}`,
-    startingPrice: Math.round(parseFloat(t.base_price)),
-    discount: Math.max(0, Math.round(parseFloat(t.base_price) - parseFloat(t.final_price))),
-    advancePercent: Math.round(parseFloat(t.advance_payment_percent)),
-    allowPartialPayment: t.allow_partial_payment,
-    category: CATEGORY_LABELS[t.category] ?? t.category,
-    summary: t.short_description,
-    description: t.full_description || t.short_description,
-    cover: sceneForSlug(t.slug, t.title, t.hero_image),
-    gallery: t.gallery.length
-      ? t.gallery.map((g) => sceneForSlug(t.slug, g.caption || t.title, g.image))
-      : [sceneForSlug(t.slug, t.title, t.hero_image)],
-    itinerary,
-    inclusions: t.inclusions,
-    exclusions: t.exclusions,
-    accommodation: t.accommodation_notes,
-    transportation: t.transportation_notes,
-    meals: t.meals_notes,
-    capacity: t.total_seats,
-    departure: t.departure_schedule,
-    departures: t.departures
-      .filter((d) => d.is_active)
-      .map((d) => ({ id: d.id, date: d.departure_date, seatsRemaining: d.seats_remaining })),
-    meetingPoint: t.meeting_point,
-    faqs,
-    featured: t.is_featured,
-  };
-}
-
 function slugifyFallback(name: string): string {
-  return name
+  return (name || "")
     .toLowerCase()
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
 
+function adaptTour(t: any): Tour {
+  const slug = t.slug || `tour-${Date.now()}`;
+  const title = t.title || "Untitled Tour";
+  const basePrice = parseFloat(t.base_price || "0") || 0;
+  const finalPrice = parseFloat(t.final_price || t.base_price || "0") || basePrice;
+  const discount = Math.max(0, Math.round(basePrice - finalPrice));
+  const durationDays = Number(t.duration_days) || 3;
+  const durationNights = Number(t.duration_nights) || 2;
+  const advancePercent = Number(t.advance_payment_percent) || 40;
+
+  const itinerary: ItineraryDay[] = Array.isArray(t.itinerary)
+    ? t.itinerary.map((d: any, i: number) => ({
+        day: Number(d.day || d.day_number) || i + 1,
+        title: d.title || `Day ${i + 1}`,
+        description: d.description || "",
+      }))
+    : [];
+
+  const faqs: Faq[] = Array.isArray(t.faqs)
+    ? t.faqs.map((f: any) => ({ question: f.question || "", answer: f.answer || "" }))
+    : [];
+
+  const departures = Array.isArray(t.departures)
+    ? t.departures
+        .filter((d: any) => d.is_active !== false)
+        .map((d: any) => ({
+          id: d.id || `dep-${d.departure_date}`,
+          date: d.departure_date || "",
+          seatsRemaining: Number(d.seats_remaining) || 10,
+        }))
+    : [];
+
+  const inclusions = Array.isArray(t.inclusions)
+    ? t.inclusions
+    : typeof t.inclusions === "string"
+    ? t.inclusions.split(",").map((s: string) => s.trim()).filter(Boolean)
+    : [];
+
+  const exclusions = Array.isArray(t.exclusions)
+    ? t.exclusions
+    : typeof t.exclusions === "string"
+    ? t.exclusions.split(",").map((s: string) => s.trim()).filter(Boolean)
+    : [];
+
+  const destSlug =
+    t.destination_slug ||
+    (typeof t.destination === "string" ? t.destination : t.destination?.slug) ||
+    (t.destination_name ? slugifyFallback(t.destination_name) : "bangladesh");
+
+  return {
+    id: t.id,
+    slug,
+    title,
+    destinationSlug: destSlug,
+    duration: `${durationDays} Day${durationDays === 1 ? "" : "s"} / ${durationNights} Night${durationNights === 1 ? "" : "s"}`,
+    startingPrice: Math.round(basePrice),
+    discount,
+    advancePercent,
+    allowPartialPayment: t.allow_partial_payment !== false,
+    category: CATEGORY_LABELS[t.category] ?? t.category ?? "Group Tour",
+    summary: t.short_description || t.description || "",
+    description: t.full_description || t.short_description || "",
+    cover: sceneForSlug(slug, title, t.hero_image),
+    gallery: Array.isArray(t.gallery) && t.gallery.length > 0
+      ? t.gallery.map((g: any) => sceneForSlug(slug, g.caption || title, g.image || g.imageUrl))
+      : [sceneForSlug(slug, title, t.hero_image)],
+    itinerary,
+    inclusions,
+    exclusions,
+    accommodation: t.accommodation_notes || "Verified standard hotel/resort",
+    transportation: t.transportation_notes || "AC highway transport",
+    meals: t.meals_notes || "All meals during tour included",
+    capacity: Number(t.total_seats) || 14,
+    departure: t.departure_schedule || "Every Friday",
+    departures,
+    meetingPoint: t.meeting_point || "Dhaka Sayedabad / Fakirapool",
+    faqs,
+    featured: Boolean(t.is_featured),
+  };
+}
+
 export async function fetchTours(): Promise<Tour[] | null> {
   try {
-    const list = await apiFetch<{ results: ApiTourListItem[] }>("/tours/");
-    if (list && list.results.length > 0) {
-      return list.results.map(adaptTourListItem);
+    const list = await apiFetch<{ results: any[] }>("/tours/");
+    if (list && Array.isArray(list.results) && list.results.length > 0) {
+      return list.results.map(adaptTour);
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const list = db.getTours();
-    return list.map((t) =>
-      adaptTourListItem({
-        ...t,
-        destination: t.destination_slug,
-      })
-    );
-  } catch {
-    return null;
+    return list.map(adaptTour);
+  } catch (err) {
+    console.error("fetchTours error:", err);
+    return [];
   }
 }
 
 export async function fetchTour(slug: string): Promise<Tour | null> {
   try {
-    const detail = await apiFetch<ApiTourDetail>(`/tours/${slug}/`, 0);
+    const detail = await apiFetch<any>(`/tours/${slug}/`);
     if (detail) {
-      return adaptTourDetail(detail);
+      return adaptTour(detail);
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const t = db.getTourBySlug(slug);
     if (!t) return null;
-    return adaptTourDetail({
-      ...t,
-      destination: { slug: t.destination_slug, name: t.destination_name },
-    });
-  } catch {
+    return adaptTour(t);
+  } catch (err) {
+    console.error("fetchTour error:", err);
     return null;
   }
-}
-
-// ---------------------------------------------------------------------------
-// CMS: offers, testimonials, blog / journal
-// ---------------------------------------------------------------------------
-
-interface ApiOffer {
-  title: string;
-  description: string;
-  slug: string;
-  tour_slug: string | null;
-  valid_until: string;
-  banner_image: string | null;
 }
 
 export async function fetchOffers(): Promise<Offer[] | null> {
   try {
-    const list = await apiFetch<{ results: ApiOffer[] }>("/offers/");
-    if (list && list.results.length > 0) {
+    const list = await apiFetch<{ results: any[] }>("/offers/");
+    if (list && Array.isArray(list.results) && list.results.length > 0) {
       return list.results.map((o) => ({
-        title: o.title,
-        description: o.description,
-        code: o.slug.toUpperCase(),
-        badge: "Limited Time",
-        expiry: new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-        bannerUrl: o.banner_image ?? undefined,
+        title: o.title || "Special Offer",
+        description: o.description || "",
+        code: (o.code || o.slug || "OFFER").toUpperCase(),
+        badge: o.discount_badge || (o.discount_value ? `Save ৳${o.discount_value}` : "Special Offer"),
+        expiry: o.valid_until
+          ? new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+          : "Limited time",
+        bannerUrl: o.banner_image || o.image_url || undefined,
       }));
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const list = db.getOffers();
-    return list.map((o) => ({
-      title: o.title,
-      description: o.description,
-      code: o.slug.toUpperCase(),
-      badge: "Limited Time",
-      expiry: new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-      bannerUrl: o.banner_image ?? undefined,
+    return list.map((o: any) => ({
+      title: o.title || "Special Offer",
+      description: o.description || "",
+      code: (o.code || o.slug || "OFFER").toUpperCase(),
+      badge: o.discount_badge || (o.discount_value ? `Save ৳${o.discount_value}` : "Special Offer"),
+      expiry: o.valid_until
+        ? new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+        : "Limited time",
+      bannerUrl: o.banner_image || o.image_url || undefined,
     }));
   } catch {
-    return null;
+    return [];
   }
-}
-
-interface ApiTestimonial {
-  customer_name: string;
-  tour_title: string;
-  rating: number;
-  quote: string;
-  customer_photo: string | null;
 }
 
 export async function fetchTestimonials(): Promise<Review[] | null> {
   try {
-    const list = await apiFetch<{ results: ApiTestimonial[] }>("/testimonials/?is_featured=true");
-    if (list && list.results.length > 0) {
+    const list = await apiFetch<{ results: any[] }>("/testimonials/?is_featured=true");
+    if (list && Array.isArray(list.results) && list.results.length > 0) {
       return list.results.map((r) => ({
-        name: r.customer_name,
-        location: "",
-        tour: r.tour_title,
-        rating: r.rating,
-        text: r.quote,
-        photoUrl: r.customer_photo ?? undefined,
+        name: r.customer_name || r.author_name || "Verified Traveler",
+        location: r.author_location || "Bangladesh",
+        tour: r.tour_title || r.trip_name || "Domestic Tour",
+        rating: Number(r.rating) || 5,
+        text: r.quote || "",
+        photoUrl: r.customer_photo || r.author_avatar || undefined,
       }));
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const list = db.getTestimonials(true);
-    return list.map((r) => ({
-      name: r.customer_name,
-      location: "",
-      tour: r.tour_title,
-      rating: r.rating,
-      text: r.quote,
-      photoUrl: r.customer_photo ?? undefined,
+    return list.map((r: any) => ({
+      name: r.customer_name || r.author_name || "Verified Traveler",
+      location: r.author_location || "Bangladesh",
+      tour: r.tour_title || r.trip_name || "Domestic Tour",
+      rating: Number(r.rating) || 5,
+      text: r.quote || "",
+      photoUrl: r.customer_photo || r.author_avatar || undefined,
     }));
   } catch {
-    return null;
+    return [];
   }
-}
-
-interface ApiBlogPostListItem {
-  slug: string;
-  title: string;
-  category: { name: string } | null;
-  author_name: string;
-  cover_image: string | null;
-  excerpt: string;
-  published_at: string | null;
-}
-
-interface ApiBlogPostDetail extends ApiBlogPostListItem {
-  body: string;
-}
-
-function adaptJournalListItem(p: ApiBlogPostListItem): JournalPost {
-  return {
-    slug: p.slug,
-    title: p.title,
-    category: p.category?.name ?? "Travel Tips",
-    excerpt: p.excerpt,
-    date: p.published_at
-      ? new Date(p.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
-      : "",
-    author: p.author_name || "Atithi Editorial",
-    readTime: "4 min read",
-    cover: sceneForSlug(p.slug, p.title, p.cover_image),
-    body: [],
-  };
 }
 
 export async function fetchJournalPosts(): Promise<JournalPost[] | null> {
   try {
-    const list = await apiFetch<{ results: ApiBlogPostListItem[] }>("/blog-posts/");
-    if (list && list.results.length > 0) {
-      return list.results.map(adaptJournalListItem);
+    const list = await apiFetch<{ results: any[] }>("/blog-posts/");
+    if (list && Array.isArray(list.results) && list.results.length > 0) {
+      return list.results.map((p) => ({
+        slug: p.slug,
+        title: p.title || "Untitled Article",
+        category: typeof p.category === "string" ? p.category : p.category?.name || "Travel Tips",
+        excerpt: p.excerpt || (p.content || p.body || "").slice(0, 150),
+        date: p.published_at || p.created_at
+          ? new Date(p.published_at || p.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+          : "Recent",
+        author: p.author || p.author_name || "Atithi Editorial",
+        readTime: `${p.read_time_minutes || 4} min read`,
+        cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
+        body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
+      }));
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const list = db.getBlogPosts();
-    return list.map(adaptJournalListItem);
+    return list.map((p: any) => ({
+      slug: p.slug,
+      title: p.title || "Untitled Article",
+      category: typeof p.category === "string" ? p.category : p.category?.name || "Travel Tips",
+      excerpt: p.excerpt || (p.content || p.body || "").slice(0, 150),
+      date: p.published_at || p.created_at
+        ? new Date(p.published_at || p.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+        : "Recent",
+      author: p.author || p.author_name || "Atithi Editorial",
+      readTime: `${p.read_time_minutes || 4} min read`,
+      cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
+      body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
+    }));
   } catch {
-    return null;
+    return [];
   }
 }
 
 export async function fetchJournalPost(slug: string): Promise<JournalPost | null> {
   try {
-    const post = await apiFetch<ApiBlogPostDetail>(`/blog-posts/${slug}/`);
-    if (post) {
+    const p = await apiFetch<any>(`/blog-posts/${slug}/`);
+    if (p) {
+      const rawDate = p.published_at || p.created_at;
       return {
-        ...adaptJournalListItem(post),
-        body: post.body ? [{ paragraphs: post.body.split("\n\n").filter(Boolean) }] : [],
+        slug: p.slug,
+        title: p.title || "Untitled Article",
+        category: typeof p.category === "string" ? p.category : p.category?.name || "Travel Tips",
+        excerpt: p.excerpt || (p.content || p.body || "").slice(0, 150),
+        date: rawDate
+          ? new Date(rawDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+          : "Recent",
+        author: p.author || p.author_name || "Atithi Editorial",
+        readTime: `${p.read_time_minutes || 4} min read`,
+        cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
+        body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
       };
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
-    const post = db.getBlogPostBySlug(slug);
-    if (!post) return null;
+    const p = db.getBlogPostBySlug(slug);
+    if (!p) return null;
+    const rawDate = p.published_at || p.created_at;
     return {
-      ...adaptJournalListItem(post),
-      body: post.body ? [{ paragraphs: post.body.split("\n\n").filter(Boolean) }] : [],
+      slug: p.slug,
+      title: p.title || "Untitled Article",
+      category: typeof p.category === "string" ? p.category : p.category?.name || "Travel Tips",
+      excerpt: p.excerpt || (p.content || p.body || "").slice(0, 150),
+      date: rawDate
+        ? new Date(rawDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+        : "Recent",
+      author: p.author || p.author_name || "Atithi Editorial",
+      readTime: `${p.read_time_minutes || 4} min read`,
+      cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
+      body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
     };
   } catch {
     return null;
   }
 }
 
-// ---------------------------------------------------------------------------
-// Homepage blocks (admin-editable page-builder content — Plan Section 21)
-// ---------------------------------------------------------------------------
-
-interface ApiHomepageBlock {
-  id: string;
-  block_type: HomepageBlockType;
-  display_order: number;
-  content: Record<string, unknown>;
-}
-
 export async function fetchHomepageBlocks(): Promise<HomepageBlock[] | null> {
   try {
-    const list = await apiFetch<ApiHomepageBlock[]>("/homepage-blocks/");
-    if (list && list.length > 0) {
+    const list = await apiFetch<any[]>("/homepage-blocks/");
+    if (list && Array.isArray(list) && list.length > 0) {
       return list
         .map((b) => ({
           id: b.id,
@@ -532,21 +415,19 @@ export async function fetchHomepageBlocks(): Promise<HomepageBlock[] | null> {
         }))
         .sort((a, b) => a.displayOrder - b.displayOrder);
     }
-  } catch {
-    // Fall back to native db below
-  }
+  } catch {}
 
   try {
     const list = db.getHomepageBlocks();
     return list
       .map((b) => ({
         id: b.id,
-        blockType: b.block_type,
+        blockType: b.block_type as HomepageBlockType,
         displayOrder: b.display_order,
         content: b.content ?? {},
       }))
       .sort((a, b) => a.displayOrder - b.displayOrder);
   } catch {
-    return null;
+    return [];
   }
 }

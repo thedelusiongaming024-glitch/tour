@@ -10,12 +10,11 @@ import { Icon } from "@/components/Icon";
 import { journalPosts, getJournalPost } from "@/data/journal";
 import { fetchJournalPost, fetchJournalPosts } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
-}
-
-export async function generateStaticParams() {
-  return journalPosts.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({

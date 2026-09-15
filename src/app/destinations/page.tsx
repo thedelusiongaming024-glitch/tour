@@ -8,6 +8,9 @@ import { DestinationCard } from "@/components/DestinationCard";
 import { destinations as staticDestinations } from "@/data/destinations";
 import { fetchDestinations } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Destinations",
   description:
@@ -35,13 +38,22 @@ export default async function DestinationsPage() {
 
       <section className="px-4 pb-24 sm:px-6">
         <div className="mx-auto max-w-6xl">
-          <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
-            {destinations.map((d) => (
-              <StaggerItem key={d.slug}>
-                <DestinationCard destination={d} />
-              </StaggerItem>
-            ))}
-          </Stagger>
+          {destinations.length === 0 ? (
+            <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs">
+              <h3 className="font-display text-lg font-semibold text-ink">No destinations listed yet</h3>
+              <p className="mt-2 text-sm text-ink-soft max-w-md mx-auto">
+                Explore packages and destinations once added and published from the Super Admin Panel.
+              </p>
+            </div>
+          ) : (
+            <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
+              {destinations.map((d) => (
+                <StaggerItem key={d.slug}>
+                  <DestinationCard destination={d} />
+                </StaggerItem>
+              ))}
+            </Stagger>
+          )}
 
           <Reveal className="mt-14">
             <div className="glass glass-sweep flex flex-col items-center gap-4 rounded-3xl p-8 text-center sm:flex-row sm:justify-between sm:text-left">

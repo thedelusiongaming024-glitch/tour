@@ -84,7 +84,7 @@ async function refreshStaffAccessToken(): Promise<string | null> {
   if (!refresh) return null;
 
   try {
-    const res = await fetch(`${API_BASE}/auth/token/refresh/`, {
+    const res = await fetch(`${API_BASE}/auth/token/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh }),
@@ -141,7 +141,7 @@ export async function staffFetch(path: string, init: RequestInit = {}): Promise<
 }
 
 export async function staffLogin(username: string, password: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const res = await fetch(`${API_BASE}/auth/staff/login/`, {
+  const res = await fetch(`${API_BASE}/auth/staff/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),

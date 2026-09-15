@@ -6,6 +6,23 @@ import { journalPosts as staticJournalPosts } from "@/data/journal";
 import { specialOffers as staticSpecialOffers, reviews as staticReviews } from "@/data/site";
 import { hashPassword } from "./auth";
 import { generateClearanceToken } from "./clearance";
+import {
+  syncDatabaseToSupabase,
+  syncDestinationToSupabase,
+  deleteDestinationFromSupabase,
+  syncTourToSupabase,
+  deleteTourFromSupabase,
+  syncOfferToSupabase,
+  deleteOfferFromSupabase,
+  syncTestimonialToSupabase,
+  deleteTestimonialFromSupabase,
+  syncBlogPostToSupabase,
+  deleteBlogPostFromSupabase,
+  syncHomepageBlockToSupabase,
+  syncBookingToSupabase,
+  syncPaymentToSupabase,
+  fetchDatabaseFromSupabase,
+} from "./supabase";
 import type {
   DatabaseSchema,
   DbAlert,
@@ -64,161 +81,6 @@ function generateInitialDepartures(): DbDeparture[] {
 }
 
 function createSeedData(): DatabaseSchema {
-  const seededDestinations: DbDestination[] = staticDestinations.map((d, index) => ({
-    id: slugToId(d.slug),
-    name: d.name,
-    slug: d.slug,
-    division: d.region.replace(" Division", "").toLowerCase(),
-    description: d.description,
-    best_time_to_visit: d.bestTime,
-    weather_notes: d.weather,
-    popular_attractions: d.attractions,
-    recommended_accommodation: d.accommodation,
-    travel_tips: d.travelTips.join("\n"),
-    permits_required: d.slug === "sajek" || d.slug === "bandarban" ? "Local security clearance at checkpost" : "None",
-    cover_image: d.cover.imageUrl || null,
-    cover_video_url: d.cover.videoUrl || "",
-    seo_title: `${d.name} Travel Guide | Atithi`,
-    seo_description: d.tagline,
-    gallery: d.gallery.map((g, i) => ({
-      id: `gal-${d.slug}-${i}`,
-      image: g.imageUrl || "",
-      caption: g.label,
-    })),
-    is_featured: index < 6,
-    status: "published",
-  }));
-
-  const seededTours: DbTour[] = staticTours.map((t, index) => {
-    const finalPrice = Math.max(0, t.startingPrice - t.discount);
-    const advancePercent = t.advancePercent || 40;
-    const advanceAmount = Math.round((finalPrice * advancePercent) / 100);
-
-    const matchDest = staticDestinations.find((d) => d.slug === t.destinationSlug);
-
-    // Parse duration string e.g. "3 Days / 2 Nights"
-    let days = 3;
-    let nights = 2;
-    const matchDuration = t.duration.match(/(\d+)\s*Day/i);
-    const matchNight = t.duration.match(/(\d+)\s*Night/i);
-    if (matchDuration) days = parseInt(matchDuration[1], 10);
-    if (matchNight) nights = parseInt(matchNight[1], 10);
-
-    return {
-      id: slugToId(t.slug),
-      title: t.title,
-      slug: t.slug,
-      destination_slug: t.destinationSlug,
-      destination_name: matchDest?.name || t.destinationSlug,
-      category: t.category.toLowerCase().replace(/\s+/g, "_"),
-      short_description: t.summary,
-      full_description: t.description,
-      hero_image: t.cover.imageUrl || null,
-      duration_days: days,
-      duration_nights: nights,
-      base_price: t.startingPrice.toFixed(2),
-      discount_type: t.discount > 0 ? "flat" : "none",
-      discount_value: t.discount.toFixed(2),
-      final_price: finalPrice.toFixed(2),
-      allow_partial_payment: t.allowPartialPayment !== false,
-      advance_payment_percent: advancePercent.toString(),
-      advance_amount: advanceAmount.toFixed(2),
-      inclusions: t.inclusions,
-      exclusions: t.exclusions,
-      accommodation_notes: t.accommodation,
-      transportation_notes: t.transportation,
-      meals_notes: t.meals,
-      meeting_point: t.meetingPoint,
-      departure_schedule: t.departure,
-      total_seats: t.capacity || 20,
-      departures: generateInitialDepartures(),
-      itinerary: t.itinerary.map((item) => ({
-        day_number: item.day,
-        title: item.title,
-        description: item.description,
-      })),
-      gallery: t.gallery.map((g, i) => ({
-        id: `tgal-${t.slug}-${i}`,
-        image: g.imageUrl || "",
-        caption: g.label,
-      })),
-      faqs: t.faqs,
-      is_featured: index < 4 || Boolean(t.featured),
-      status: "published",
-    };
-  });
-
-  const seededOffers: DbOffer[] = staticSpecialOffers.map((o, index) => ({
-    id: `offer-${index + 1}`,
-    title: o.title,
-    description: o.description,
-    slug: o.code.toLowerCase(),
-    tour_slug: null,
-    valid_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-    banner_image: o.bannerUrl || null,
-    is_active: true,
-  }));
-
-  const seededReviews: DbTestimonial[] = staticReviews.map((r, index) => ({
-    id: `rev-${index + 1}`,
-    customer_name: r.name,
-    tour_title: r.tour,
-    rating: r.rating,
-    quote: r.text,
-    customer_photo: r.photoUrl || null,
-    is_featured: true,
-  }));
-
-  const seededBlogPosts: DbBlogPost[] = staticJournalPosts.map((p, index) => ({
-    id: slugToId(p.slug),
-    slug: p.slug,
-    title: p.title,
-    category: { name: p.category },
-    author_name: p.author,
-    cover_image: p.cover.imageUrl || null,
-    excerpt: p.excerpt,
-    body: p.body.map((b) => (b.heading ? `### ${b.heading}\n\n` : "") + b.paragraphs.join("\n\n")).join("\n\n"),
-    published_at: new Date(Date.now() - index * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "published",
-  }));
-
-  const seededHomepageBlocks: DbHomepageBlock[] = [
-    {
-      id: "block-hero-1",
-      block_type: "hero",
-      display_order: 1,
-      content: {
-        eyebrow: "Premium domestic tours across Bangladesh",
-        headline: "Discover Bangladesh,",
-        highlight: "your way",
-        subheadline:
-          "Curated domestic tours. Trusted local hosts. Book with a small advance and clear the balance on tour day — with confirmation to both sides, every time.",
-        primary_cta_label: "Explore Tours",
-        primary_cta_href: "/tours",
-        secondary_cta_label: "Plan My Trip",
-        secondary_cta_href: "/contact",
-      },
-    },
-    {
-      id: "block-dest-grid-2",
-      block_type: "destination_grid",
-      display_order: 2,
-      content: { hidden: false },
-    },
-    {
-      id: "block-tours-3",
-      block_type: "featured_tours",
-      display_order: 3,
-      content: { hidden: false },
-    },
-    {
-      id: "block-testimonials-4",
-      block_type: "testimonials",
-      display_order: 4,
-      content: { hidden: false },
-    },
-  ];
-
   const adminAuth = hashPassword("adminpassword123");
   const financeAuth = hashPassword("financepassword123");
   const hostAuth = hashPassword("hostpassword123");
@@ -259,100 +121,150 @@ function createSeedData(): DatabaseSchema {
     },
   ];
 
-  const seededExpenses: DbExpense[] = [
+  const seededHomepageBlocks: DbHomepageBlock[] = [
     {
-      id: "exp-1",
-      category: "hotel",
-      amount: "45000.00",
-      date: new Date().toISOString().split("T")[0],
-      description: "Sajek Valley Resort group booking accommodation",
+      id: "block-hero-1",
+      block_type: "hero",
+      display_order: 1,
+      content: {
+        eyebrow: "Domestic tours across Bangladesh",
+        headline: "Discover Bangladesh,",
+        highlight: "your way",
+        subheadline: "Curated domestic tours. Trusted local hosts. Book with an advance and clear the balance on tour day.",
+        primary_cta_label: "Explore Tours",
+        primary_cta_href: "/tours",
+        secondary_cta_label: "Plan My Trip",
+        secondary_cta_href: "/contact",
+      },
     },
     {
-      id: "exp-2",
-      category: "transport",
-      amount: "32000.00",
-      date: new Date().toISOString().split("T")[0],
-      description: "AC Coaster transport fuel & driver fees Dhaka-Sajek",
+      id: "block-dest-grid-2",
+      block_type: "destination_grid",
+      display_order: 2,
+      content: { hidden: false },
     },
     {
-      id: "exp-3",
-      category: "operations",
-      amount: "18500.00",
-      date: new Date().toISOString().split("T")[0],
-      description: "Guide honorarium, food catering, toll clearances",
-    },
-  ];
-
-  const seededSuppliers: DbSupplier[] = [
-    { id: "sup-1", name: "Meghpunji Resort Sajek", outstanding_balance: "22000.00", is_active: true },
-    { id: "sup-2", name: "Green Line Paribahan", outstanding_balance: "15000.00", is_active: true },
-    { id: "sup-3", name: "Kolatoli Beachside Suites", outstanding_balance: "18000.00", is_active: true },
-  ];
-
-  const seededAlerts: DbAlert[] = [
-    {
-      id: "alt-1",
-      alert_type: "departure_filling",
-      severity: "info",
-      message: "Sajek Valley Friday departure is 80% booked (4 seats remaining).",
-      is_acknowledged: false,
-      created_at: new Date(Date.now() - 3600000).toISOString(),
+      id: "block-tours-3",
+      block_type: "featured_tours",
+      display_order: 3,
+      content: { hidden: false },
     },
     {
-      id: "alt-2",
-      alert_type: "weather_advisory",
-      severity: "warning",
-      message: "Heavy rain forecasted in Sylhet; coordinate with local boatmen at Ratargul.",
-      is_acknowledged: false,
-      created_at: new Date(Date.now() - 7200000).toISOString(),
+      id: "block-testimonials-4",
+      block_type: "testimonials",
+      display_order: 4,
+      content: { hidden: false },
     },
   ];
 
   return {
-    destinations: seededDestinations,
-    tours: seededTours,
-    offers: seededOffers,
-    testimonials: seededReviews,
-    blogPosts: seededBlogPosts,
+    destinations: [],
+    tours: [],
+    offers: [],
+    testimonials: [],
+    blogPosts: [],
     homepageBlocks: seededHomepageBlocks,
     staffUsers: seededStaff,
     bookings: [],
     payments: [],
     clearanceTickets: [],
-    alerts: seededAlerts,
-    expenses: seededExpenses,
-    suppliers: seededSuppliers,
+    alerts: [],
+    expenses: [],
+    suppliers: [],
     contactInquiries: [],
   };
 }
 
-function loadDb(): DatabaseSchema {
-  if (memoryDb) return memoryDb;
+let lastDbMtime = 0;
+let lastSupabaseFetch = 0;
+let isFetchingSupabase = false;
 
+function triggerBackgroundSupabaseSync() {
+  if (isFetchingSupabase) return;
+  const now = Date.now();
+  if (now - lastSupabaseFetch < 15000) return;
+  lastSupabaseFetch = now;
+  isFetchingSupabase = true;
+
+  fetchDatabaseFromSupabase()
+    .then((cloudDb) => {
+      if (!cloudDb) return;
+      if (cloudDb.destinations.length > 0 || cloudDb.tours.length > 0) {
+        memoryDb = cloudDb;
+        try {
+          if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+          fs.writeFileSync(DB_FILE, JSON.stringify(cloudDb, null, 2), "utf-8");
+          lastDbMtime = fs.statSync(DB_FILE).mtimeMs;
+        } catch {}
+      }
+    })
+    .catch((err) => console.warn("[Supabase Sync] Background sync error:", err))
+    .finally(() => {
+      isFetchingSupabase = false;
+    });
+}
+
+export async function refreshFromSupabase(): Promise<DatabaseSchema> {
+  const cloudDb = await fetchDatabaseFromSupabase();
+  if (cloudDb && (cloudDb.destinations.length > 0 || cloudDb.tours.length > 0)) {
+    memoryDb = cloudDb;
+    try {
+      if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+      fs.writeFileSync(DB_FILE, JSON.stringify(cloudDb, null, 2), "utf-8");
+      lastDbMtime = fs.statSync(DB_FILE).mtimeMs;
+    } catch {}
+    return cloudDb;
+  }
+  return loadDb();
+}
+
+function loadDb(): DatabaseSchema {
+  triggerBackgroundSupabaseSync();
   try {
     if (fs.existsSync(DB_FILE)) {
+      const stat = fs.statSync(DB_FILE);
+      if (memoryDb && stat.mtimeMs <= lastDbMtime) {
+        return memoryDb;
+      }
       const raw = fs.readFileSync(DB_FILE, "utf-8");
       memoryDb = JSON.parse(raw) as DatabaseSchema;
+      lastDbMtime = stat.mtimeMs;
       return memoryDb;
     }
   } catch (err) {
     console.error("Failed to read database file, initializing from seed:", err);
   }
 
+  if (memoryDb) return memoryDb;
   memoryDb = createSeedData();
   saveDb(memoryDb);
   return memoryDb;
 }
 
 function saveDb(data: DatabaseSchema) {
+  memoryDb = data;
   try {
     if (!fs.existsSync(DB_DIR)) {
       fs.mkdirSync(DB_DIR, { recursive: true });
     }
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf-8");
+    try {
+      lastDbMtime = fs.statSync(DB_FILE).mtimeMs;
+    } catch {
+      lastDbMtime = Date.now();
+    }
   } catch (err) {
     console.error("Failed to persist database file to disk:", err);
   }
+
+  // Non-blocking cloud synchronization to online Supabase
+  syncDatabaseToSupabase(data).catch((err) => {
+    console.warn("[Supabase Sync] Background cloud sync warning:", err);
+  });
+}
+
+export function getRawDb(): DatabaseSchema {
+  return loadDb();
 }
 
 // ---------------------------------------------------------------------------
@@ -539,6 +451,7 @@ export function createBooking(input: {
   });
 
   saveDb(db);
+  syncBookingToSupabase(newBooking).catch((err) => console.warn("[Supabase Sync] createBooking error:", err));
   return newBooking;
 }
 
@@ -558,6 +471,7 @@ export function updateBooking(id: string, update: Partial<DbBooking>): DbBooking
     updated_at: new Date().toISOString(),
   };
   saveDb(db);
+  syncBookingToSupabase(db.bookings[index]).catch((err) => console.warn("[Supabase Sync] updateBooking error:", err));
   return db.bookings[index];
 }
 
@@ -656,6 +570,8 @@ export function confirmPaymentSuccess(tranId: string, valId?: string, cardType?:
   });
 
   saveDb(db);
+  syncPaymentToSupabase(payment).catch((err) => console.warn("[Supabase Sync] createPayment error:", err));
+  syncBookingToSupabase(booking).catch((err) => console.warn("[Supabase Sync] booking payment sync error:", err));
   return { payment, booking, ticket };
 }
 
@@ -797,3 +713,317 @@ export function createInquiry(input: {
   saveDb(db);
   return inquiry;
 }
+
+// ---------------------------------------------------------------------------
+// Admin Management (Tours, Destinations, CMS, Blogs, Offers, Reviews)
+// ---------------------------------------------------------------------------
+
+export function getAllToursAdmin(): DbTour[] {
+  const db = loadDb();
+  return db.tours;
+}
+
+export function saveTour(tourData: Partial<DbTour>): DbTour {
+  const db = loadDb();
+  const id = tourData.id || `tour-${Date.now()}`;
+  const index = db.tours.findIndex((t) => t.id === id);
+
+  const basePriceNum = parseFloat(tourData.base_price || "0");
+  const discountValNum = parseFloat(tourData.discount_value || "0");
+  const finalPriceNum = Math.max(0, basePriceNum - discountValNum);
+  const advancePercent = tourData.advance_payment_percent || "40";
+  const advanceAmountNum = Math.round((finalPriceNum * parseFloat(advancePercent)) / 100);
+
+  const defaultTour: DbTour = {
+    id,
+    title: tourData.title || "Untitled Tour",
+    slug: tourData.slug || `tour-${Date.now()}`,
+    destination_slug: tourData.destination_slug || "coxs-bazar",
+    destination_name: tourData.destination_name || "Cox's Bazar",
+    category: tourData.category || "group_tour",
+    short_description: tourData.short_description || "",
+    full_description: tourData.full_description || "",
+    hero_image: tourData.hero_image || null,
+    duration_days: tourData.duration_days || 3,
+    duration_nights: tourData.duration_nights || 2,
+    base_price: basePriceNum.toFixed(2),
+    discount_type: tourData.discount_type || "flat",
+    discount_value: discountValNum.toFixed(2),
+    final_price: finalPriceNum.toFixed(2),
+    allow_partial_payment: tourData.allow_partial_payment !== false,
+    advance_payment_percent: advancePercent,
+    advance_amount: advanceAmountNum.toFixed(2),
+    inclusions: tourData.inclusions || [],
+    exclusions: tourData.exclusions || [],
+    accommodation_notes: tourData.accommodation_notes || "",
+    transportation_notes: tourData.transportation_notes || "",
+    meals_notes: tourData.meals_notes || "",
+    meeting_point: tourData.meeting_point || "Dhaka",
+    departure_schedule: tourData.departure_schedule || "Every Friday",
+    total_seats: tourData.total_seats || 20,
+    departures: tourData.departures && tourData.departures.length > 0 ? tourData.departures : generateInitialDepartures(),
+    itinerary: tourData.itinerary || [],
+    gallery: tourData.gallery || [],
+    faqs: tourData.faqs || [],
+    is_featured: Boolean(tourData.is_featured),
+    status: tourData.status || "published",
+  };
+
+  if (index !== -1) {
+    db.tours[index] = { ...db.tours[index], ...defaultTour };
+  } else {
+    db.tours.unshift(defaultTour);
+  }
+
+  saveDb(db);
+  syncTourToSupabase(defaultTour).catch((err) => console.warn("[Supabase Sync] saveTour error:", err));
+  return defaultTour;
+}
+
+export function deleteTour(id: string): boolean {
+  const db = loadDb();
+  const index = db.tours.findIndex((t) => t.id === id);
+  if (index === -1) return false;
+  db.tours.splice(index, 1);
+  saveDb(db);
+  deleteTourFromSupabase(id).catch((err) => console.warn("[Supabase Sync] deleteTour error:", err));
+  return true;
+}
+
+export function getAllDestinationsAdmin(): DbDestination[] {
+  const db = loadDb();
+  return db.destinations;
+}
+
+export function saveDestination(destData: Partial<DbDestination>): DbDestination {
+  const db = loadDb();
+  const id = destData.id || `dest-${Date.now()}`;
+  const index = db.destinations.findIndex((d) => d.id === id);
+
+  const defaultDest: DbDestination = {
+    id,
+    name: destData.name || "New Destination",
+    slug: destData.slug || `destination-${Date.now()}`,
+    division: destData.division || "chattogram",
+    description: destData.description || "",
+    best_time_to_visit: destData.best_time_to_visit || "October to March",
+    weather_notes: destData.weather_notes || "Pleasant and breezy",
+    popular_attractions: destData.popular_attractions || [],
+    recommended_accommodation: destData.recommended_accommodation || "Local boutique resorts",
+    travel_tips: destData.travel_tips || "",
+    permits_required: destData.permits_required || "None",
+    cover_image: destData.cover_image || null,
+    cover_video_url: destData.cover_video_url || "",
+    seo_title: destData.seo_title || `${destData.name} Travel Guide | Atithi`,
+    seo_description: destData.seo_description || "",
+    gallery: destData.gallery || [],
+    is_featured: Boolean(destData.is_featured),
+    status: destData.status || "published",
+  };
+
+  if (index !== -1) {
+    db.destinations[index] = { ...db.destinations[index], ...defaultDest };
+  } else {
+    db.destinations.unshift(defaultDest);
+  }
+
+  saveDb(db);
+  syncDestinationToSupabase(defaultDest).catch((err) => console.warn("[Supabase Sync] saveDestination error:", err));
+  return defaultDest;
+}
+
+export function deleteDestination(id: string): boolean {
+  const db = loadDb();
+  const index = db.destinations.findIndex((d) => d.id === id);
+  if (index === -1) return false;
+  db.destinations.splice(index, 1);
+  saveDb(db);
+  deleteDestinationFromSupabase(id).catch((err) => console.warn("[Supabase Sync] deleteDestination error:", err));
+  return true;
+}
+
+export function getAllBlogPostsAdmin(): DbBlogPost[] {
+  const db = loadDb();
+  return db.blogPosts;
+}
+
+export function saveBlogPost(postData: Partial<DbBlogPost>): DbBlogPost {
+  const db = loadDb();
+  const id = postData.id || `post-${Date.now()}`;
+  const index = db.blogPosts.findIndex((p) => p.id === id);
+
+  const defaultPost: DbBlogPost = {
+    id,
+    title: postData.title || "Untitled Post",
+    slug: postData.slug || `post-${Date.now()}`,
+    category: postData.category || { name: "Travel Tips" },
+    author_name: postData.author_name || "Atithi Editorial",
+    cover_image: postData.cover_image || null,
+    excerpt: postData.excerpt || "",
+    body: postData.body || "",
+    published_at: postData.published_at || new Date().toISOString(),
+    status: postData.status || "published",
+  };
+
+  if (index !== -1) {
+    db.blogPosts[index] = { ...db.blogPosts[index], ...defaultPost };
+  } else {
+    db.blogPosts.unshift(defaultPost);
+  }
+
+  saveDb(db);
+  syncBlogPostToSupabase(defaultPost).catch((err) => console.warn("[Supabase Sync] saveBlogPost error:", err));
+  return defaultPost;
+}
+
+export function deleteBlogPost(id: string): boolean {
+  const db = loadDb();
+  const index = db.blogPosts.findIndex((p) => p.id === id);
+  if (index === -1) return false;
+  db.blogPosts.splice(index, 1);
+  saveDb(db);
+  deleteBlogPostFromSupabase(id).catch((err) => console.warn("[Supabase Sync] deleteBlogPost error:", err));
+  return true;
+}
+
+export function getAllOffersAdmin(): DbOffer[] {
+  const db = loadDb();
+  return db.offers;
+}
+
+export function saveOffer(offerData: Partial<DbOffer>): DbOffer {
+  const db = loadDb();
+  const id = offerData.id || `offer-${Date.now()}`;
+  const index = db.offers.findIndex((o) => o.id === id);
+
+  const defaultOffer: DbOffer = {
+    id,
+    title: offerData.title || "Special Offer",
+    description: offerData.description || "",
+    slug: (offerData.slug || "PROMO").toUpperCase(),
+    tour_slug: offerData.tour_slug || null,
+    valid_until: offerData.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    banner_image: offerData.banner_image || null,
+    is_active: offerData.is_active !== false,
+  };
+
+  if (index !== -1) {
+    db.offers[index] = { ...db.offers[index], ...defaultOffer };
+  } else {
+    db.offers.unshift(defaultOffer);
+  }
+
+  saveDb(db);
+  syncOfferToSupabase(defaultOffer).catch((err) => console.warn("[Supabase Sync] saveOffer error:", err));
+  return defaultOffer;
+}
+
+export function deleteOffer(id: string): boolean {
+  const db = loadDb();
+  const index = db.offers.findIndex((o) => o.id === id);
+  if (index === -1) return false;
+  db.offers.splice(index, 1);
+  saveDb(db);
+  deleteOfferFromSupabase(id).catch((err) => console.warn("[Supabase Sync] deleteOffer error:", err));
+  return true;
+}
+
+export function getAllTestimonialsAdmin(): DbTestimonial[] {
+  const db = loadDb();
+  return db.testimonials;
+}
+
+export function saveTestimonial(testData: Partial<DbTestimonial>): DbTestimonial {
+  const db = loadDb();
+  const id = testData.id || `rev-${Date.now()}`;
+  const index = db.testimonials.findIndex((t) => t.id === id);
+
+  const defaultTest: DbTestimonial = {
+    id,
+    customer_name: testData.customer_name || "Valued Guest",
+    tour_title: testData.tour_title || "Bangladesh Tour",
+    rating: typeof testData.rating === "number" ? testData.rating : 5,
+    quote: testData.quote || "",
+    customer_photo: testData.customer_photo || null,
+    is_featured: testData.is_featured !== false,
+  };
+
+  if (index !== -1) {
+    db.testimonials[index] = { ...db.testimonials[index], ...defaultTest };
+  } else {
+    db.testimonials.unshift(defaultTest);
+  }
+
+  saveDb(db);
+  syncTestimonialToSupabase(defaultTest).catch((err) => console.warn("[Supabase Sync] saveTestimonial error:", err));
+  return defaultTest;
+}
+
+export function deleteTestimonial(id: string): boolean {
+  const db = loadDb();
+  const index = db.testimonials.findIndex((t) => t.id === id);
+  if (index === -1) return false;
+  db.testimonials.splice(index, 1);
+  saveDb(db);
+  deleteTestimonialFromSupabase(id).catch((err) => console.warn("[Supabase Sync] deleteTestimonial error:", err));
+  return true;
+}
+
+export function saveHomepageBlock(id: string, blockType: DbHomepageBlock["block_type"], content: Record<string, unknown>): DbHomepageBlock {
+  const db = loadDb();
+  const index = db.homepageBlocks.findIndex((b) => b.id === id);
+
+  if (index !== -1) {
+    db.homepageBlocks[index].content = { ...db.homepageBlocks[index].content, ...content };
+    saveDb(db);
+    syncHomepageBlockToSupabase(db.homepageBlocks[index]).catch((err) => console.warn("[Supabase Sync] saveHomepageBlock error:", err));
+    return db.homepageBlocks[index];
+  } else {
+    const newBlock: DbHomepageBlock = {
+      id,
+      block_type: blockType,
+      display_order: db.homepageBlocks.length + 1,
+      content,
+    };
+    db.homepageBlocks.push(newBlock);
+    saveDb(db);
+    syncHomepageBlockToSupabase(newBlock).catch((err) => console.warn("[Supabase Sync] saveHomepageBlock error:", err));
+    return newBlock;
+  }
+}
+
+export function getAllBookingsAdmin(): DbBooking[] {
+  const db = loadDb();
+  return db.bookings;
+}
+
+export function updateBookingStatus(id: string, status: DbBooking["status"]): DbBooking | null {
+  const db = loadDb();
+  const booking = db.bookings.find((b) => b.id === id);
+  if (!booking) return null;
+  booking.status = status;
+  booking.updated_at = new Date().toISOString();
+  saveDb(db);
+  syncBookingToSupabase(booking).catch((err) => console.warn("[Supabase Sync] updateBookingStatus error:", err));
+  return booking;
+}
+
+export function getAllInquiriesAdmin(): DbContactInquiry[] {
+  const db = loadDb();
+  return db.contactInquiries;
+}
+
+export function updateInquiryStatus(
+  id: string,
+  status: DbContactInquiry["status"],
+  adminNotes?: string
+): DbContactInquiry | null {
+  const db = loadDb();
+  const inquiry = db.contactInquiries.find((i) => i.id === id);
+  if (!inquiry) return null;
+  inquiry.status = status;
+  if (adminNotes !== undefined) inquiry.admin_notes = adminNotes;
+  saveDb(db);
+  return inquiry;
+}
+

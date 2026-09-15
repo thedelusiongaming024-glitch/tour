@@ -3,6 +3,7 @@ export interface DbDestination {
   name: string;
   slug: string;
   division: string;
+  tagline?: string;
   description: string;
   best_time_to_visit: string;
   weather_notes: string;
@@ -66,7 +67,12 @@ export interface DbOffer {
   title: string;
   description: string;
   slug: string;
-  tour_slug: string | null;
+  code?: string;
+  discount_type?: "percent" | "flat";
+  discount_value?: string;
+  minimum_spend?: string;
+  valid_from?: string;
+  tour_slug?: string | null;
   valid_until: string;
   banner_image: string | null;
   is_active: boolean;
@@ -76,6 +82,10 @@ export interface DbTestimonial {
   id: string;
   customer_name: string;
   tour_title: string;
+  author_name?: string;
+  trip_name?: string;
+  author_location?: string;
+  author_avatar?: string | null;
   rating: number;
   quote: string;
   customer_photo: string | null;
@@ -88,11 +98,18 @@ export interface DbBlogPost {
   title: string;
   category: { name: string } | null;
   author_name: string;
+  author?: string;
   cover_image: string | null;
+  hero_image?: string | null;
   excerpt: string;
   body: string;
+  content?: string;
+  read_time_minutes?: number;
+  tags?: string[];
   published_at: string;
+  created_at?: string;
   status: "published" | "draft";
+  is_published?: boolean;
 }
 
 export interface DbHomepageBlock {
@@ -231,6 +248,7 @@ export interface DbContactInquiry {
   travelers: number;
   message: string;
   status: "new" | "in_progress" | "resolved";
+  admin_notes?: string;
   created_at: string;
 }
 

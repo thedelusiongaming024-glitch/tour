@@ -19,6 +19,10 @@ export function Navbar() {
   const pathname = usePathname();
   const reduce = useReducedMotion();
 
+  if (pathname?.startsWith("/staff")) {
+    return null;
+  }
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();

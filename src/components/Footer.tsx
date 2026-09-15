@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Reveal } from "@/components/Reveal";
 import { siteName, siteNameBn, siteTagline } from "@/data/site";
 
@@ -24,6 +27,9 @@ const footerNav = {
 };
 
 export function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/staff")) return null;
+
   return (
     <footer className="relative mt-auto px-4 pb-8 pt-16 sm:px-6">
       <div className="mx-auto max-w-6xl">

@@ -43,8 +43,16 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       className="h-full antialiased"
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col text-ink">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var o=new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].attributeName==='cz-shortcut-listen'&&document.body){document.body.removeAttribute('cz-shortcut-listen');}}});o.observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['cz-shortcut-listen']});}catch(_){}`,
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning className="min-h-full flex flex-col text-ink">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

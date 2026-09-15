@@ -12,7 +12,7 @@ import { staffLogin } from "@/lib/staffAuth";
 // of real internal destinations closes that off entirely rather than
 // trying to pattern-match "looks like a relative path" (which is easy to
 // get wrong, e.g. protocol-relative "//evil.example").
-const ALLOWED_NEXT_PATHS = new Set(["/staff/dashboard", "/staff/scan"]);
+const ALLOWED_NEXT_PATHS = new Set(["/staff/dashboard", "/staff/scan", "/staff/admin"]);
 const DEFAULT_NEXT_PATH = "/staff/dashboard";
 
 function resolveNextPath(raw: string | null): string {
@@ -44,45 +44,56 @@ function StaffLoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-2xl border border-white/10 bg-slate-900 p-8 shadow-xl"
+        className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
       >
-        <h1 className="text-center text-lg font-semibold text-white">Atithi Staff Login</h1>
-        <p className="mt-1 text-center text-sm text-slate-400">Back-office access only.</p>
+        <div className="text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-lg mb-3">
+            A
+          </div>
+          <h1 className="text-lg font-semibold text-slate-900">Atithi Staff Portal</h1>
+          <p className="mt-1 text-sm text-slate-500">Back-office and management access</p>
+        </div>
 
-        <label className="mt-6 flex flex-col gap-1 text-sm text-slate-300">
+        <label className="mt-6 flex flex-col gap-1.5 text-sm font-medium text-slate-700">
           Username
           <input
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="rounded-lg border border-white/10 bg-slate-800 px-3 py-2 text-white outline-none focus:border-emerald-400"
+            className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-slate-900 text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition"
             autoComplete="username"
+            placeholder="admin or ops username"
           />
         </label>
 
-        <label className="mt-4 flex flex-col gap-1 text-sm text-slate-300">
+        <label className="mt-4 flex flex-col gap-1.5 text-sm font-medium text-slate-700">
           Password
           <input
             required
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-lg border border-white/10 bg-slate-800 px-3 py-2 text-white outline-none focus:border-emerald-400"
+            className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-slate-900 text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition"
             autoComplete="current-password"
+            placeholder="••••••••"
           />
         </label>
 
-        {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
+        {error && (
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+            {error}
+          </div>
+        )}
 
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 w-full rounded-lg bg-emerald-500 px-4 py-2.5 font-medium text-white transition hover:bg-emerald-400 disabled:opacity-60"
+          className="mt-6 w-full rounded-lg bg-emerald-700 px-4 py-2.5 font-medium text-white shadow-xs transition hover:bg-emerald-800 disabled:opacity-60"
         >
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? "Authenticating…" : "Sign In to Back Office"}
         </button>
       </form>
     </main>

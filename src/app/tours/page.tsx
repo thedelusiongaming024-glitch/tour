@@ -10,6 +10,9 @@ import { tours as staticTours } from "@/data/tours";
 import { destinations as staticDestinations } from "@/data/destinations";
 import { fetchDestinations, fetchTours } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Tour Packages",
   description:
@@ -108,23 +111,25 @@ export default async function ToursPage({
           )}
 
           {/* Destination quick links */}
-          <Reveal className="mt-16">
-            <h2 className="font-display text-xl font-semibold text-ink">
-              Explore tours by destination
-            </h2>
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              {destinations.map((d) => (
-                <Link
-                  key={d.slug}
-                  href={`/destinations/${d.slug}`}
-                  className="glass inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:text-emerald"
-                >
-                  <Icon name="mapPin" className="h-3.5 w-3.5" />
-                  {d.name}
-                </Link>
-              ))}
-            </div>
-          </Reveal>
+          {destinations.length > 0 && (
+            <Reveal className="mt-16">
+              <h2 className="font-display text-xl font-semibold text-ink">
+                Explore tours by destination
+              </h2>
+              <div className="mt-5 flex flex-wrap gap-2.5">
+                {destinations.map((d) => (
+                  <Link
+                    key={d.slug}
+                    href={`/destinations/${d.slug}`}
+                    className="glass inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:text-emerald"
+                  >
+                    <Icon name="mapPin" className="h-3.5 w-3.5" />
+                    {d.name}
+                  </Link>
+                ))}
+              </div>
+            </Reveal>
+          )}
         </div>
       </section>
     </>

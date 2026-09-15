@@ -12,12 +12,11 @@ import { getDestination } from "@/data/destinations";
 import { fetchDestination, fetchTour } from "@/lib/api";
 
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
-}
-
-export async function generateStaticParams() {
-  return tours.map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({
