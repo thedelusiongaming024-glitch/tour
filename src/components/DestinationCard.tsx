@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { Icon } from "@/components/Icon";
+import { useLanguage } from "@/context/LanguageContext";
 import type { Destination } from "@/lib/types";
 
 interface DestinationCardProps {
@@ -12,6 +13,10 @@ interface DestinationCardProps {
 }
 
 export function DestinationCard({ destination }: DestinationCardProps) {
+  const { isBn } = useLanguage();
+  const primaryName = isBn && destination.bn ? destination.bn : destination.name;
+  const secondaryName = isBn && destination.bn ? destination.name : destination.bn;
+
   return (
     <GlassCard className="group relative overflow-hidden rounded-3xl shadow-glass transition-shadow duration-300 hover:shadow-glass-lg">
       <Link href={`/destinations/${destination.slug}`} className="block">
@@ -28,9 +33,11 @@ export function DestinationCard({ destination }: DestinationCardProps) {
               {destination.region}
             </span>
             <h3 className="font-display text-lg font-semibold leading-tight text-ink">
-              {destination.name}
+              {primaryName}
             </h3>
-            <span className="text-xs text-ink-faint">{destination.bn}</span>
+            {secondaryName && (
+              <span className="text-xs text-ink-faint">{secondaryName}</span>
+            )}
           </div>
           <motion.span
             whileHover={{ x: 4 }}

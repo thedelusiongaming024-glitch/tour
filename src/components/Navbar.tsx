@@ -5,19 +5,22 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { siteName, siteNameBn } from "@/data/site";
-
-const navLinks = [
-  { href: "/destinations", label: "Destinations" },
-  { href: "/tours", label: "Tours" },
-  { href: "/about", label: "About" },
-  { href: "/journal", label: "Journal" },
-];
+import { useLanguage } from "@/context/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const reduce = useReducedMotion();
+  const { t, isBn } = useLanguage();
+
+  const navLinks = [
+    { href: "/destinations", label: t("nav.destinations") },
+    { href: "/tours", label: t("nav.tours") },
+    { href: "/about", label: t("nav.about") },
+    { href: "/journal", label: t("nav.journal") },
+  ];
 
   if (pathname?.startsWith("/staff")) {
     return null;
@@ -57,7 +60,7 @@ export function Navbar() {
               {siteName}
             </span>
             <span className="text-[11px] font-medium text-ink-faint">
-              {siteNameBn} — domestic tours
+              {siteNameBn} — {t("nav.tagline")}
             </span>
           </span>
         </Link>
@@ -88,16 +91,17 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <LanguageToggle className="hidden sm:inline-flex" />
           <motion.div whileTap={{ scale: 0.96 }} className="hidden md:inline-flex">
             <Link href="/contact" className="btn btn-emerald !px-5 !py-2.5">
-              Plan My Trip
+              {t("nav.planTrip")}
             </Link>
           </motion.div>
           <motion.button
             whileTap={{ scale: 0.9 }}
             type="button"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t("nav.close") : t("nav.menu")}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/60 text-ink transition-colors hover:bg-white md:hidden"
@@ -141,7 +145,11 @@ export function Navbar() {
                 show: { transition: { staggerChildren: reduce ? 0 : 0.05 } },
               }}
             >
-              {[{ href: "/", label: "Home" }, ...navLinks, { href: "/contact", label: "Contact" }].map(
+              <div className="flex items-center justify-between px-4 py-2 mb-1 border-b border-white/40">
+                <span className="text-xs font-semibold text-ink-faint uppercase tracking-wider">Language / ভাষা</span>
+                <LanguageToggle />
+              </div>
+              {[{ href: "/", label: t("nav.home") }, ...navLinks, { href: "/contact", label: t("nav.contact") }].map(
                 (link) => {
                   const active = pathname === link.href;
                   return (
@@ -178,7 +186,7 @@ export function Navbar() {
                   onClick={() => setOpen(false)}
                   className="btn btn-emerald mt-3 w-full !py-3.5"
                 >
-                  Plan My Trip
+                  {t("nav.planTrip")}
                 </Link>
               </motion.div>
             </motion.nav>

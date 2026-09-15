@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TourCard } from "@/components/TourCard";
 import { Icon } from "@/components/Icon";
+import { useLanguage } from "@/context/LanguageContext";
 import type { Destination, Tour } from "@/lib/types";
 
 interface PopularToursExplorerProps {
@@ -22,10 +23,10 @@ const durationOptions = [
 ];
 
 const priceOptions = [
-  { label: "Any price", min: 0, max: Infinity },
-  { label: "Under ৳20k", min: 0, max: 20000 },
-  { label: "৳20k – ৳40k", min: 20000, max: 40000 },
-  { label: "৳40k+", min: 40000, max: Infinity },
+  { labelEn: "Any price", labelBn: "যেকোনো মূল্য", min: 0, max: Infinity },
+  { labelEn: "Under ৳20k", labelBn: "৳২০,০০০ এর নিচে", min: 0, max: 20000 },
+  { labelEn: "৳20k – ৳40k", labelBn: "৳২০,০০০ – ৳৪০,০০০", min: 20000, max: 40000 },
+  { labelEn: "৳40k+", labelBn: "৳৪০,০০০+", min: 40000, max: Infinity },
 ];
 
 function SelectField({
@@ -100,6 +101,8 @@ export function PopularToursExplorer({
   tours,
   destinations,
 }: PopularToursExplorerProps) {
+  const { t, isBn, formatNumber } = useLanguage();
+
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(tours.map((t) => t.category)))],
     [tours]
@@ -109,9 +112,15 @@ export function PopularToursExplorer({
     const named = slugs
       .map((slug) => destinations.find((d) => d.slug === slug))
       .filter((d): d is Destination => Boolean(d))
-      .map((d) => ({ value: d.slug, label: d.name }));
-    return [{ value: "all", label: "All destinations" }, ...named];
-  }, [tours, destinations]);
+      .map((d) => ({
+        value: d.slug,
+        label: isBn && d.bn ? d.bn : d.name,
+      }));
+    return [
+      { value: "all", label: isBn ? "সকল গন্তব্য" : "All destinations" },
+      ...named,
+    ];
+  }, [tours, destinations, isBn]);
 
   const [category, setCategory] = useState("All");
   const [place, setPlace] = useState("all");
@@ -144,6 +153,15 @@ export function PopularToursExplorer({
     setPriceIdx(0);
   }
 
+  const getDurationLabel = (d: string) => {
+    if (!isBn) return d;
+    if (d === ANY_DURATION) return "যেকোনো সময়কাল";
+    return d
+      .replace(/Days?/gi, "দিন")
+      .replace(/Nights?/gi, "রাত")
+      .replace(/\d+/g, (m) => formatNumber(Number(m)));
+  };
+
   return (
     <div>
       {/* Filter bar */}
@@ -152,7 +170,7 @@ export function PopularToursExplorer({
           {categories.map((c) => (
             <CategoryPill
               key={c}
-              label={c}
+              label={c === "All" ? (isBn ? "সকল" : "All") : c}
               active={category === c}
               onClick={() => setCategory(c)}
             />
@@ -162,26 +180,29 @@ export function PopularToursExplorer({
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <SelectField
             icon="mapPin"
-            label="Place"
+            label={isBn ? "গন্তব্য" : "Place"}
             value={place}
             onChange={setPlace}
             options={placeOptions}
           />
           <SelectField
             icon="calendar"
-            label="Duration"
+            label={isBn ? "সময়কাল" : "Duration"}
             value={duration}
             onChange={setDuration}
-            options={durationOptions.map((d) => ({ value: d, label: d }))}
+            options={durationOptions.map((d) => ({
+              value: d,
+              label: getDurationLabel(d),
+            }))}
           />
           <SelectField
             icon="receipt"
-            label="Price"
+            label={isBn ? "বাজেট" : "Price"}
             value={String(priceIdx)}
             onChange={(v) => setPriceIdx(Number(v))}
             options={priceOptions.map((p, i) => ({
               value: String(i),
-              label: p.label,
+              label: isBn ? p.labelBn : p.labelEn,
             }))}
           />
         </div>
@@ -201,7 +222,9 @@ export function PopularToursExplorer({
                 className="inline-flex items-center gap-1 rounded-full bg-coral/10 px-3 py-1.5 text-xs font-semibold text-coral transition-colors hover:bg-coral/20"
               >
                 <Icon name="x" className="h-3.5 w-3.5" />
-                Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+                {isBn
+                  ? `${formatNumber(activeFilterCount)}টি ফিল্টার মুছুন`
+                  : `Clear ${activeFilterCount} filter${activeFilterCount > 1 ? "s" : ""}`}
               </button>
             </motion.div>
           )}
@@ -219,11 +242,23 @@ export function PopularToursExplorer({
             transition={{ duration: 0.2 }}
             className="text-sm font-medium text-ink-soft"
           >
-            Showing{" "}
-            <span className="font-semibold text-emerald-deep">
-              {filtered.length}
-            </span>{" "}
-            {filtered.length === 1 ? "tour" : "tours"}
+            {isBn ? (
+              <>
+                মোট{" "}
+                <span className="font-semibold text-emerald-deep">
+                  {formatNumber(filtered.length)}টি
+                </span>{" "}
+                ট্যুর দেখানো হচ্ছে
+              </>
+            ) : (
+              <>
+                Showing{" "}
+                <span className="font-semibold text-emerald-deep">
+                  {filtered.length}
+                </span>{" "}
+                {filtered.length === 1 ? "tour" : "tours"}
+              </>
+            )}
           </motion.p>
         </AnimatePresence>
       </div>
@@ -264,14 +299,15 @@ export function PopularToursExplorer({
               <Icon name="mapPin" className="h-6 w-6" />
             </motion.span>
             <h3 className="font-display text-lg font-semibold text-ink">
-              No tours match those filters
+              {isBn ? "কোনো ট্যুর পাওয়া যায়নি" : "No tours match those filters"}
             </h3>
             <p className="max-w-sm text-sm text-ink-soft">
-              Try widening your search, or clear the filters to see every
-              package again.
+              {isBn
+                ? "অন্য ফিল্টার ব্যবহার করে দেখুন অথবা সব ফিল্টার মুছে আবার চেষ্টা করুন।"
+                : "Try widening your search, or clear the filters to see every package again."}
             </p>
             <button type="button" onClick={clearAll} className="btn btn-emerald mt-2">
-              Clear filters
+              {isBn ? "ফিল্টার মুছুন" : "Clear filters"}
             </button>
           </motion.div>
         )}

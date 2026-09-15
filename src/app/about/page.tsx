@@ -137,7 +137,9 @@ export default function AboutPage() {
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
             eyebrow="What we stand for"
+            eyebrowBn="আমাদের মূল্যবোধ"
             title="The values behind every trip"
+            titleBn="প্রতিটি ভ্রমণের পেছনের মূল নীতি"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" stagger={0.08}>
             {values.map((value) => (
@@ -164,8 +166,11 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl">
           <SectionHeading
             eyebrow="How booking works"
+            eyebrowBn="বুকিং যেভাবে কাজ করে"
             title="Zero-friction, start to finish"
+            titleBn="সহজ ও ঝামেলামুক্ত অভিজ্ঞতা"
             description="From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity."
+            descriptionBn="অনুসন্ধান থেকে শুরু করে কিউআর পেমেন্ট পর্যন্ত — প্রতিটি ধাপ সাজানো হয়েছে সম্পূর্ণ স্বাচ্ছন্দ্যে।"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
             {whyUs.map((item) => (
@@ -193,7 +198,9 @@ export default function AboutPage() {
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
             eyebrow="The team"
+            eyebrowBn="আমাদের টিম"
             title="A few of the people who'll host you"
+            titleBn="আপনার সেবায় নিবেদিত আমাদের দলের সদস্যগণ"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.1}>
             {team.map((member) => (

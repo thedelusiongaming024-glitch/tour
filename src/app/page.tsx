@@ -14,6 +14,8 @@ import { OfferCard } from "@/components/OfferCard";
 import { ReviewCard } from "@/components/ReviewCard";
 import { JournalCard } from "@/components/JournalCard";
 import { CtaBanner } from "@/components/CtaBanner";
+import { HomeHero } from "@/components/HomeHero";
+import { LocalizedButtonLink } from "@/components/LocalizedButtonLink";
 import { Icon } from "@/components/Icon";
 import { destinations as staticDestinations } from "@/data/destinations";
 import { tours as staticTours } from "@/data/tours";
@@ -99,67 +101,17 @@ export default async function Home() {
   return (
     <>
       {/* ============ HERO ============ */}
-      <section className="relative overflow-hidden px-4 pb-24 pt-32 sm:px-6 sm:pt-40">
-        <HeroSlideshow
-          scenes={["coxsbazar", "sajek", "sundarbans", "bandarban", "stmartins"]}
-        />
-        <div className="relative z-10 mx-auto max-w-6xl">
-          <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-            <Reveal>
-              <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-emerald-deep">
-                <Icon name="mapPin" className="h-4 w-4" />
-                {str(heroContent, "eyebrow") ?? "Premium domestic tours across Bangladesh"}
-              </span>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-6xl md:text-7xl">
-                {str(heroContent, "headline") ?? "Discover Bangladesh,"}
-                <br />
-                <span className="bg-gradient-to-r from-emerald via-emerald-deep to-gold bg-clip-text text-transparent">
-                  {str(heroContent, "highlight") ?? "your way"}
-                </span>
-              </h1>
-            </Reveal>
-            <Reveal delay={0.16}>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-                {str(heroContent, "subheadline") ??
-                  "Curated domestic tours. Trusted local hosts. Book with a small advance and clear the balance on tour day — with confirmation to both sides, every time."}
-              </p>
-            </Reveal>
-            <Reveal delay={0.24}>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href={str(heroContent, "primary_cta_href") ?? "/tours"} className="btn btn-emerald">
-                  {str(heroContent, "primary_cta_label") ?? "Explore Tours"}
-                </Link>
-                <Link href={str(heroContent, "secondary_cta_href") ?? "/contact"} className="btn btn-glass">
-                  {str(heroContent, "secondary_cta_label") ?? "Plan My Trip"}
-                </Link>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Stat panel */}
-          {(heroStatsOverride ?? heroStats).length > 0 && (
-            <Reveal delay={0.32} className="mx-auto mt-14 max-w-4xl">
-              <Stagger
-                className="glass glass-sweep grid grid-cols-2 gap-y-8 rounded-[2rem] p-6 sm:grid-cols-4 sm:p-8"
-                stagger={0.08}
-              >
-                {(heroStatsOverride ?? heroStats).map((stat) => (
-                  <StaggerItem key={stat.label} className="text-center">
-                    <div className="font-display text-3xl font-semibold text-emerald-deep sm:text-4xl">
-                      {stat.value}
-                    </div>
-                    <div className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-faint sm:text-sm">
-                      {stat.label}
-                    </div>
-                  </StaggerItem>
-                ))}
-              </Stagger>
-            </Reveal>
-          )}
-        </div>
-      </section>
+      <HomeHero
+        eyebrow={str(heroContent, "eyebrow")}
+        headline={str(heroContent, "headline")}
+        highlight={str(heroContent, "highlight")}
+        subheadline={str(heroContent, "subheadline")}
+        primaryCtaLabel={str(heroContent, "primary_cta_label")}
+        primaryCtaHref={str(heroContent, "primary_cta_href")}
+        secondaryCtaLabel={str(heroContent, "secondary_cta_label")}
+        secondaryCtaHref={str(heroContent, "secondary_cta_href")}
+        statsOverride={heroStatsOverride}
+      />
 
       {/* ============ ADMIN-EDITABLE FREEFORM BLOCKS ============ */}
       {/* rich_text / image / cta / gallery HomepageBlocks, in the order an
@@ -268,16 +220,20 @@ export default async function Home() {
             <SectionHeading
               align="left"
               eyebrow={str(destinationGridBlock?.content ?? {}, "eyebrow") ?? "Destinations"}
+              eyebrowBn="গন্তব্যসমূহ"
               title={str(destinationGridBlock?.content ?? {}, "heading") ?? "Popular destinations across Bangladesh"}
+              titleBn="বাংলাদেশ জুড়ে জনপ্রিয় ভ্রমণ গন্তব্য"
               description={
                 str(destinationGridBlock?.content ?? {}, "description") ??
                 "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest."
               }
+              descriptionBn="সমুদ্র সৈকত, সবুজ পাহাড়, ম্যানগ্রোভ বন আর চায়ের বাগান — স্থান নির্বাচন করুন, বাকি দায়িত্ব আমাদের।"
             />
-            <Link href="/destinations" className="btn btn-glass shrink-0">
-              All destinations
-              <Icon name="arrowRight" className="h-4 w-4" />
-            </Link>
+            <LocalizedButtonLink
+              href="/destinations"
+              labelEn="All destinations"
+              labelBn="সকল গন্তব্য"
+            />
           </div>
           <Stagger className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
             {featuredDestinations.map((d) => (
@@ -297,20 +253,25 @@ export default async function Home() {
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
             eyebrow={str(featuredToursBlock?.content ?? {}, "eyebrow") ?? "Tour Packages"}
+            eyebrowBn="ট্যুর প্যাকেজ"
             title={str(featuredToursBlock?.content ?? {}, "heading") ?? "Popular tour packages"}
+            titleBn="জনপ্রিয় ট্যুর প্যাকেজসমূহ"
             description={
               str(featuredToursBlock?.content ?? {}, "description") ??
               "Small groups, local hosts, and everything included. Filter by place, duration, or price to find your trip in seconds."
             }
+            descriptionBn="ছোট গ্রুপ, অভিজ্ঞ লোকাল হোস্ট এবং সকল সুবিধা সহ। স্থান, সময়কাল বা বাজেট দিয়ে সহজে পছন্দমতো ট্যুর খুঁজুন।"
           />
           <Reveal delay={0.1} className="mt-12">
             <PopularToursExplorer tours={popularTours} destinations={destinations} />
           </Reveal>
           <Reveal className="mt-10 text-center">
-            <Link href="/tours" className="btn btn-emerald">
-              Browse all tours
-              <Icon name="arrowRight" className="h-4 w-4" />
-            </Link>
+            <LocalizedButtonLink
+              href="/tours"
+              labelEn="Browse all tours"
+              labelBn="সকল ট্যুর প্যাকেজ দেখুন"
+              className="btn btn-emerald"
+            />
           </Reveal>
         </div>
       </section>
@@ -323,8 +284,11 @@ export default async function Home() {
             <SectionHeading
               align="left"
               eyebrow={`Why ${siteName}`}
+              eyebrowBn={`কেন ${siteName}`}
               title="Travel with people who call Bangladesh home"
+              titleBn="ভ্রমণ করুন যাদের ঘর এই বাংলাদেশ"
               description="We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides."
+              descriptionBn="আমরা কোনো থার্ড-পার্টি বুকিং সাইট নই যারা অপরিচিতদের হাতে আপনার ভ্রমণ ছেড়ে দেয়। আমরা লোকাল হোস্ট যারা সবকিছু পরিকল্পনা করে, সাথে থাকে এবং শতভাগ স্বচ্ছতা নিশ্চিত করে।"
             />
             <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2" stagger={0.08}>
               {whyUs.map((item) => (
@@ -353,8 +317,11 @@ export default async function Home() {
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
             eyebrow="Services"
+            eyebrowBn="আমাদের সেবাসমূহ"
             title="Every kind of trip, handled"
+            titleBn="সব ধরণের ভ্রমণের পরিপূর্ণ সমাধান"
             description="Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it."
+            descriptionBn="গ্রুপ বা ব্যক্তিগত, পরিবার কিংবা হানিমুন, উইকেন্ড ট্রিপ বা অ্যাডভেঞ্চার — বাংলাদেশে যে কোনো ভ্রমণ আয়োজনে আমরা আছি।"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
             {services.map((service) => (
@@ -372,8 +339,11 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl">
             <SectionHeading
               eyebrow="Special Offers"
+              eyebrowBn="বিশেষ অফার"
               title="A little reason to book today"
+              titleBn="আজই বুক করার বিশেষ সুযোগ"
               description="Seasonal savings and group perks — applied automatically at checkout with the right code."
+              descriptionBn="মৌসুমি ছাড় এবং গ্রুপ ডিসকাউন্ট — সঠিক কোড ব্যবহারে বুকিংয়ে পান বিশেষ সুবিধা।"
             />
             <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
               {specialOffers.map((offer) => (
@@ -393,11 +363,14 @@ export default async function Home() {
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
             eyebrow={str(testimonialsBlock?.content ?? {}, "eyebrow") ?? "Customer Reviews"}
+            eyebrowBn="ভ্রমণকারীদের মন্তব্য"
             title={str(testimonialsBlock?.content ?? {}, "heading") ?? "Loved by travelers across Bangladesh"}
+            titleBn="ভ্রমণকারীদের বিশ্বাস ও ভালোবাসা"
             description={
               str(testimonialsBlock?.content ?? {}, "description") ??
               "Real words from guests who booked, travelled, and settled their balances — all in one seamless flow."
             }
+            descriptionBn="আমাদের সাথে যারা পাহাড়, নদী এবং সমুদ্র চষে বেড়িয়েছেন তাদের বাস্তব অভিজ্ঞতা।"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
             {reviews.slice(0, 6).map((review) => (
@@ -418,13 +391,17 @@ export default async function Home() {
               <SectionHeading
                 align="left"
                 eyebrow="Travel Journal"
+                eyebrowBn="ভ্রমণ কথা"
                 title="Stories from the road"
+                titleBn="পথের গল্প ও দিকনির্দেশনা"
                 description="Field guides, food trails, and honest travel writing from our hosts and guests."
+                descriptionBn="আমাদের হোস্ট এবং ভ্রমণকারীদের চোখ দিয়ে দেখা বাংলাদেশ, লোকাল গাইড ও বাস্তব অভিজ্ঞতা।"
               />
-              <Link href="/journal" className="btn btn-glass shrink-0">
-                All stories
-                <Icon name="arrowRight" className="h-4 w-4" />
-              </Link>
+              <LocalizedButtonLink
+                href="/journal"
+                labelEn="All stories"
+                labelBn="সকল ভ্রমণ গল্প"
+              />
             </div>
             <Stagger className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
               {journalPreview.map((post) => (

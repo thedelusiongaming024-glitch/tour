@@ -5,11 +5,8 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { Icon } from "@/components/Icon";
+import { useLanguage } from "@/context/LanguageContext";
 import type { Tour } from "@/lib/types";
-
-function formatBDT(amount: number): string {
-  return "৳" + amount.toLocaleString("en-BD");
-}
 
 interface TourCardProps {
   tour: Tour;
@@ -18,8 +15,16 @@ interface TourCardProps {
 }
 
 export function TourCard({ tour, showDiscount = true }: TourCardProps) {
+  const { t, formatPrice, formatNumber, isBn } = useLanguage();
   const original = tour.startingPrice;
   const final = Math.max(0, original - tour.discount);
+
+  const displayDuration = isBn
+    ? tour.duration
+        .replace(/Days?/gi, "দিন")
+        .replace(/Nights?/gi, "রাত")
+        .replace(/\d+/g, (m) => formatNumber(Number(m)))
+    : tour.duration;
 
   return (
     <GlassCard className="group flex h-full flex-col overflow-hidden rounded-3xl shadow-glass transition-shadow duration-300 hover:shadow-glass-lg">
@@ -36,7 +41,7 @@ export function TourCard({ tour, showDiscount = true }: TourCardProps) {
             </span>
             {showDiscount && tour.discount > 0 && (
               <span className="rounded-full bg-coral/90 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                Save {formatBDT(tour.discount)}
+                {t("card.save")} {formatPrice(tour.discount)}
               </span>
             )}
           </div>
@@ -46,7 +51,7 @@ export function TourCard({ tour, showDiscount = true }: TourCardProps) {
           <div className="flex items-center gap-2 text-xs font-medium text-ink-faint">
             <span className="inline-flex items-center gap-1">
               <Icon name="clock" className="h-3.5 w-3.5" />
-              {tour.duration}
+              {displayDuration}
             </span>
             <span className="h-1 w-1 rounded-full bg-ink-faint/50" />
             <span className="inline-flex items-center gap-1">
@@ -65,19 +70,20 @@ export function TourCard({ tour, showDiscount = true }: TourCardProps) {
               {showDiscount && tour.discount > 0 ? (
                 <div className="flex items-baseline gap-2">
                   <span className="text-sm text-ink-faint line-through">
-                    {formatBDT(original)}
+                    {formatPrice(original)}
                   </span>
                   <span className="font-display text-xl font-semibold text-emerald-deep">
-                    {formatBDT(final)}
+                    {formatPrice(final)}
                   </span>
                 </div>
               ) : (
                 <span className="font-display text-xl font-semibold text-emerald-deep">
-                  {formatBDT(original)}
+                  {formatPrice(original)}
                 </span>
               )}
               <span className="text-[11px] text-ink-faint">
-                per person · book from {tour.advancePercent}% advance
+                {t("card.perPerson")} · {t("card.bookFrom")}{" "}
+                {formatNumber(tour.advancePercent)}% {t("card.advanceBadge")}
               </span>
             </div>
             <motion.span

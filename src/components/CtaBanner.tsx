@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Reveal } from "@/components/Reveal";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface CtaBannerProps {
   eyebrow?: string;
@@ -15,15 +16,28 @@ interface CtaBannerProps {
   secondaryCtaHref?: string;
 }
 
-export function CtaBanner({
-  eyebrow = "Atithi — the guest is God",
-  title = "Plan your next journey across Bangladesh",
-  description = "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
-  ctaLabel = "Plan My Trip",
-  ctaHref = "/contact",
-  secondaryCtaLabel = "Browse Tours",
-  secondaryCtaHref = "/tours",
-}: CtaBannerProps) {
+export function CtaBanner(props: CtaBannerProps) {
+  const { isBn } = useLanguage();
+
+  const eyebrow =
+    props.eyebrow ??
+    (isBn ? "অতিথি — আতিথেয়তাই আমাদের ধর্ম" : "Atithi — the guest is God");
+  const title =
+    props.title ??
+    (isBn
+      ? "বাংলাদেশ ভ্রমণের পরিকল্পনা শুরু করুন"
+      : "Plan your next journey across Bangladesh");
+  const description =
+    props.description ??
+    (isBn
+      ? "কোথায় এবং কখন যেতে চান তা জানান — আমরা আপনার পছন্দমতো ভ্রমণ সাজিয়ে দেব। অল্প অগ্রিম দিয়ে বুকিং করুন এবং বাকি টাকা ট্যুরের দিন দিন।"
+      : "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.");
+  const ctaLabel =
+    props.ctaLabel ?? (isBn ? "ভ্রমণ পরিকল্পনা" : "Plan My Trip");
+  const ctaHref = props.ctaHref ?? "/contact";
+  const secondaryCtaLabel =
+    props.secondaryCtaLabel ?? (isBn ? "ট্যুরগুলো দেখুন" : "Browse Tours");
+  const secondaryCtaHref = props.secondaryCtaHref ?? "/tours";
   return (
     <section className="px-4 py-16 sm:px-6 sm:py-24">
       <Reveal className="mx-auto max-w-6xl">

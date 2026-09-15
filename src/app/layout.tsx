@@ -15,6 +15,7 @@ import type { Metadata } from "next";
 import "@fontsource-variable/fraunces/wght.css";
 import "@fontsource-variable/plus-jakarta-sans/wght.css";
 import "./globals.css";
+import { LanguageProvider } from "@/context/LanguageContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { siteDescription, siteName, siteTagline } from "@/data/site";
@@ -53,9 +54,11 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col text-ink">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <LanguageProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

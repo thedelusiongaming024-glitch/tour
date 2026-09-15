@@ -30,8 +30,11 @@ export default async function DestinationsPage() {
         <div className="relative z-10 mx-auto max-w-6xl">
           <SectionHeading
             eyebrow="Destinations"
+            eyebrowBn="ভ্রমণ গন্তব্য"
             title="Twelve regions. One extraordinary country."
+            titleBn="বারোটি অঞ্চল। একটি অপরূপ বাংলাদেশ।"
             description="Beaches, hill tracts, mangrove forests, tea gardens, and two millennia of history — every corner of Bangladesh, hosted by people who call it home."
+            descriptionBn="সৈকত, পাহাড়, ম্যানগ্রোভ বন, চায়ের বাগান আর প্রাচীন ইতিহাস — বাংলাদেশের প্রতিটি কোণে নির্ভরযোগ্য স্থানীয় আতিথেয়তা।"
           />
         </div>
       </section>
