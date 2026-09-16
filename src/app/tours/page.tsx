@@ -6,8 +6,6 @@ import { Stagger, StaggerItem } from "@/components/Stagger";
 import { SectionHeading } from "@/components/SectionHeading";
 import { TourCard } from "@/components/TourCard";
 import { Icon } from "@/components/Icon";
-import { tours as staticTours } from "@/data/tours";
-import { destinations as staticDestinations } from "@/data/destinations";
 import { fetchDestinations, fetchTours } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -39,8 +37,8 @@ export default async function ToursPage({
   const activeCategory = categories.includes(selectedCategory ?? "") ? selectedCategory! : "All";
 
   const [allTours, destinations] = await Promise.all([
-    fetchTours().then((live) => live ?? staticTours),
-    fetchDestinations().then((live) => live ?? staticDestinations),
+    fetchTours(),
+    fetchDestinations(),
   ]);
 
   // Previously these were plain <span> elements with no href/onClick at

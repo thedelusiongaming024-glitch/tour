@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createBooking } from "@/server/db";
+import { generateCustomerToken } from "@/server/auth";
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ customer_phone_number: ["Phone number is required."] }, { status: 400 });
     }
 
-    const booking = createBooking({
+    const { booking, customer } = createBooking({
       tour_id,
       departure_id,
       traveler_count: Math.max(1, Number(traveler_count) || 1),
@@ -36,9 +37,27 @@ export async function POST(request: Request) {
       special_requests,
     });
 
-    return NextResponse.json(booking, { status: 201 });
+    const customer_token = generateCustomerToken(customer);
+
+    const response = NextResponse.json(
+      {
+        ...booking,
+        customer,
+        customer_token,
+      },
+      { status: 201 }
+    );
+
+    response.cookies.set("atithi_customer_token", customer_token, {
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60,
+      sameSite: "lax",
+    });
+
+    return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to create booking.";
     return NextResponse.json({ detail: message }, { status: 400 });
   }
 }
+

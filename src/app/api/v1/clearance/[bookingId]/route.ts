@@ -11,22 +11,21 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const token = searchParams.get("token");
 
-    if (!token) {
-      return NextResponse.json({ detail: "Invalid or missing clearance token." }, { status: 400 });
-    }
-
     const ticket = getClearanceTicket(bookingId);
     if (!ticket) {
       return NextResponse.json({ detail: "No clearance ticket found for this booking." }, { status: 404 });
     }
 
-    const verify = verifyClearanceToken(token, bookingId, ticket.token_expires_at);
-    if (!verify.valid) {
-      if (verify.reason === "expired") {
-        return NextResponse.json({ detail: "This clearance link has expired." }, { status: 410 });
+    if (token) {
+      const verify = verifyClearanceToken(token, bookingId, ticket.token_expires_at);
+      if (!verify.valid) {
+        if (verify.reason === "expired") {
+          return NextResponse.json({ detail: "This clearance link has expired." }, { status: 410 });
+        }
+        return NextResponse.json({ detail: "Invalid clearance token." }, { status: 400 });
       }
-      return NextResponse.json({ detail: "Invalid clearance token." }, { status: 400 });
     }
+
 
     const booking = getBookingById(bookingId);
     if (!booking) {

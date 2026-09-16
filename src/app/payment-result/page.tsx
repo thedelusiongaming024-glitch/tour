@@ -74,14 +74,23 @@ function PaymentResultContent() {
 
         {reference && <p className="mt-4 font-mono text-xs text-ink-soft">{reference}</p>}
 
-        <Link
-          href="/"
-          className="mt-6 inline-block w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110"
-        >
-          Back to Atithi
-        </Link>
+        <div className="mt-6 flex flex-col gap-2.5">
+          <Link
+            href="/profile"
+            className="inline-block w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 shadow-sm"
+          >
+            View My Bookings & Clearance Pass →
+          </Link>
+          <Link
+            href="/"
+            className="inline-block w-full rounded-xl border border-ink/10 bg-white/70 px-4 py-2.5 text-sm font-medium text-ink-soft transition hover:bg-white hover:text-ink"
+          >
+            Back to Home
+          </Link>
+        </div>
       </div>
     </main>
+
   );
 }
 

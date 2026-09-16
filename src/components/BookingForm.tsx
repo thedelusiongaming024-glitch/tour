@@ -63,6 +63,16 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
 
       const booking = await bookingRes.json();
 
+      if (booking.customer_token) {
+        try {
+          localStorage.setItem("atithi_customer_token", booking.customer_token);
+          if (booking.customer) {
+            localStorage.setItem("atithi_customer", JSON.stringify(booking.customer));
+          }
+          document.cookie = `atithi_customer_token=${booking.customer_token}; path=/; max-age=2592000; SameSite=Lax`;
+        } catch {}
+      }
+
       const paymentRes = await fetch(`${API_BASE}/payments/initiate/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -7,8 +7,6 @@ import { Stagger, StaggerItem } from "@/components/Stagger";
 import { TourCard } from "@/components/TourCard";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { Icon } from "@/components/Icon";
-import { destinations, getDestination } from "@/data/destinations";
-import { getTour } from "@/data/tours";
 import { fetchDestination, fetchTour } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +20,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const destination = (await fetchDestination(slug)) ?? getDestination(slug);
+  const destination = await fetchDestination(slug);
   if (!destination) return { title: "Destination not found" };
   return {
     title: destination.name,
@@ -32,11 +30,11 @@ export async function generateMetadata({
 
 export default async function DestinationPage({ params }: PageProps) {
   const { slug } = await params;
-  const destination = (await fetchDestination(slug)) ?? getDestination(slug);
+  const destination = await fetchDestination(slug);
   if (!destination) notFound();
 
   const destinationTours = (
-    await Promise.all(destination.tourSlugs.map((s) => fetchTour(s).then((t) => t ?? getTour(s))))
+    await Promise.all(destination.tourSlugs.map((s) => fetchTour(s)))
   ).filter((t): t is NonNullable<typeof t> => Boolean(t));
 
   return (

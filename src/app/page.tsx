@@ -18,15 +18,10 @@ import { HomeHero } from "@/components/HomeHero";
 import { LocalizedButtonLink } from "@/components/LocalizedButtonLink";
 import { Icon } from "@/components/Icon";
 import { normalizeImageUrl } from "@/lib/media";
-import { destinations as staticDestinations } from "@/data/destinations";
-import { tours as staticTours } from "@/data/tours";
-import { journalPosts as staticJournalPosts } from "@/data/journal";
 import {
   heroStats,
   whyUs,
   services,
-  specialOffers as staticSpecialOffers,
-  reviews as staticReviews,
   destinationsForHome,
   siteName,
   siteNameBn,
@@ -40,7 +35,7 @@ function str(content: Record<string, unknown>, key: string): string | null {
 }
 
 export default async function Home() {
-  const [liveDestinations, liveTours, liveJournal, liveOffers, liveReviews, liveBlocks, homeCms] = await Promise.all([
+  const [destinations, tours, journalPosts, specialOffers, reviews, blocks, homeCms] = await Promise.all([
     fetchDestinations(),
     fetchTours(),
     fetchJournalPosts(),
@@ -49,13 +44,6 @@ export default async function Home() {
     fetchHomepageBlocks(),
     fetchHomePageCms(),
   ]);
-
-  const destinations = liveDestinations ?? staticDestinations;
-  const tours = liveTours ?? staticTours;
-  const journalPosts = liveJournal && liveJournal.length > 0 ? liveJournal : staticJournalPosts;
-  const specialOffers = liveOffers && liveOffers.length > 0 ? liveOffers : staticSpecialOffers;
-  const reviews = liveReviews && liveReviews.length > 0 ? liveReviews : staticReviews;
-  const blocks = liveBlocks ?? [];
 
   // Admin-editable homepage blocks (Django admin -> Homepage Blocks). See
   // cms/models.py's HomepageBlock.content help_text for the exact schema
@@ -79,14 +67,8 @@ export default async function Home() {
     ["rich_text", "image", "cta", "gallery"].includes(b.blockType)
   );
 
-  // destinationsForHome is a hand-curated homepage selection tied to the
-  // static fixtures; live CMS data has no equivalent concept yet, so we
-  // just take the first few published destinations instead.
-  const featuredDestinations = liveDestinations
-    ? liveDestinations.slice(0, 6)
-    : destinationsForHome
-        .map((d) => destinations.find((x) => x.slug === d.slug))
-        .filter((d): d is (typeof destinations)[number] => Boolean(d));
+  // Featured destinations for homepage from database
+  const featuredDestinations = destinations.slice(0, 6);
 
   const popularTours = [...tours].sort(
     (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))

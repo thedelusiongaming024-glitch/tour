@@ -71,14 +71,7 @@ function adaptDestination(d: any, tourSlugs: string[] = []): Destination {
   };
 }
 
-export async function fetchDestinations(): Promise<Destination[] | null> {
-  try {
-    const list = await apiFetch<{ results: any[] }>("/destinations/");
-    if (list && Array.isArray(list.results) && list.results.length > 0) {
-      return list.results.map((d) => adaptDestination(d));
-    }
-  } catch {}
-
+export async function fetchDestinations(): Promise<Destination[]> {
   try {
     const list = db.getDestinations();
     return list.map((d) => {
@@ -92,13 +85,6 @@ export async function fetchDestinations(): Promise<Destination[] | null> {
 }
 
 export async function fetchDestination(slug: string): Promise<Destination | null> {
-  try {
-    const detail = await apiFetch<any>(`/destinations/${slug}/`);
-    if (detail) {
-      return adaptDestination(detail);
-    }
-  } catch {}
-
   try {
     const d = db.getDestinationBySlug(slug);
     if (!d) return null;
@@ -220,14 +206,7 @@ function adaptTour(t: any): Tour {
   };
 }
 
-export async function fetchTours(): Promise<Tour[] | null> {
-  try {
-    const list = await apiFetch<{ results: any[] }>("/tours/");
-    if (list && Array.isArray(list.results) && list.results.length > 0) {
-      return list.results.map(adaptTour);
-    }
-  } catch {}
-
+export async function fetchTours(): Promise<Tour[]> {
   try {
     const list = db.getTours();
     return list.map(adaptTour);
@@ -239,13 +218,6 @@ export async function fetchTours(): Promise<Tour[] | null> {
 
 export async function fetchTour(slug: string): Promise<Tour | null> {
   try {
-    const detail = await apiFetch<any>(`/tours/${slug}/`);
-    if (detail) {
-      return adaptTour(detail);
-    }
-  } catch {}
-
-  try {
     const t = db.getTourBySlug(slug);
     if (!t) return null;
     return adaptTour(t);
@@ -255,23 +227,7 @@ export async function fetchTour(slug: string): Promise<Tour | null> {
   }
 }
 
-export async function fetchOffers(): Promise<Offer[] | null> {
-  try {
-    const list = await apiFetch<{ results: any[] }>("/offers/");
-    if (list && Array.isArray(list.results) && list.results.length > 0) {
-      return list.results.map((o) => ({
-        title: o.title || "Special Offer",
-        description: o.description || "",
-        code: (o.code || o.slug || "OFFER").toUpperCase(),
-        badge: o.discount_badge || (o.discount_value ? `Save ৳${o.discount_value}` : "Special Offer"),
-        expiry: o.valid_until
-          ? new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-          : "Limited time",
-        bannerUrl: o.banner_image || o.image_url || undefined,
-      }));
-    }
-  } catch {}
-
+export async function fetchOffers(): Promise<Offer[]> {
   try {
     const list = db.getOffers();
     return list.map((o: any) => ({
@@ -289,21 +245,7 @@ export async function fetchOffers(): Promise<Offer[] | null> {
   }
 }
 
-export async function fetchTestimonials(): Promise<Review[] | null> {
-  try {
-    const list = await apiFetch<{ results: any[] }>("/testimonials/?is_featured=true");
-    if (list && Array.isArray(list.results) && list.results.length > 0) {
-      return list.results.map((r) => ({
-        name: r.customer_name || r.author_name || "Verified Traveler",
-        location: r.author_location || "Bangladesh",
-        tour: r.tour_title || r.trip_name || "Domestic Tour",
-        rating: Number(r.rating) || 5,
-        text: r.quote || "",
-        photoUrl: r.customer_photo || r.author_avatar || undefined,
-      }));
-    }
-  } catch {}
-
+export async function fetchTestimonials(): Promise<Review[]> {
   try {
     const list = db.getTestimonials(true);
     return list.map((r: any) => ({
@@ -319,27 +261,7 @@ export async function fetchTestimonials(): Promise<Review[] | null> {
   }
 }
 
-export async function fetchJournalPosts(): Promise<JournalPost[] | null> {
-  try {
-    const list = await apiFetch<{ results: any[] }>("/blog-posts/");
-    if (list && Array.isArray(list.results)) {
-      return list.results.map((p) => ({
-        slug: p.slug,
-        title: p.title || "Untitled Article",
-        category: typeof p.category === "string" ? p.category : p.category?.name || "Travel Tips",
-        excerpt: p.excerpt || (p.content || p.body || "").slice(0, 150),
-        date: p.published_at || p.created_at
-          ? new Date(p.published_at || p.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
-          : "Recent",
-        author: p.author || p.author_name || "Atithi Editorial",
-        readTime: `${p.read_time_minutes || 4} min read`,
-        cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
-        body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
-        isFeatured: Boolean(p.is_featured),
-      }));
-    }
-  } catch {}
-
+export async function fetchJournalPosts(): Promise<JournalPost[]> {
   try {
     const list = db.getBlogPosts();
     return list.map((p: any) => ({
@@ -363,27 +285,6 @@ export async function fetchJournalPosts(): Promise<JournalPost[] | null> {
 
 export async function fetchJournalPost(slug: string): Promise<JournalPost | null> {
   try {
-    const p = await apiFetch<any>(`/blog-posts/${slug}/`);
-    if (p) {
-      const rawDate = p.published_at || p.created_at;
-      return {
-        slug: p.slug,
-        title: p.title || "Untitled Article",
-        category: typeof p.category === "string" ? p.category : p.category?.name || "Travel Tips",
-        excerpt: p.excerpt || (p.content || p.body || "").slice(0, 150),
-        date: rawDate
-          ? new Date(rawDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
-          : "Recent",
-        author: p.author || p.author_name || "Atithi Editorial",
-        readTime: `${p.read_time_minutes || 4} min read`,
-        cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
-        body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
-        isFeatured: Boolean(p.is_featured),
-      };
-    }
-  } catch {}
-
-  try {
     const p = db.getBlogPostBySlug(slug);
     if (!p) return null;
     const rawDate = p.published_at || p.created_at;
@@ -406,21 +307,7 @@ export async function fetchJournalPost(slug: string): Promise<JournalPost | null
   }
 }
 
-export async function fetchHomepageBlocks(): Promise<HomepageBlock[] | null> {
-  try {
-    const list = await apiFetch<any[]>("/homepage-blocks/");
-    if (list && Array.isArray(list) && list.length > 0) {
-      return list
-        .map((b) => ({
-          id: b.id,
-          blockType: b.block_type,
-          displayOrder: b.display_order,
-          content: b.content ?? {},
-        }))
-        .sort((a, b) => a.displayOrder - b.displayOrder);
-    }
-  } catch {}
-
+export async function fetchHomepageBlocks(): Promise<HomepageBlock[]> {
   try {
     const list = db.getHomepageBlocks();
     return list

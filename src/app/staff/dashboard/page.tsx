@@ -12,6 +12,7 @@ import type {
   DbBooking,
   DbContactInquiry,
   DbHomepageBlock,
+  DbCustomerUser,
   AboutPageCmsContent,
   JournalPageCmsContent,
   AboutValueItem,
@@ -20,6 +21,13 @@ import type {
   WhyUsItem,
   ServiceItem,
 } from "@/server/types";
+
+export interface CustomerWithDetails extends DbCustomerUser {
+  bookings_count: number;
+  total_spent: number;
+  total_due: number;
+  bookings: DbBooking[];
+}
 
 interface AgencyOverview {
   total_revenue: string;
@@ -47,6 +55,7 @@ type ActiveTab =
   | "overview"
   | "tours"
   | "destinations"
+  | "users"
   | "cms"
   | "about_cms"
   | "blog"
@@ -313,6 +322,7 @@ function StaffDashboardContent() {
   const [homepageBlocks, setHomepageBlocks] = useState<DbHomepageBlock[]>([]);
   const [bookings, setBookings] = useState<DbBooking[]>([]);
   const [inquiries, setInquiries] = useState<DbContactInquiry[]>([]);
+  const [customers, setCustomers] = useState<CustomerWithDetails[]>([]);
 
   // Filters & Search
   const [tourSearch, setTourSearch] = useState("");
@@ -320,6 +330,8 @@ function StaffDashboardContent() {
   const [destSearch, setDestSearch] = useState("");
   const [destDivisionFilter, setDestDivisionFilter] = useState("all");
   const [bookingStatusFilter, setBookingStatusFilter] = useState("all");
+  const [userSearch, setUserSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithDetails | null>(null);
 
   // Modals
   const [tourModal, setTourModal] = useState<{ isOpen: boolean; tour: Partial<DbTour> | null }>({ isOpen: false, tour: null });
@@ -379,7 +391,7 @@ function StaffDashboardContent() {
         setAlerts(d.results ?? d);
       }
 
-      const [toursRes, destsRes, blogRes, offersRes, reviewsRes, cmsRes, bookingsRes, inquiriesRes] = await Promise.all([
+      const [toursRes, destsRes, blogRes, offersRes, reviewsRes, cmsRes, bookingsRes, inquiriesRes, customersRes] = await Promise.all([
         staffFetch("/admin/tours"),
         staffFetch("/admin/destinations"),
         staffFetch("/admin/blog-posts"),
@@ -388,6 +400,7 @@ function StaffDashboardContent() {
         staffFetch("/admin/cms"),
         staffFetch("/admin/bookings"),
         staffFetch("/admin/inquiries"),
+        staffFetch("/admin/customers"),
       ]);
 
       if (toursRes.ok) setTours((await toursRes.json()).results || []);
@@ -397,6 +410,7 @@ function StaffDashboardContent() {
       if (reviewsRes.ok) setTestimonials((await reviewsRes.json()).results || []);
       if (bookingsRes.ok) setBookings((await bookingsRes.json()).results || []);
       if (inquiriesRes.ok) setInquiries((await inquiriesRes.json()).results || []);
+      if (customersRes.ok) setCustomers((await customersRes.json()).results || []);
 
       if (cmsRes.ok) {
         const blocks: DbHomepageBlock[] = (await cmsRes.json()).results || [];
@@ -971,12 +985,13 @@ function StaffDashboardContent() {
               ? [
                   { id: "tours", label: "Tours", count: tours.length },
                   { id: "destinations", label: "Destinations", count: destinations.length },
+                  { id: "users", label: "Users / Travelers", count: customers.length },
+                  { id: "bookings", label: "Bookings", count: bookings.length },
                   { id: "cms", label: "Homepage CMS", count: null },
                   { id: "about_cms", label: "About Page CMS", count: null },
                   { id: "blog", label: "Travel Journal", count: blogPosts.length },
                   { id: "offers", label: "Special Offers", count: offers.length },
                   { id: "reviews", label: "Testimonials", count: testimonials.length },
-                  { id: "bookings", label: "Bookings", count: bookings.length },
                   { id: "inquiries", label: "Inquiries", count: inquiries.length },
                 ]
               : []),
@@ -2980,6 +2995,348 @@ function StaffDashboardContent() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* ================= USERS / TRAVELERS TAB ================= */}
+        {activeTab === "users" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Traveler & User Database Directory</h2>
+                <p className="text-sm text-slate-500">
+                  Customer accounts automatically created upon tour booking, including individual profiles, full booking history, and live activity feeds.
+                </p>
+              </div>
+              <button
+                onClick={() => loadData()}
+                className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5"
+              >
+                <span>↻ Refresh Directory</span>
+              </button>
+            </div>
+
+            {/* Traveler Metrics Grid */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Total Registered Travelers</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">{customers.length}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Travelers with Bookings</p>
+                <p className="mt-1 text-2xl font-bold text-emerald-700">
+                  {customers.filter((c) => (c.bookings_count || 0) > 0).length}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Total Lifetime Bookings</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">
+                  {customers.reduce((acc, c) => acc + (c.bookings_count || 0), 0)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                <p className="text-xs font-medium text-slate-500">Total Revenue Collected</p>
+                <p className="mt-1 text-2xl font-bold text-slate-900">
+                  {formatBDT(customers.reduce((acc, c) => acc + (c.total_spent || 0), 0))}
+                </p>
+              </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="relative w-full max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search by customer name, mobile number, or email…"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+                {userSearch && (
+                  <button
+                    onClick={() => setUserSearch("")}
+                    className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-slate-500">
+                Showing {customers.filter((c) => {
+                  const q = userSearch.toLowerCase().trim();
+                  if (!q) return true;
+                  return (
+                    (c.full_name && c.full_name.toLowerCase().includes(q)) ||
+                    (c.phone_number && c.phone_number.toLowerCase().includes(q)) ||
+                    (c.email && c.email.toLowerCase().includes(q))
+                  );
+                }).length} of {customers.length} travelers
+              </div>
+            </div>
+
+            {/* Users Table */}
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-600 uppercase tracking-wider border-b border-slate-200 font-semibold">
+                  <tr>
+                    <th className="px-4 py-3">Traveler</th>
+                    <th className="px-4 py-3">Phone & Account</th>
+                    <th className="px-4 py-3">Joined / Last Active</th>
+                    <th className="px-4 py-3 text-center">Bookings</th>
+                    <th className="px-4 py-3">Total Paid / Due</th>
+                    <th className="px-4 py-3">Latest Activity</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {customers.filter((c) => {
+                    const q = userSearch.toLowerCase().trim();
+                    if (!q) return true;
+                    return (
+                      (c.full_name && c.full_name.toLowerCase().includes(q)) ||
+                      (c.phone_number && c.phone_number.toLowerCase().includes(q)) ||
+                      (c.email && c.email.toLowerCase().includes(q))
+                    );
+                  }).length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-slate-500 text-xs">
+                        No travelers found matching &quot;{userSearch}&quot;.
+                      </td>
+                    </tr>
+                  ) : (
+                    customers.filter((c) => {
+                      const q = userSearch.toLowerCase().trim();
+                      if (!q) return true;
+                      return (
+                        (c.full_name && c.full_name.toLowerCase().includes(q)) ||
+                        (c.phone_number && c.phone_number.toLowerCase().includes(q)) ||
+                        (c.email && c.email.toLowerCase().includes(q))
+                      );
+                    }).map((c) => {
+                      const latestAct = c.activities && c.activities.length > 0 ? c.activities[0] : null;
+                      return (
+                        <tr key={c.id} className="hover:bg-slate-50/70 transition">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 font-bold text-sm">
+                                {c.full_name?.charAt(0).toUpperCase() || "T"}
+                              </div>
+                              <div>
+                                <div className="font-semibold text-slate-900">{c.full_name}</div>
+                                <span className="font-mono text-[11px] text-slate-400">ID: {c.id.slice(0, 16)}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="font-mono font-medium text-slate-900">{c.phone_number}</div>
+                            <div className="text-xs text-slate-500">{c.email || "No email"}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-xs text-slate-900">
+                              {c.created_at ? new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                            </div>
+                            <div className="text-[11px] text-slate-400">
+                              {c.last_login_at ? `Active: ${new Date(c.last_login_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : "—"}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                              {c.bookings_count || 0} tour(s)
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="font-semibold text-emerald-700">{formatBDT(c.total_spent || 0)}</div>
+                            {(c.total_due || 0) > 0 ? (
+                              <div className="text-xs text-amber-700 font-medium">Due: {formatBDT(c.total_due || 0)}</div>
+                            ) : (
+                              <div className="text-[11px] text-slate-400">Settled</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {latestAct ? (
+                              <div className="max-w-xs">
+                                <div className="font-medium text-xs text-slate-900 truncate">{latestAct.title}</div>
+                                <div className="text-[11px] text-slate-400">
+                                  {new Date(latestAct.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedCustomer(c)}
+                              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-800 transition shadow-xs"
+                            >
+                              Whole Details →
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Whole Details Modal / Drawer */}
+            {selectedCustomer && (
+              <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+                  {/* Modal Header */}
+                  <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-start justify-between gap-4 z-10">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white font-bold text-2xl shadow-sm">
+                        {selectedCustomer.full_name?.charAt(0).toUpperCase() || "T"}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-slate-900">{selectedCustomer.full_name}</h3>
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold">
+                            Verified Traveler
+                          </span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
+                          <span className="font-mono font-medium text-slate-700">{selectedCustomer.phone_number}</span>
+                          <span>•</span>
+                          <span>{selectedCustomer.email || "No email on record"}</span>
+                          <span>•</span>
+                          <span>Joined: {new Date(selectedCustomer.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedCustomer(null)}
+                      className="rounded-lg p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition text-base font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    {/* Financial Summary Card */}
+                    <div className="grid grid-cols-3 gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                      <div>
+                        <p className="text-xs text-slate-500">Total Bookings</p>
+                        <p className="text-lg font-bold text-slate-900">{selectedCustomer.bookings_count || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Total Amount Paid</p>
+                        <p className="text-lg font-bold text-emerald-700">{formatBDT(selectedCustomer.total_spent || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Pending Amount Due</p>
+                        <p className="text-lg font-bold text-amber-700">{formatBDT(selectedCustomer.total_due || 0)}</p>
+                      </div>
+                    </div>
+
+                    {/* SECTION 1: Booking History Details of this Customer */}
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
+                        <span>Tour Booking History ({selectedCustomer.bookings?.length || 0})</span>
+                      </h4>
+
+                      {!selectedCustomer.bookings || selectedCustomer.bookings.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500">
+                          No bookings registered under this traveler profile.
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedCustomer.bookings.map((b) => (
+                            <div key={b.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-900">
+                                    {b.reference}
+                                  </span>
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    {b.status.replace(/_/g, " ")}
+                                  </span>
+                                </div>
+                                <a
+                                  href={`/clearance/${b.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-xs text-emerald-700 font-semibold hover:underline"
+                                >
+                                  View Clearance Pass ↗
+                                </a>
+                              </div>
+
+                              <div className="font-semibold text-slate-900 text-sm">{b.tour_title}</div>
+
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
+                                <div>
+                                  <span className="text-slate-400 block">Departure:</span>
+                                  <span className="font-medium text-slate-800">{b.departure_date || "Open"}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block">Travelers:</span>
+                                  <span className="font-medium text-slate-800">{b.traveler_count} person(s)</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block">Paid:</span>
+                                  <span className="font-bold text-emerald-700">{formatBDT(b.amount_paid)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block">Due on Tour Day:</span>
+                                  <span className="font-bold text-slate-800">{formatBDT(b.amount_due)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* SECTION 2: Complete User Activity Timeline */}
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-3">Complete User Activity Timeline</h4>
+
+                      {!selectedCustomer.activities || selectedCustomer.activities.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500">
+                          No user activities recorded.
+                        </div>
+                      ) : (
+                        <div className="relative border-l-2 border-slate-200 pl-4 ml-2 space-y-4">
+                          {selectedCustomer.activities.map((act) => (
+                            <div key={act.id} className="relative">
+                              <div className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-600 ring-4 ring-white" />
+                              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="font-semibold text-slate-900">{act.title}</span>
+                                  <span className="font-mono text-slate-400 text-[11px]">
+                                    {new Date(act.created_at).toLocaleString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs text-slate-600 leading-relaxed">{act.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 p-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCustomer(null)}
+                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Close Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

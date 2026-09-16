@@ -125,3 +125,40 @@ export function getAuthUserFromHeader(authHeader: string | null): JwtPayload | n
   if (!payload || payload.token_type !== "access") return null;
   return payload;
 }
+
+export interface CustomerJwtPayload {
+  customer_id: string;
+  phone_number: string;
+  full_name: string;
+  email?: string;
+  role: "customer";
+  token_type: "access";
+  exp: number;
+  iat: number;
+}
+
+const CUSTOMER_TOKEN_EXPIRY_SECONDS = 30 * 24 * 60 * 60; // 30 days
+
+export function generateCustomerToken(customer: { id: string; phone_number: string; full_name: string; email?: string }): string {
+  const now = Math.floor(Date.now() / 1000);
+  const payload: CustomerJwtPayload = {
+    customer_id: customer.id,
+    phone_number: customer.phone_number,
+    full_name: customer.full_name,
+    email: customer.email,
+    role: "customer",
+    token_type: "access",
+    iat: now,
+    exp: now + CUSTOMER_TOKEN_EXPIRY_SECONDS,
+  };
+  return signJwt(payload as unknown as Record<string, unknown>, JWT_SECRET);
+}
+
+export function getCustomerFromHeader(authHeader: string | null): CustomerJwtPayload | null {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  const token = authHeader.substring(7).trim();
+  const payload = verifyJwt<CustomerJwtPayload>(token);
+  if (!payload || payload.role !== "customer") return null;
+  return payload;
+}
+

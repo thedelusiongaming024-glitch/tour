@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { journalPosts, getJournalPost } from "@/data/journal";
 import { fetchJournalPost, fetchJournalPosts } from "@/lib/api";
 import { JournalPostClient } from "@/components/JournalPostClient";
 
@@ -15,7 +14,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = (await fetchJournalPost(slug)) ?? getJournalPost(slug);
+  const post = await fetchJournalPost(slug);
   if (!post) return { title: "Story not found" };
   return {
     title: post.title,
@@ -25,11 +24,10 @@ export async function generateMetadata({
 
 export default async function JournalPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = (await fetchJournalPost(slug)) ?? getJournalPost(slug);
+  const post = await fetchJournalPost(slug);
   if (!post) notFound();
 
-  const liveList = await fetchJournalPosts();
-  const allPosts = liveList && liveList.length > 0 ? liveList : journalPosts;
+  const allPosts = (await fetchJournalPosts()) || [];
   const related = allPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return <JournalPostClient post={post} related={related} />;

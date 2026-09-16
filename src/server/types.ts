@@ -331,6 +331,7 @@ export interface DbBooking {
   amount_due: string;
   due_date: string;
   status: BookingStatus;
+  customer_id?: string;
   customer_full_name: string;
   customer_phone_number: string;
   customer_email: string;
@@ -406,6 +407,27 @@ export interface DbContactInquiry {
   created_at: string;
 }
 
+export interface DbCustomerActivity {
+  id: string;
+  customer_id: string;
+  type: "account_created" | "booking_created" | "payment_completed" | "qr_cleared" | "profile_updated";
+  title: string;
+  description: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DbCustomerUser {
+  id: string;
+  phone_number: string;
+  full_name: string;
+  email?: string;
+  created_at: string;
+  updated_at: string;
+  last_login_at?: string;
+  activities?: DbCustomerActivity[];
+}
+
 export interface DatabaseSchema {
   destinations: DbDestination[];
   tours: DbTour[];
@@ -414,6 +436,7 @@ export interface DatabaseSchema {
   blogPosts: DbBlogPost[];
   homepageBlocks: DbHomepageBlock[];
   staffUsers: DbStaffUser[];
+  customers?: DbCustomerUser[];
   bookings: DbBooking[];
   payments: DbPayment[];
   clearanceTickets: DbClearanceTicket[];
@@ -422,3 +445,4 @@ export interface DatabaseSchema {
   suppliers: DbSupplier[];
   contactInquiries: DbContactInquiry[];
 }
+

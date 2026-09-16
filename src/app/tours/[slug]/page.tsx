@@ -7,10 +7,7 @@ import { Stagger, StaggerItem } from "@/components/Stagger";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { BookingForm } from "@/components/BookingForm";
 import { Icon } from "@/components/Icon";
-import { tours, getTour } from "@/data/tours";
-import { getDestination } from "@/data/destinations";
 import { fetchDestination, fetchTour } from "@/lib/api";
-
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,7 +20,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tour = (await fetchTour(slug)) ?? getTour(slug);
+  const tour = await fetchTour(slug);
   if (!tour) return { title: "Tour not found" };
   return {
     title: tour.title,
@@ -37,10 +34,10 @@ function formatBDT(amount: number): string {
 
 export default async function TourPage({ params }: PageProps) {
   const { slug } = await params;
-  const tour = (await fetchTour(slug)) ?? getTour(slug);
+  const tour = await fetchTour(slug);
   if (!tour) notFound();
 
-  const destination = (await fetchDestination(tour.destinationSlug)) ?? getDestination(tour.destinationSlug);
+  const destination = tour.destinationSlug ? await fetchDestination(tour.destinationSlug) : null;
   const original = tour.startingPrice;
   const final = Math.max(0, original - tour.discount);
   const advance = Math.round((final * tour.advancePercent) / 100);

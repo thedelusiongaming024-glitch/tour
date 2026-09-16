@@ -198,11 +198,41 @@ CREATE TABLE IF NOT EXISTS public.staff_users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 13. CUSTOMERS (TRAVELERS)
+CREATE TABLE IF NOT EXISTS public.customers (
+  id TEXT PRIMARY KEY,
+  phone_number TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
+  email TEXT,
+  address TEXT,
+  emergency_contact TEXT,
+  total_tours_booked INT DEFAULT 0,
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 14. CUSTOMER ACTIVITIES
+CREATE TABLE IF NOT EXISTS public.customer_activities (
+  id TEXT PRIMARY KEY,
+  customer_id TEXT REFERENCES public.customers(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Link customer_id in Bookings table
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS customer_id TEXT REFERENCES public.customers(id) ON DELETE SET NULL;
+
 -- INDEXES FOR FAST QUERYING
 CREATE INDEX IF NOT EXISTS idx_destinations_slug ON public.destinations(slug);
 CREATE INDEX IF NOT EXISTS idx_tours_slug ON public.tours(slug);
 CREATE INDEX IF NOT EXISTS idx_tours_destination ON public.tours(destination_slug);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON public.bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_customer ON public.bookings(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone_number);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON public.blog_posts(slug);
 
 -- ROW LEVEL SECURITY (RLS)
@@ -212,6 +242,11 @@ ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.homepage_blocks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clearance_tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customer_activities ENABLE ROW LEVEL SECURITY;
 
 -- Public read policies for marketing data
 CREATE POLICY "Public Read Published Destinations" ON public.destinations FOR SELECT USING (status = 'published');
@@ -220,3 +255,30 @@ CREATE POLICY "Public Read Offers" ON public.offers FOR SELECT USING (true);
 CREATE POLICY "Public Read Testimonials" ON public.testimonials FOR SELECT USING (true);
 CREATE POLICY "Public Read Published Blog Posts" ON public.blog_posts FOR SELECT USING (is_published = true);
 CREATE POLICY "Public Read Homepage Blocks" ON public.homepage_blocks FOR SELECT USING (true);
+
+-- Booking & Customer & CMS policies (permits frontend/api operations with anon or service_role key)
+DROP POLICY IF EXISTS "Allow public all on customers" ON public.customers;
+DROP POLICY IF EXISTS "Allow public all on customer_activities" ON public.customer_activities;
+DROP POLICY IF EXISTS "Allow public all on bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Allow public all on payments" ON public.payments;
+DROP POLICY IF EXISTS "Allow public all on clearance_tickets" ON public.clearance_tickets;
+DROP POLICY IF EXISTS "Allow public all on destinations" ON public.destinations;
+DROP POLICY IF EXISTS "Allow public all on tours" ON public.tours;
+DROP POLICY IF EXISTS "Allow public all on blog_posts" ON public.blog_posts;
+DROP POLICY IF EXISTS "Allow public all on offers" ON public.offers;
+DROP POLICY IF EXISTS "Allow public all on testimonials" ON public.testimonials;
+DROP POLICY IF EXISTS "Allow public all on homepage_blocks" ON public.homepage_blocks;
+
+CREATE POLICY "Allow public all on customers" ON public.customers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on customer_activities" ON public.customer_activities FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on bookings" ON public.bookings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on payments" ON public.payments FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on clearance_tickets" ON public.clearance_tickets FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on destinations" ON public.destinations FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on tours" ON public.tours FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on blog_posts" ON public.blog_posts FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on offers" ON public.offers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on testimonials" ON public.testimonials FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on homepage_blocks" ON public.homepage_blocks FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+

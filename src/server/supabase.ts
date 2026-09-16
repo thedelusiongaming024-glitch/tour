@@ -3,6 +3,8 @@ import type {
   DatabaseSchema,
   DbBlogPost,
   DbBooking,
+  DbCustomerActivity,
+  DbCustomerUser,
   DbDestination,
   DbHomepageBlock,
   DbOffer,
@@ -259,6 +261,54 @@ export async function syncHomepageBlockToSupabase(block: DbHomepageBlock): Promi
   }
 }
 
+export async function syncCustomerToSupabase(customer: DbCustomerUser): Promise<boolean> {
+  const supabase = getSupabaseAdminClient();
+  try {
+    const payload = {
+      id: customer.id,
+      phone_number: customer.phone_number,
+      full_name: customer.full_name,
+      email: customer.email || null,
+      created_at: customer.created_at || new Date().toISOString(),
+      updated_at: customer.updated_at || new Date().toISOString(),
+      last_login_at: customer.last_login_at || null,
+    };
+    const { error } = await supabase.from("customers").upsert(payload);
+    if (error) {
+      console.warn("[Supabase Postgres] Customer upsert warning:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err: any) {
+    console.warn("[Supabase Postgres] Customer upsert exception:", err?.message || err);
+    return false;
+  }
+}
+
+export async function syncCustomerActivityToSupabase(activity: DbCustomerActivity): Promise<boolean> {
+  const supabase = getSupabaseAdminClient();
+  try {
+    const payload = {
+      id: activity.id,
+      customer_id: activity.customer_id,
+      type: activity.type,
+      title: activity.title,
+      description: activity.description,
+      metadata: activity.metadata || {},
+      created_at: activity.created_at || new Date().toISOString(),
+    };
+    const { error } = await supabase.from("customer_activities").upsert(payload);
+    if (error) {
+      console.warn("[Supabase Postgres] Customer activity upsert warning:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err: any) {
+    console.warn("[Supabase Postgres] Customer activity upsert exception:", err?.message || err);
+    return false;
+  }
+}
+
 export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean> {
   const supabase = getSupabaseAdminClient();
   try {
@@ -273,6 +323,7 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       customer_name: booking.customer_full_name,
       customer_email: booking.customer_email || "guest@example.com",
       customer_phone: booking.customer_phone_number || "+8801700000000",
+      customer_id: b.customer_id || null,
       pickup_point: b.pickup_point || null,
       special_requests: booking.special_requests || null,
       total_price: Number(booking.total_price || 0),
@@ -283,9 +334,13 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.from("bookings").upsert(payload);
-    if (error) return false;
+    if (error) {
+      console.warn("[Supabase Postgres] Booking upsert warning:", error.message);
+      return false;
+    }
     return true;
-  } catch {
+  } catch (err: any) {
+    console.warn("[Supabase Postgres] Booking upsert exception:", err?.message || err);
     return false;
   }
 }
@@ -319,7 +374,7 @@ export async function syncPaymentToSupabase(payment: DbPayment): Promise<boolean
 export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null> {
   const supabase = getSupabaseAdminClient();
   try {
-    const [destsRes, toursRes, offersRes, testsRes, blogsRes, blocksRes, staffRes] = await Promise.all([
+    const [destsRes, toursRes, offersRes, testsRes, blogsRes, blocksRes, staffRes, custsRes, bookingsRes] = await Promise.all([
       supabase.from("destinations").select("*").order("name"),
       supabase.from("tours").select("*").order("title"),
       supabase.from("offers").select("*"),
@@ -327,6 +382,8 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       supabase.from("blog_posts").select("*"),
       supabase.from("homepage_blocks").select("*").order("display_order"),
       supabase.from("staff_users").select("*"),
+      supabase.from("customers").select("*"),
+      supabase.from("bookings").select("*").order("created_at", { ascending: false }),
     ]);
 
     if (destsRes.error && toursRes.error) {
@@ -473,6 +530,46 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
           },
         ];
 
+    const mappedCustomers: DbCustomerUser[] = (custsRes.data || []).map((c: any) => ({
+      id: c.id,
+      phone_number: c.phone_number,
+      full_name: c.full_name,
+      email: c.email || undefined,
+      created_at: c.created_at || new Date().toISOString(),
+      updated_at: c.updated_at || new Date().toISOString(),
+      last_login_at: c.last_login_at || undefined,
+      activities: [],
+    }));
+
+    const mappedBookings: DbBooking[] = (bookingsRes.data || []).map((b: any) => ({
+      id: b.id,
+      reference: b.reference || `AT-${b.id.slice(-6)}`,
+      tour_id: b.tour_id,
+      tour_title: b.tour_title,
+      tour_slug: b.tour_slug,
+      destination_slug: b.destination_slug || b.tour_slug || "bangladesh",
+      departure_date: b.departure_date,
+      traveler_count: Number(b.traveler_count || 1),
+      unit_price: String(b.unit_price || Math.round(Number(b.total_price || 0) / Math.max(1, Number(b.traveler_count || 1)))),
+      total_price: String(b.total_price || 0),
+      final_price: String(b.total_price || 0),
+      payment_plan: Number(b.due_on_tour_day || 0) > 0 ? "partial" : "full",
+      advance_required_percent: "40",
+      advance_amount: String(b.advance_amount || 0),
+      amount_paid: String(b.amount_paid || 0),
+      amount_due: String(b.due_on_tour_day || 0),
+      due_date: b.departure_date || new Date().toISOString().slice(0, 10),
+      status: b.status || "pending_payment",
+      customer_id: b.customer_id || undefined,
+      customer_full_name: b.customer_name,
+      customer_phone_number: b.customer_phone,
+      customer_email: b.customer_email || "",
+      special_requests: b.special_requests || "",
+      travelers: [{ id: `trav-${b.id}-1`, full_name: b.customer_name, is_lead_traveler: true }],
+      created_at: b.created_at || new Date().toISOString(),
+      updated_at: b.updated_at || new Date().toISOString(),
+    }));
+
     const result: DatabaseSchema = {
       destinations: mappedDestinations,
       tours: mappedTours,
@@ -481,7 +578,8 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       blogPosts: mappedBlogs,
       homepageBlocks: blocksRes.data || [],
       staffUsers: mappedStaff,
-      bookings: [],
+      customers: mappedCustomers,
+      bookings: mappedBookings,
       payments: [],
       clearanceTickets: [],
       alerts: [],

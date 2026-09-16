@@ -5,7 +5,6 @@ import { Reveal } from "@/components/Reveal";
 import { Stagger, StaggerItem } from "@/components/Stagger";
 import { SectionHeading } from "@/components/SectionHeading";
 import { DestinationCard } from "@/components/DestinationCard";
-import { destinations as staticDestinations } from "@/data/destinations";
 import { fetchDestinations } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DestinationsPage() {
-  // Live CMS data when the Django backend is reachable, falling back to the
-  // bundled static content otherwise (offline builds, backend not deployed
-  // yet). See src/lib/api.ts.
-  const destinations = (await fetchDestinations()) ?? staticDestinations;
+  const destinations = await fetchDestinations();
 
   return (
     <>
