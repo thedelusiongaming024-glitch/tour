@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Reveal } from "@/components/Reveal";
@@ -73,6 +74,43 @@ const BENGALI_WHY_US_MAP: Record<string, { title: string; description: string }>
     description: "প্রতিটি লেনদেন স্বচ্ছভাবে সংরক্ষিত ও নিশ্চিত করা হয়, যাতে কোনো প্রকার আর্থিক বিভ্রান্তির অবকাশ না থাকে।",
   },
 };
+
+function TeamMemberCard({ member }: { member: AboutTeamMember }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const normalized = normalizeImageUrl(member.image_url);
+  const showImage = Boolean(normalized) && !imageFailed;
+
+  return (
+    <div className="glass glass-sweep h-full overflow-hidden rounded-3xl flex flex-col">
+      {showImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={normalized}
+          alt={member.name}
+          className="aspect-[4/3] w-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <SceneBackdrop
+          scene={{ key: (member.scene as any) || "sajek", label: member.name }}
+          className="aspect-[4/3] w-full"
+          showLabel={false}
+        />
+      )}
+      <div className="p-6 flex-1 flex flex-col">
+        <h3 className="font-display text-base font-semibold text-ink">
+          {member.name}
+        </h3>
+        <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-emerald">
+          {member.role}
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+          {member.bio}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function AboutClient({
   cms,
@@ -158,17 +196,17 @@ export function AboutClient({
 
   // Payment section copy
   const paymentBadge = isBn
-    ? (hasBengali(cms.payment_badge) ? cms.payment_badge : t("about.paymentBadge", "পেমেন্ট ও কিউআর ক্লিয়ারেন্স"))
-    : cms.payment_badge || "Payment & QR clearance";
+    ? (hasBengali(cms.payment_badge) ? cms.payment_badge : t("about.paymentBadge", "পেমেন্ট ও বুকিং নিশ্চিতকরণ"))
+    : cms.payment_badge || "Payment & Booking Confirmation";
   const paymentTitle = isBn
     ? (hasBengali(cms.payment_title) ? cms.payment_title : t("about.paymentTitle", "আপনার অর্থের সুরক্ষা ও স্বচ্ছতা"))
     : cms.payment_title || "How your money is handled, end to end";
   const paymentDescription = isBn
     ? (hasBengali(cms.payment_description)
         ? cms.payment_description
-        : t("about.paymentDescription", "বুকিংয়ের সময় বিকাশ, নগদ, রকেট বা কার্ডে পুরো মূল্য বা ছোট একটি অগ্রিম দিন। বাকি অংশ ট্যুরের দিন কিউআর স্ক্যান বা লগইন করে দিন। সাথে সাথেই উভয় পক্ষ নিশ্চয়তা পাবেন।"))
+        : t("about.paymentDescription", "বুকিংয়ের সময় বিকাশ, নগদ, রকেট বা কার্ডে পুরো মূল্য বা ছোট একটি অগ্রিম দিন। বাকি অংশ ট্যুরের দিন অনলাইনে বা সরাসরি হোস্টকে দিন। সাথে সাথেই উভয় পক্ষ নিশ্চয়তা পাবেন।"))
     : cms.payment_description ||
-      "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself.";
+      "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either online or directly with your local host.";
   const paymentCtaLabel = isBn
     ? (hasBengali(cms.payment_cta_label) ? cms.payment_cta_label : t("about.paymentCta", "কথা বলুন"))
     : cms.payment_cta_label || "Talk to us";
@@ -182,7 +220,7 @@ export function AboutClient({
         ? cms.cta_description
         : t("about.ctaSubheadline", "সাজেকের মেঘের উপত্যকা হোক, সুন্দরবনের রোমাঞ্চ কিংবা সেন্টমার্টিনের নীল জলরাশি — আপনার জন্য চমৎকার রুট প্রস্তুত।"))
     : cms.cta_description ||
-      "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.";
+      "Tell us where you want to go — we'll take it from there, right through to your final confirmed payment.";
   const ctaLabel = isBn
     ? (hasBengali(cms.cta_label) ? cms.cta_label : t("about.ctaButton", "ভ্রমণ পরিকল্পনা করুন"))
     : cms.cta_label || "Plan My Trip";
@@ -290,9 +328,9 @@ export function AboutClient({
             titleBn="সহজ ও ঝামেলামুক্ত অভিজ্ঞতা"
             description={
               cms.booking_description ||
-              "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity."
+              "From your first search to your final confirmed payment, every step is designed to remove friction and ambiguity."
             }
-            descriptionBn="অনুসন্ধান থেকে শুরু করে কিউআর পেমেন্ট পর্যন্ত — প্রতিটি ধাপ সাজানো হয়েছে সম্পূর্ণ স্বাচ্ছন্দ্যে।"
+            descriptionBn="অনুসন্ধান থেকে শুরু করে পেমেন্ট নিশ্চিতকরণ পর্যন্ত — প্রতিটি ধাপ সাজানো হয়েছে সম্পূর্ণ স্বাচ্ছন্দ্যে।"
           />
           <Stagger className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
             {whyUs.map((item) => (
@@ -327,40 +365,14 @@ export function AboutClient({
           <Stagger className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.1}>
             {team.map((member) => (
               <StaggerItem key={member.name} className="h-full">
-                <div className="glass glass-sweep h-full overflow-hidden rounded-3xl flex flex-col">
-                  {member.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={normalizeImageUrl(member.image_url)}
-                      alt={member.name}
-                      className="aspect-[4/3] w-full object-cover"
-                    />
-                  ) : (
-                    <SceneBackdrop
-                      scene={{ key: (member.scene as any) || "sajek", label: member.name }}
-                      className="aspect-[4/3] w-full"
-                      showLabel={false}
-                    />
-                  )}
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="font-display text-base font-semibold text-ink">
-                      {member.name}
-                    </h3>
-                    <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-emerald">
-                      {member.role}
-                    </p>
-                    <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                      {member.bio}
-                    </p>
-                  </div>
-                </div>
+                <TeamMemberCard member={member} />
               </StaggerItem>
             ))}
           </Stagger>
         </div>
       </section>
 
-      {/* Payment & QR clearance explainer */}
+      {/* Payment & confirmation explainer */}
       <section className="px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <Reveal>
@@ -368,7 +380,7 @@ export function AboutClient({
               <Atmosphere intensity={0.2} />
               <div className="relative z-10 mx-auto max-w-3xl text-center">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-medium backdrop-blur">
-                  <Icon name="qr" className="h-4 w-4" />
+                  <Icon name="receipt" className="h-4 w-4" />
                   {paymentBadge}
                 </span>
                 <h2 className="mt-5 font-display text-2xl font-semibold sm:text-3xl">

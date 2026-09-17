@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { Icon } from "@/components/Icon";
@@ -11,6 +12,7 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
+  const [imgFailed, setImgFailed] = useState(false);
   const photo = normalizeImageUrl(review.photoUrl);
 
   return (
@@ -39,12 +41,13 @@ export function ReviewCard({ review }: ReviewCardProps) {
         &ldquo;{review.text}&rdquo;
       </blockquote>
       <figcaption className="mt-5 flex items-center gap-3 border-t border-white/60 pt-4">
-        {photo ? (
+        {photo && !imgFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photo}
             alt={review.name}
             className="h-10 w-10 shrink-0 rounded-full object-cover"
+            onError={() => setImgFailed(true)}
           />
         ) : (
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald to-emerald-deep font-display text-sm font-semibold text-white">

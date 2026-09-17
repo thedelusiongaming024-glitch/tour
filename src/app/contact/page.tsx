@@ -327,8 +327,8 @@ export default function ContactPage() {
                   </h2>
                   <p className="mt-2 text-sm leading-relaxed text-emerald-50/90">
                     {isBn
-                      ? "তাত্ক্ষণিক উত্তর, ই-টিকেট এবং কিউআর পেমেন্ট নিশ্চিতকরণের জন্য সরাসরি হোয়াটসঅ্যাপে যোগাযোগ করুন।"
-                      : "Message us directly for a same-day reply, e-tickets, and your QR payment confirmations."}
+                      ? "তাত্ক্ষণিক উত্তর, ই-টিকেট এবং বুকিং পেমেন্ট নিশ্চিতকরণের জন্য সরাসরি হোয়াটসঅ্যাপে যোগাযোগ করুন।"
+                      : "Message us directly for a same-day reply, e-tickets, and your booking payment confirmations."}
                   </p>
                   <Link
                     href="https://wa.me/8801XXXXXXXXX"

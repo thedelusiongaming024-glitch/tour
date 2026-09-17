@@ -44,7 +44,7 @@ export default function ClearancePage() {
     async function resolve() {
       try {
         const res = await fetch(
-          `${API_BASE}/clearance/${params.bookingId}/?token=${encodeURIComponent(token)}`
+          `${API_BASE}/clearance/${params.bookingId}?token=${encodeURIComponent(token)}`
         );
         if (res.status === 410) {
           setState({ kind: "expired" });
@@ -70,13 +70,15 @@ export default function ClearancePage() {
   async function handlePay() {
     setPaying(true);
     try {
-      // Same bug class as the staff scanner's handleClearPayment: this
       // endpoint is authorized by the signed clearance token (it's
       // AllowAny — there's no customer login), not by anything else in
       // the request. `token` was already in scope from the page's query
       // params but wasn't being sent, so every "Pay now" tap failed with
       // 400 "Invalid or missing clearance token."
-      const res = await fetch(`${API_BASE}/clearance/${params.bookingId}/pay/`, {
+      // The token was already parsed off the booking pass URL
+      // in resolveBooking; it just wasn't being kept around in state for
+      // this second request to use.
+      const res = await fetch(`${API_BASE}/clearance/${params.bookingId}/pay`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method: "customer_self_pay", token }),
@@ -106,7 +108,7 @@ export default function ClearancePage() {
             <Icon name="clock" className="mx-auto mb-4 h-10 w-10 text-amber-500" />
             <h1 className="font-display text-xl font-semibold text-ink">This link has expired</h1>
             <p className="mt-2 text-sm text-ink-soft">
-              Please contact our team directly, or ask your tour host for a fresh QR code.
+              Please contact our team directly, or reach out to your tour host or support team.
             </p>
           </>
         )}

@@ -153,7 +153,7 @@ export interface AboutPageCmsContent {
   team_title?: string;
   team?: AboutTeamMember[];
   
-  // Payment & QR Clearance
+  // Payment & Settlement
   payment_badge?: string;
   payment_title?: string;
   payment_description?: string;
@@ -180,8 +180,18 @@ export interface ServiceItem {
   href?: string;
 }
 
+export interface HeroSlideItem {
+  id: string;
+  image_url: string;
+  title: string;
+  subtitle?: string;
+}
+
 export interface HomePageCmsContent {
   // 1. Hero
+  hero_media_type?: "slideshow" | "video";
+  hero_video_url?: string;
+  hero_slides?: HeroSlideItem[];
   hero_eyebrow?: string;
   hero_headline?: string;
   hero_highlight?: string;
@@ -364,7 +374,7 @@ export interface DbClearanceTicket {
   is_cleared: boolean;
   cleared_at?: string;
   cleared_by_staff_id?: string;
-  clearance_method?: "host_qr_scan" | "customer_self_pay" | "host_cash" | "verification_only";
+  clearance_method?: "host_verification" | "host_qr_scan" | "customer_self_pay" | "host_cash" | "verification_only";
   created_at: string;
 }
 

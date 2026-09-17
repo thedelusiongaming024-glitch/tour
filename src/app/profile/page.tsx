@@ -218,8 +218,8 @@ export default function CustomerProfilePage() {
                 </h1>
                 <p className="mt-2 text-center text-sm text-ink-soft">
                   {isBn
-                    ? "আপনার বুকিংয়ের সময় ব্যবহৃত মোবাইল নম্বরটি লিখুন। তাত্ক্ষণিক ম্যাচ করে আপনার বুকিং হিস্টোরি ও কিউআর ক্লিয়ারেন্স পাস দেখুন।"
-                    : "Enter the mobile number you used while booking to access your trip history, host QR clearance passes, and account activity."}
+                    ? "আপনার বুকিংয়ের সময় ব্যবহৃত মোবাইল নম্বরটি লিখুন। তাত্ক্ষণিক ম্যাচ করে আপনার বুকিং হিস্টোরি ও ডিজিটাল ট্রিপ পাস দেখুন।"
+                    : "Enter the mobile number you used while booking to access your trip history, digital booking passes, and account activity."}
                 </p>
 
                 <form onSubmit={handleLogin} className="mt-8 space-y-4">
@@ -658,13 +658,13 @@ export default function CustomerProfilePage() {
 
                         {/* Card Actions */}
                         <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-ink/5 pt-4">
-                          {/* 1-Click QR Clearance Pass */}
+                          {/* 1-Click Digital Booking Pass */}
                           <Link
                             href={`/clearance/${b.id}`}
                             className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-deep px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:brightness-110"
                           >
-                            <Icon name="check" className="h-4 w-4" />
-                            <span>{isBn ? "কিউআর ক্লিয়ারেন্স পাস দেখুন" : "View QR Clearance Pass"}</span>
+                            <Icon name="ticket" className="h-4 w-4" />
+                            <span>{isBn ? "ডিজিটাল বুকিং পাস দেখুন" : "View Booking Pass"}</span>
                           </Link>
 
                           {/* Pay Remaining Due Link */}
@@ -781,12 +781,12 @@ export default function CustomerProfilePage() {
                     <Icon name="sparkle" className="h-6 w-6" />
                   </div>
                   <h3 className="font-display text-xl font-semibold text-ink">
-                    {isBn ? "ট্যুর দিনে কিউআর ক্লিয়ারেন্স কীভাবে কাজ করে?" : "How On-Tour QR Clearance Works"}
+                    {isBn ? "ট্যুর দিনে বুকিং ও পেমেন্ট কীভাবে কাজ করে?" : "How On-Tour Check-in & Payment Works"}
                   </h3>
                   <p className="text-sm text-ink-soft leading-relaxed">
                     {isBn
-                      ? "১. অগ্রিম ৪০% পরিশোধের মাধ্যমে আপনার আসন নিশ্চিত হয়।\n২. যাত্রার দিন সকালে আপনার লোকাল ট্যুর হোস্ট আপনার বুকিংয়ের ডিজিটাল কিউআর কোড স্ক্যান করবেন।\n৩. বাকি টাকা আপনি সরাসরি বিকাশ/কার্ড দিয়ে অথবা হোস্টকে ক্যাশ দিয়ে ক্লিয়ার করতে পারবেন।"
-                      : "1. 40% advance confirms your seats upfront with zero middleman.\n2. On the morning of your trip, your dedicated local host scans your QR Clearance pass.\n3. Settle any remaining balance digitally via bKash/Nagad/Card or cash on spot."}
+                      ? "১. অগ্রিম ৪০% পরিশোধের মাধ্যমে আপনার আসন নিশ্চিত হয়।\n২. যাত্রার দিন সকালে আপনার লোকাল ট্যুর হোস্ট আপনার বুকিং ভাউচার ও নাম নিশ্চিত করবেন।\n৩. বাকি টাকা আপনি সরাসরি বিকাশ/কার্ড দিয়ে অথবা হোস্টকে ক্যাশ দিয়ে পরিশোধ করতে পারবেন।"
+                      : "1. 40% advance confirms your seats upfront with zero middleman.\n2. On the morning of your trip, your dedicated local host verifies your booking pass and voucher.\n3. Settle any remaining balance digitally via bKash/Nagad/Card or cash directly on spot."}
                   </p>
                 </div>
               </div>

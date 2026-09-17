@@ -40,7 +40,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
     setError("");
 
     try {
-      const bookingRes = await fetch(`${API_BASE}/bookings/`, {
+      const bookingRes = await fetch(`${API_BASE}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -73,7 +73,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
         } catch {}
       }
 
-      const paymentRes = await fetch(`${API_BASE}/payments/initiate/`, {
+      const paymentRes = await fetch(`${API_BASE}/payments/initiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -189,7 +189,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
           </div>
           {dueOnTourDay > 0 && (
             <span className="text-xs text-ink-faint">
-              Remaining {formatBDT(dueOnTourDay)} due on tour day via QR clearance or self-pay link.
+              Remaining {formatBDT(dueOnTourDay)} due on tour day via online self-pay link or cash to host.
             </span>
           )}
         </div>

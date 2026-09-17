@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const tour = saveTour(body);
+    const tour = await saveTour(body);
     return NextResponse.json(tour, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to save tour.";

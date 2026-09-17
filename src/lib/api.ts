@@ -1,5 +1,6 @@
 import type { Destination, Faq, HomepageBlock, HomepageBlockType, ItineraryDay, JournalPost, Offer, Review, Scene, Tour } from "@/lib/types";
 import { scenes } from "@/lib/scenes";
+import { normalizeImageUrl, normalizeVideoUrl } from "@/lib/media";
 import * as db from "@/server/db";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -23,11 +24,13 @@ const SCENE_KEYS = Object.keys(scenes) as Array<keyof typeof scenes>;
 function sceneForSlug(slug: string, label: string, imageUrl?: string | null, videoUrl?: string | null): Scene {
   const normalized = (slug || "").replace(/-/g, "");
   const match = SCENE_KEYS.find((key) => normalized.includes(key) || key.includes(normalized));
+  const normImg = normalizeImageUrl(imageUrl);
+  const normVid = normalizeVideoUrl(videoUrl);
   return {
     key: (match ?? "dhaka") as Scene["key"],
     label: label || "Destination",
-    imageUrl: imageUrl ?? undefined,
-    videoUrl: videoUrl ?? undefined,
+    imageUrl: normImg || undefined,
+    videoUrl: normVid.url || undefined,
   };
 }
 
@@ -128,12 +131,12 @@ function slugifyFallback(name: string): string {
 function adaptTour(t: any): Tour {
   const slug = t.slug || `tour-${Date.now()}`;
   const title = t.title || "Untitled Tour";
-  const basePrice = parseFloat(t.base_price || "0") || 0;
-  const finalPrice = parseFloat(t.final_price || t.base_price || "0") || basePrice;
+  const basePrice = parseFloat(t.base_price || t.starting_price || "0") || 0;
+  const finalPrice = parseFloat(t.final_price || t.base_price || t.starting_price || "0") || basePrice;
   const discount = Math.max(0, Math.round(basePrice - finalPrice));
   const durationDays = Number(t.duration_days) || 3;
   const durationNights = Number(t.duration_nights) || 2;
-  const advancePercent = Number(t.advance_payment_percent) || 40;
+  const advancePercent = Number(t.advance_payment_percent || t.advance_percent) || 40;
 
   const itinerary: ItineraryDay[] = Array.isArray(t.itinerary)
     ? t.itinerary.map((d: any, i: number) => ({
@@ -175,7 +178,7 @@ function adaptTour(t: any): Tour {
     (t.destination_name ? slugifyFallback(t.destination_name) : "bangladesh");
 
   return {
-    id: t.id,
+    id: t.id || slug,
     slug,
     title,
     destinationSlug: destSlug,
@@ -185,8 +188,8 @@ function adaptTour(t: any): Tour {
     advancePercent,
     allowPartialPayment: t.allow_partial_payment !== false,
     category: CATEGORY_LABELS[t.category] ?? t.category ?? "Group Tour",
-    summary: t.short_description || t.description || "",
-    description: t.full_description || t.short_description || "",
+    summary: t.short_description || t.overview || t.description || "",
+    description: t.full_description || t.overview || t.short_description || "",
     cover: sceneForSlug(slug, title, t.hero_image),
     gallery: Array.isArray(t.gallery) && t.gallery.length > 0
       ? t.gallery.map((g: any) => sceneForSlug(slug, g.caption || title, g.image || g.imageUrl))
@@ -238,7 +241,7 @@ export async function fetchOffers(): Promise<Offer[]> {
       expiry: o.valid_until
         ? new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
         : "Limited time",
-      bannerUrl: o.banner_image || o.image_url || undefined,
+      bannerUrl: normalizeImageUrl(o.banner_image || o.image_url) || undefined,
     }));
   } catch {
     return [];
@@ -254,7 +257,7 @@ export async function fetchTestimonials(): Promise<Review[]> {
       tour: r.tour_title || r.trip_name || "Domestic Tour",
       rating: Number(r.rating) || 5,
       text: r.quote || "",
-      photoUrl: r.customer_photo || r.author_avatar || undefined,
+      photoUrl: normalizeImageUrl(r.customer_photo || r.author_avatar) || undefined,
     }));
   } catch {
     return [];

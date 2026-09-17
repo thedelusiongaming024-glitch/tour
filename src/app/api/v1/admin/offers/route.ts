@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const offer = saveOffer(body);
+    const offer = await saveOffer(body);
     return NextResponse.json(offer, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to save offer.";

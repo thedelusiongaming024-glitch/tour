@@ -14,7 +14,7 @@ export async function PUT(
   try {
     const { id } = await props.params;
     const body = await request.json();
-    const post = saveBlogPost({ ...body, id });
+    const post = await saveBlogPost({ ...body, id });
     return NextResponse.json(post);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update blog post.";
@@ -32,7 +32,7 @@ export async function DELETE(
   }
 
   const { id } = await props.params;
-  const ok = deleteBlogPost(id);
+  const ok = await deleteBlogPost(id);
   if (!ok) {
     return NextResponse.json({ detail: "Blog post not found." }, { status: 404 });
   }

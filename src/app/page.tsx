@@ -98,6 +98,9 @@ export default async function Home() {
     <>
       {/* ============ HERO ============ */}
       <HomeHero
+        mediaType={homeCms.hero_media_type}
+        videoUrl={homeCms.hero_video_url}
+        slides={homeCms.hero_slides}
         eyebrow={homeCms.hero_eyebrow || str(heroContent, "eyebrow")}
         headline={homeCms.hero_headline || str(heroContent, "headline")}
         highlight={homeCms.hero_highlight || str(heroContent, "highlight")}

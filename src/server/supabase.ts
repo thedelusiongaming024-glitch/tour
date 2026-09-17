@@ -135,12 +135,12 @@ export async function syncOfferToSupabase(offer: DbOffer): Promise<boolean> {
     const payload = {
       id: offer.id,
       title: offer.title,
-      code: offer.code,
+      code: offer.code || offer.slug || "PROMO",
       tagline: offer.description || null,
       discount_badge: offer.discount_type === "percent" ? `${offer.discount_value}% OFF` : `BDT ${offer.discount_value} OFF`,
       discount_type: offer.discount_type === "percent" ? "percentage" : "flat",
       discount_value: Number(offer.discount_value || 0),
-      valid_from: offer.valid_from ? offer.valid_from.slice(0, 10) : null,
+      valid_from: offer.valid_from ? offer.valid_from.slice(0, 10) : new Date().toISOString().slice(0, 10),
       valid_until: offer.valid_until ? offer.valid_until.slice(0, 10) : null,
       minimum_spend: Number(offer.minimum_spend || 0),
       image_url: offer.banner_image || null,
@@ -609,6 +609,7 @@ export async function syncDatabaseToSupabase(data: DatabaseSchema): Promise<bool
     const { error } = await supabase.storage.from(BUCKET_NAME).upload(DB_OBJECT_PATH, raw, {
       contentType: "application/json",
       upsert: true,
+      cacheControl: "300",
     });
     if (error) {
       console.error("[Supabase Storage] Upload error:", error.message);
@@ -629,12 +630,75 @@ export async function syncDatabaseToSupabase(data: DatabaseSchema): Promise<bool
 }
 
 /**
+ * Fetch the complete database snapshot directly from Supabase Storage bucket mirror.
+ * This reads from CDN/Storage, offloading PostgreSQL entirely for read-heavy operations.
+ */
+export async function fetchDatabaseFromStorageBucket(): Promise<DatabaseSchema | null> {
+  const supabase = getSupabaseAdminClient();
+  try {
+    const { data, error } = await supabase.storage.from(BUCKET_NAME).download(DB_OBJECT_PATH);
+    if (error || !data) {
+      return null;
+    }
+    const text = await data.text();
+    const parsed = JSON.parse(text) as DatabaseSchema;
+    return parsed;
+  } catch (err: any) {
+    console.warn("[Supabase Storage Mirror] Exception downloading snapshot:", err?.message || err);
+    return null;
+  }
+}
+
+/**
+ * Remotely invoke the Supabase Edge Function 'sync-db-snapshot' to regenerate the bucket mirror,
+ * or fallback to local snapshot generation if the edge function is unreachable.
+ */
+export async function invokeCloudSnapshotSync(): Promise<{
+  success: boolean;
+  source: "edge-function" | "app-fallback";
+  details?: any;
+  error?: string;
+}> {
+  const supabase = getSupabaseAdminClient();
+  try {
+    const { data, error } = await supabase.functions.invoke("sync-db-snapshot", {
+      body: { trigger: "admin_manual_invocation", timestamp: new Date().toISOString() },
+    });
+
+    if (!error && data?.success) {
+      lastSyncTimestamp = new Date().toISOString();
+      lastSyncStatus = "success";
+      return { success: true, source: "edge-function", details: data };
+    }
+  } catch (edgeErr: any) {
+    console.warn("[Supabase Edge Function] Direct invocation unavailable, falling back:", edgeErr?.message || edgeErr);
+  }
+
+  // Fallback: compile from PostgreSQL via fetchDatabaseFromSupabase and upload to bucket
+  try {
+    const cloudDb = await fetchDatabaseFromSupabase();
+    if (cloudDb) {
+      const ok = await syncDatabaseToSupabase(cloudDb);
+      return {
+        success: ok,
+        source: "app-fallback",
+        details: { destinations: cloudDb.destinations.length, tours: cloudDb.tours.length },
+      };
+    }
+    return { success: false, source: "app-fallback", error: "Failed to fetch PostgreSQL tables" };
+  } catch (err: any) {
+    return { success: false, source: "app-fallback", error: err?.message || "Sync failed" };
+  }
+}
+
+/**
  * Check Supabase connectivity, table availability, and sync status
  */
 export async function checkSupabaseHealth(): Promise<{
   connected: boolean;
   projectUrl: string;
   bucket: string;
+  bucketMirrorAvailable: boolean;
   lastSync: string | null;
   status: "idle" | "syncing" | "success" | "error";
   error: string | null;
@@ -642,24 +706,33 @@ export async function checkSupabaseHealth(): Promise<{
   const supabase = getSupabaseAdminClient();
   const url = process.env.SUPABASE_URL || "https://tcituxdzdqjgslhctncu.supabase.co";
   try {
-    const { data, error } = await supabase.from("destinations").select("id").limit(1);
-    const connected = !error && !!data;
+    const [tableRes, bucketRes] = await Promise.all([
+      supabase.from("destinations").select("id").limit(1),
+      supabase.storage.from(BUCKET_NAME).list("", { limit: 1, search: DB_OBJECT_PATH }),
+    ]);
+
+    const connected = !tableRes.error && !!tableRes.data;
+    const bucketMirrorAvailable = !bucketRes.error && Array.isArray(bucketRes.data) && bucketRes.data.length > 0;
+
     return {
       connected,
       projectUrl: url,
       bucket: BUCKET_NAME,
+      bucketMirrorAvailable,
       lastSync: lastSyncTimestamp,
       status: connected ? "success" : "error",
-      error: error ? error.message : null,
+      error: tableRes.error ? tableRes.error.message : null,
     };
   } catch (err: any) {
     return {
       connected: false,
       projectUrl: url,
       bucket: BUCKET_NAME,
+      bucketMirrorAvailable: false,
       lastSync: lastSyncTimestamp,
       status: "error",
       error: err?.message || "Connection failed",
     };
   }
 }
+

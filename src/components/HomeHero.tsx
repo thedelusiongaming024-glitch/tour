@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
+import { HeroVideoBackdrop } from "@/components/HeroVideoBackdrop";
 import { Reveal } from "@/components/Reveal";
 import { Stagger, StaggerItem } from "@/components/Stagger";
 import { Icon } from "@/components/Icon";
 import { useLanguage } from "@/context/LanguageContext";
 import { heroStats } from "@/data/site";
+import type { HeroSlideItem } from "@/server/types";
 
 interface HomeHeroProps {
   eyebrow?: string | null;
@@ -18,6 +20,9 @@ interface HomeHeroProps {
   secondaryCtaLabel?: string | null;
   secondaryCtaHref?: string | null;
   statsOverride?: { value: string; label: string }[] | null;
+  mediaType?: "slideshow" | "video" | null;
+  videoUrl?: string | null;
+  slides?: HeroSlideItem[] | null;
 }
 
 export function HomeHero({
@@ -30,6 +35,9 @@ export function HomeHero({
   secondaryCtaLabel,
   secondaryCtaHref,
   statsOverride,
+  mediaType,
+  videoUrl,
+  slides,
 }: HomeHeroProps) {
   const { t, isBn, formatNumber } = useLanguage();
 
@@ -73,9 +81,11 @@ export function HomeHero({
 
   return (
     <section className="relative overflow-hidden px-4 pb-24 pt-32 sm:px-6 sm:pt-40">
-      <HeroSlideshow
-        scenes={["coxsbazar", "sajek", "sundarbans", "bandarban", "stmartins"]}
-      />
+      {mediaType === "video" && videoUrl ? (
+        <HeroVideoBackdrop videoUrl={videoUrl} fallbackSlides={slides ?? undefined} />
+      ) : (
+        <HeroSlideshow slides={slides ?? undefined} />
+      )}
       <div className="relative z-10 mx-auto max-w-6xl">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <Reveal>

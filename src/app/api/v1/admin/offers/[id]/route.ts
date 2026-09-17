@@ -14,7 +14,7 @@ export async function PUT(
   try {
     const { id } = await props.params;
     const body = await request.json();
-    const offer = saveOffer({ ...body, id });
+    const offer = await saveOffer({ ...body, id });
     return NextResponse.json(offer);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update offer.";
@@ -32,7 +32,7 @@ export async function DELETE(
   }
 
   const { id } = await props.params;
-  const ok = deleteOffer(id);
+  const ok = await deleteOffer(id);
   if (!ok) {
     return NextResponse.json({ detail: "Offer not found." }, { status: 404 });
   }

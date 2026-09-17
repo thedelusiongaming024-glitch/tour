@@ -24,13 +24,13 @@ export const whyUs: { title: string; description: string; icon: string }[] = [
   {
     title: "Flexible payment",
     description:
-      "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
-    icon: "qr",
+      "Book with a 40% advance and clear the balance on tour day — online or directly with your host, with confirmation to both sides.",
+    icon: "receipt",
   },
   {
     title: "Zero-friction booking",
     description:
-      "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+      "From browsing to e-ticket in minutes. Your voucher, digital ticket, and reminders arrive automatically on WhatsApp and email.",
     icon: "ticket",
   },
   {

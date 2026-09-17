@@ -51,8 +51,8 @@ export function Footer() {
               </div>
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
                 {isBn
-                  ? "বাংলাদেশ জুড়ে নির্বাচিত ট্যুর — নির্ভরযোগ্য লোকাল হোস্ট, স্পষ্ট মূল্য এবং সহজ কিউআর পেমেন্ট সুবিধা।"
-                  : `${siteTagline}. Curated domestic tours across Bangladesh — trusted local hosts, transparent pricing, and seamless QR payment clearance.`}
+                  ? "বাংলাদেশ জুড়ে নির্বাচিত ট্যুর — নির্ভরযোগ্য লোকাল হোস্ট, স্পষ্ট মূল্য এবং সহজ পেমেন্ট সুবিধা।"
+                  : `${siteTagline}. Curated domestic tours across Bangladesh — trusted local hosts, transparent pricing, and seamless booking confirmation.`}
               </p>
               <p className="mt-3 text-xs font-medium text-ink-faint">
                 {siteNameBn} {t("footer.brandSpirit")}

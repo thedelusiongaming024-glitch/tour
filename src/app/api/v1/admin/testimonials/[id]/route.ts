@@ -14,7 +14,7 @@ export async function PUT(
   try {
     const { id } = await props.params;
     const body = await request.json();
-    const testimonial = saveTestimonial({ ...body, id });
+    const testimonial = await saveTestimonial({ ...body, id });
     return NextResponse.json(testimonial);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update testimonial.";
@@ -32,7 +32,7 @@ export async function DELETE(
   }
 
   const { id } = await props.params;
-  const ok = deleteTestimonial(id);
+  const ok = await deleteTestimonial(id);
   if (!ok) {
     return NextResponse.json({ detail: "Testimonial not found." }, { status: 404 });
   }

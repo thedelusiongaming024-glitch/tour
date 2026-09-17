@@ -12,7 +12,7 @@ import { staffLogin } from "@/lib/staffAuth";
 // of real internal destinations closes that off entirely rather than
 // trying to pattern-match "looks like a relative path" (which is easy to
 // get wrong, e.g. protocol-relative "//evil.example").
-const ALLOWED_NEXT_PATHS = new Set(["/staff/dashboard", "/staff/scan", "/staff/admin"]);
+const ALLOWED_NEXT_PATHS = new Set(["/staff/dashboard", "/staff/admin"]);
 const DEFAULT_NEXT_PATH = "/staff/dashboard";
 
 function resolveNextPath(raw: string | null): string {
