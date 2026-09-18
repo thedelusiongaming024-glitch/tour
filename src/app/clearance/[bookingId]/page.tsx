@@ -12,6 +12,9 @@ interface ClearanceBooking {
   tour_title: string;
   amount_due: string;
   is_cleared: boolean;
+  departure_date?: string;
+  traveler_count?: number;
+  selected_seats?: string[];
 }
 
 interface ResolveResponse {
@@ -135,9 +138,17 @@ export default function ClearancePage() {
             </span>
             <h1 className="font-display text-xl font-semibold text-ink">Booking Confirmed — Fully Paid</h1>
             <div className="mt-4 space-y-1 text-sm text-ink-soft">
-              <p>{state.data.booking.tour_title}</p>
-              <p className="font-mono text-xs">{state.data.booking.booking_reference}</p>
+              <p className="font-semibold text-ink text-base">{state.data.booking.tour_title}</p>
+              <p className="font-mono text-xs text-slate-500">{state.data.booking.booking_reference}</p>
               <p>{state.data.booking.customer_name}</p>
+              {state.data.booking.departure_date && (
+                <p className="text-xs">📅 Departure: {state.data.booking.departure_date.slice(0, 10)}</p>
+              )}
+              {state.data.booking.selected_seats && state.data.booking.selected_seats.length > 0 && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                  💺 Assigned Seats: {state.data.booking.selected_seats.join(", ")}
+                </div>
+              )}
             </div>
           </>
         )}
@@ -149,8 +160,17 @@ export default function ClearancePage() {
             </span>
             <h1 className="font-display text-xl font-semibold text-ink">Balance Due</h1>
             <div className="mt-4 space-y-1 text-sm text-ink-soft">
-              <p>{state.data.booking.tour_title}</p>
-              <p className="font-mono text-xs">{state.data.booking.booking_reference}</p>
+              <p className="font-semibold text-ink text-base">{state.data.booking.tour_title}</p>
+              <p className="font-mono text-xs text-slate-500">{state.data.booking.booking_reference}</p>
+              <p>{state.data.booking.customer_name}</p>
+              {state.data.booking.departure_date && (
+                <p className="text-xs">📅 Departure: {state.data.booking.departure_date.slice(0, 10)}</p>
+              )}
+              {state.data.booking.selected_seats && state.data.booking.selected_seats.length > 0 && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                  💺 Assigned Seats: {state.data.booking.selected_seats.join(", ")}
+                </div>
+              )}
             </div>
             <p className="mt-4 font-display text-3xl font-semibold text-ink">
               {formatBDT(state.data.amount_due ?? state.data.booking.amount_due)}

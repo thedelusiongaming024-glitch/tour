@@ -5,7 +5,7 @@
       "name": "Bandarban",
       "slug": "bandarban",
       "division": "chattogram",
-      "tagline": "Land of the Clouds",
+      "tagline": "",
       "description": "Bandarban is a hill district famous for its misty peaks, tribal culture, and lush valleys, offering some of the most scenic trekking routes in Bangladesh.",
       "best_time_to_visit": "October to March",
       "weather_notes": "Pleasant and breezy",
@@ -20,9 +20,36 @@
       "travel_tips": "Carry warm clothing for early morning hill viewpoints; roads can be steep and winding",
       "permits_required": "None",
       "cover_image": "https://cdn.pixabay.com/photo/2019/02/08/11/44/landscape-3983105_1280.jpg",
-      "cover_video_url": "",
+      "cover_video_url": null,
       "seo_title": "Bandarban Travel Guide | Atithi",
-      "seo_description": "",
+      "seo_description": null,
+      "gallery": [],
+      "is_featured": true,
+      "status": "published"
+    },
+    {
+      "id": "dest_coxsbazar",
+      "name": "Cox's Bazar",
+      "slug": "coxs-bazar",
+      "division": "Chattogram",
+      "tagline": "World's Longest Sea Beach",
+      "description": "Cox's Bazar offers an unbroken 120km sandy beach along with island getaways like Saint Martin and Inani.",
+      "best_time_to_visit": "November to February",
+      "weather_notes": "Warm and dry in winter; rough seas and monsoon rains June-September",
+      "popular_attractions": [
+        "Laboni Beach",
+        "Himchari",
+        "Inani Beach",
+        "Saint Martin Island",
+        "Marine Drive"
+      ],
+      "recommended_accommodation": "Beachfront hotels along Marine Drive and Kolatoli",
+      "travel_tips": "Sunrise at Sugandha Point and sunset at Laboni Point are must-sees",
+      "permits_required": "None for the mainland beach; NOC required for Saint Martin during restricted seasons",
+      "cover_image": "https://example-cdn.atithi.com/destinations/coxs-bazar-cover.jpg",
+      "cover_video_url": null,
+      "seo_title": null,
+      "seo_description": null,
       "gallery": [],
       "is_featured": true,
       "status": "published"
@@ -48,37 +75,10 @@
       "permits_required": "ID verification required for some restricted zones",
       "cover_image": "https://example-cdn.atithi.com/destinations/rangamati-cover.jpg",
       "cover_video_url": null,
-      "seo_title": "Rangamati Travel Guide",
-      "seo_description": "",
+      "seo_title": null,
+      "seo_description": null,
       "gallery": [],
       "is_featured": false,
-      "status": "published"
-    },
-    {
-      "id": "dest_coxsbazar",
-      "name": "Cox's Bazar",
-      "slug": "coxs-bazar",
-      "division": "Chattogram",
-      "tagline": "World's Longest Sea Beach",
-      "description": "Cox's Bazar offers an unbroken 120km sandy beach along with island getaways like Saint Martin and Inani.",
-      "best_time_to_visit": "November to February",
-      "weather_notes": "Warm and dry in winter; rough seas and monsoon rains June-September",
-      "popular_attractions": [
-        "Laboni Beach",
-        "Himchari",
-        "Inani Beach",
-        "Saint Martin Island",
-        "Marine Drive"
-      ],
-      "recommended_accommodation": "Beachfront hotels along Marine Drive and Kolatoli",
-      "travel_tips": "Sunrise at Sugandha Point and sunset at Laboni Point are must-sees",
-      "permits_required": "None for the mainland beach; NOC required for Saint Martin during restricted seasons",
-      "cover_image": "https://example-cdn.atithi.com/destinations/coxs-bazar-cover.jpg",
-      "cover_video_url": null,
-      "seo_title": "Cox's Bazar Travel Guide",
-      "seo_description": "",
-      "gallery": [],
-      "is_featured": true,
       "status": "published"
     }
   ],
@@ -89,7 +89,7 @@
       "slug": "bandarban-hill-cloud-package",
       "destination_slug": "bandarban",
       "destination_name": "Bandarban",
-      "category": "package_tour",
+      "category": "group_tour",
       "short_description": "A 3-day escape through Nilgiri, Nilachal and Chimbuk with a resort stay and jeep tour included.",
       "full_description": "A 3-day escape through Nilgiri, Nilachal and Chimbuk with a resort stay and jeep tour included.",
       "hero_image": "https://example-cdn.atithi.com/tours/bandarban-hero.jpg",
@@ -97,11 +97,11 @@
       "duration_nights": 2,
       "base_price": "6500",
       "discount_type": "flat",
-      "discount_value": "500",
-      "final_price": "6000",
+      "discount_value": "1000",
+      "final_price": "5500",
       "allow_partial_payment": true,
       "advance_payment_percent": "40",
-      "advance_amount": "2600",
+      "advance_amount": "2200",
       "inclusions": [
         "AC bus ticket",
         "2 nights hotel",
@@ -114,29 +114,153 @@
         "Personal expenses"
       ],
       "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC highway transport",
+      "transportation_notes": "AC Bus / Private Jeep",
       "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka",
-      "departure_schedule": "Every Friday",
+      "meeting_point": "Dhaka Sayedabad / Fakirapool",
+      "departure_schedule": "Every Friday 7:00 AM",
+      "total_seats": 14,
+      "itinerary": [],
+      "departures": [
+        {
+          "id": "dep-2026-09-25-1",
+          "is_active": true,
+          "departure_date": "2026-09-25",
+          "seats_remaining": 6
+        },
+        {
+          "id": "dep-2026-10-02-2",
+          "is_active": true,
+          "departure_date": "2026-10-02",
+          "seats_remaining": 6
+        },
+        {
+          "id": "dep-2026-10-09-3",
+          "is_active": true,
+          "departure_date": "2026-10-09",
+          "seats_remaining": 6
+        },
+        {
+          "id": "dep-2026-10-16-4",
+          "is_active": true,
+          "departure_date": "2026-10-16",
+          "seats_remaining": 9
+        }
+      ],
+      "faqs": [],
+      "gallery": [],
+      "is_featured": true,
+      "status": "published"
+    },
+    {
+      "id": "tour_car_rental_dhaka",
+      "title": "Chander Gari / Jeep Rental Service",
+      "slug": "jeep-chander-gari-rental",
+      "destination_slug": "bandarban",
+      "destination_name": "Bandarban",
+      "category": "car_rental",
+      "short_description": "Full-day private jeep rental for hill-tract sightseeing routes.",
+      "full_description": "Full-day private jeep rental for hill-tract sightseeing routes.",
+      "hero_image": "https://example-cdn.atithi.com/tours/jeep-rental-hero.jpg",
+      "duration_days": 1,
+      "duration_nights": 0,
+      "base_price": "3500",
+      "discount_type": "none",
+      "discount_value": "0",
+      "final_price": "3500",
+      "allow_partial_payment": true,
+      "advance_payment_percent": "50",
+      "advance_amount": "1750",
+      "inclusions": [
+        "Private jeep",
+        "Driver",
+        "Fuel"
+      ],
+      "exclusions": [
+        "Entry tickets",
+        "Meals"
+      ],
+      "accommodation_notes": "Standard hotel / resort",
+      "transportation_notes": "AC Bus / Private Jeep",
+      "meals_notes": "Breakfast included",
+      "meeting_point": "Dhaka Sayedabad / Fakirapool",
+      "departure_schedule": "Every Friday 7:00 AM",
       "total_seats": 14,
       "itinerary": [
         {
           "day": 1,
-          "title": "Arrival & Nilachal Sunset",
-          "details": "Check-in, evening at Nilachal viewpoint"
-        },
-        {
-          "day": 2,
-          "title": "Nilgiri & Chimbuk Hill Jeep Tour",
-          "details": "Full-day jeep tour to Nilgiri and Chimbuk"
-        },
-        {
-          "day": 3,
-          "title": "Golden Temple & Departure",
-          "details": "Visit Buddha Dhatu Jadi, return journey"
+          "title": "Full Day Jeep Tour",
+          "details": "Pickup, sightseeing, drop-off"
         }
       ],
       "departures": [],
+      "faqs": [],
+      "gallery": [],
+      "is_featured": false,
+      "status": "published"
+    },
+    {
+      "id": "tour_coxsbazar_3d2n",
+      "title": "Cox's Bazar Beach & Sunset Package",
+      "slug": "coxs-bazar-beach-sunset",
+      "destination_slug": "coxs-bazar",
+      "destination_name": "Coxs-bazar",
+      "category": "group_tour",
+      "short_description": "A relaxing 3-day beach holiday covering Himchari, Inani Beach and Marine Drive.",
+      "full_description": "A relaxing 3-day beach holiday covering Himchari, Inani Beach and Marine Drive.",
+      "hero_image": "https://example-cdn.atithi.com/tours/coxsbazar-hero.jpg",
+      "duration_days": 3,
+      "duration_nights": 2,
+      "base_price": "7500",
+      "discount_type": "flat",
+      "discount_value": "1000",
+      "final_price": "6500",
+      "allow_partial_payment": true,
+      "advance_payment_percent": "40",
+      "advance_amount": "2600",
+      "inclusions": [
+        "AC bus ticket",
+        "2 nights hotel",
+        "Marine Drive car rental",
+        "Breakfast x2"
+      ],
+      "exclusions": [
+        "Lunch and dinner",
+        "Entry tickets",
+        "Water activities"
+      ],
+      "accommodation_notes": "Standard hotel / resort",
+      "transportation_notes": "AC Bus / Private Jeep",
+      "meals_notes": "Breakfast included",
+      "meeting_point": "Dhaka Sayedabad / Fakirapool",
+      "departure_schedule": "Every Friday 7:00 AM",
+      "total_seats": 14,
+      "itinerary": [],
+      "departures": [
+        {
+          "id": "dep-2026-09-24-1",
+          "is_active": true,
+          "departure_date": "2026-09-24",
+          "seats_remaining": 12
+        },
+        {
+          "id": "dep-2026-10-01-2",
+          "is_active": true,
+          "departure_date": "2026-10-01",
+          "seats_remaining": 8
+        },
+        {
+          "id": "dep-2026-10-08-3",
+          "is_active": true,
+          "departure_date": "2026-10-08",
+          "seats_remaining": 13
+        },
+        {
+          "id": "dep-2026-10-15-4",
+          "is_active": true,
+          "departure_date": "2026-10-15",
+          "seats_remaining": 7
+        }
+      ],
       "faqs": [],
       "gallery": [],
       "is_featured": true,
@@ -172,10 +296,10 @@
         "Entry tickets"
       ],
       "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC highway transport",
+      "transportation_notes": "AC Bus / Private Jeep",
       "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka",
-      "departure_schedule": "Every Friday",
+      "meeting_point": "Dhaka Sayedabad / Fakirapool",
+      "departure_schedule": "Every Friday 7:00 AM",
       "total_seats": 14,
       "itinerary": [
         {
@@ -196,105 +320,33 @@
       "status": "published"
     },
     {
-      "id": "tour_coxsbazar_3d2n",
-      "title": "Cox's Bazar Beach & Sunset Package",
-      "slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar",
-      "destination_name": "Coxs-bazar",
-      "category": "package_tour",
-      "short_description": "A relaxing 3-day beach holiday covering Himchari, Inani Beach and Marine Drive.",
-      "full_description": "A relaxing 3-day beach holiday covering Himchari, Inani Beach and Marine Drive.",
-      "hero_image": "https://example-cdn.atithi.com/tours/coxsbazar-hero.jpg",
+      "id": "tour_sajek_3d2n",
+      "title": "Sajek Valley Cloud Kingdom Tour",
+      "slug": "sajek-valley-cloud-kingdom",
+      "destination_slug": "sajek",
+      "destination_name": "Sajek",
+      "category": "group_tour",
+      "short_description": "Witness the sea of clouds from Sajek Valley.",
+      "full_description": "Witness the sea of clouds from Sajek Valley.",
+      "hero_image": null,
       "duration_days": 3,
       "duration_nights": 2,
       "base_price": "7500",
-      "discount_type": "flat",
-      "discount_value": "1000",
-      "final_price": "6500",
+      "discount_type": "none",
+      "discount_value": "0",
+      "final_price": "7500",
       "allow_partial_payment": true,
       "advance_payment_percent": "40",
       "advance_amount": "3000",
-      "inclusions": [
-        "AC bus ticket",
-        "2 nights hotel",
-        "Marine Drive car rental",
-        "Breakfast x2"
-      ],
-      "exclusions": [
-        "Lunch and dinner",
-        "Entry tickets",
-        "Water activities"
-      ],
+      "inclusions": [],
+      "exclusions": [],
       "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC highway transport",
+      "transportation_notes": "AC Bus / Private Jeep",
       "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka",
-      "departure_schedule": "Every Friday",
+      "meeting_point": "Dhaka Sayedabad / Fakirapool",
+      "departure_schedule": "Every Friday 7:00 AM",
       "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Arrival & Laboni Beach",
-          "details": "Check-in, evening at Laboni Point"
-        },
-        {
-          "day": 2,
-          "title": "Himchari & Inani Beach",
-          "details": "Marine Drive tour to Himchari waterfall and Inani Beach"
-        },
-        {
-          "day": 3,
-          "title": "Sugandha Point Sunrise & Departure",
-          "details": "Sunrise viewing, return journey"
-        }
-      ],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "tour_car_rental_dhaka",
-      "title": "Chander Gari / Jeep Rental Service",
-      "slug": "jeep-chander-gari-rental",
-      "destination_slug": "bandarban",
-      "destination_name": "Bandarban",
-      "category": "car_rental",
-      "short_description": "Full-day private jeep rental for hill-tract sightseeing routes.",
-      "full_description": "Full-day private jeep rental for hill-tract sightseeing routes.",
-      "hero_image": "https://example-cdn.atithi.com/tours/jeep-rental-hero.jpg",
-      "duration_days": 1,
-      "duration_nights": 0,
-      "base_price": "3500",
-      "discount_type": "none",
-      "discount_value": "0",
-      "final_price": "3500",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "50",
-      "advance_amount": "1750",
-      "inclusions": [
-        "Private jeep",
-        "Driver",
-        "Fuel"
-      ],
-      "exclusions": [
-        "Entry tickets",
-        "Meals"
-      ],
-      "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC highway transport",
-      "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka",
-      "departure_schedule": "Every Friday",
-      "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Full Day Jeep Tour",
-          "details": "Pickup, sightseeing, drop-off"
-        }
-      ],
+      "itinerary": [],
       "departures": [],
       "faqs": [],
       "gallery": [],
@@ -331,10 +383,10 @@
         "Entry tickets"
       ],
       "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC highway transport",
+      "transportation_notes": "AC Bus / Private Jeep",
       "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka",
-      "departure_schedule": "Every Friday",
+      "meeting_point": "Dhaka Sayedabad / Fakirapool",
+      "departure_schedule": "Every Friday 7:00 AM",
       "total_seats": 14,
       "itinerary": [
         {
@@ -353,80 +405,15 @@
       "gallery": [],
       "is_featured": true,
       "status": "published"
-    },
-    {
-      "id": "tour_sajek_3d2n",
-      "title": "Sajek Valley Cloud Kingdom Tour",
-      "slug": "sajek-valley-cloud-kingdom",
-      "destination_slug": "sajek",
-      "destination_name": "Sajek",
-      "category": "group_tour",
-      "short_description": "Witness the sea of clouds from Sajek Valley.",
-      "full_description": "Witness the sea of clouds from Sajek Valley.",
-      "hero_image": null,
-      "duration_days": 3,
-      "duration_nights": 2,
-      "base_price": "7500",
-      "discount_type": "none",
-      "discount_value": "0",
-      "final_price": "7500",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "40",
-      "advance_amount": "3000",
-      "inclusions": [],
-      "exclusions": [],
-      "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC highway transport",
-      "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka",
-      "departure_schedule": "Every Friday",
-      "total_seats": 14,
-      "itinerary": [],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": false,
-      "status": "published"
     }
   ],
   "offers": [
-    {
-      "id": "offer-1789618549557",
-      "title": "Bro Day Special",
-      "description": "fcf rfmk kmkdm wdmoem ejdnjrnir jmsoewm",
-      "slug": "BRO420",
-      "code": "BRO420",
-      "discount_type": "percent",
-      "discount_value": "69",
-      "minimum_spend": "500",
-      "valid_from": "2026-09-17",
-      "tour_slug": null,
-      "valid_until": "2026-09-30",
-      "banner_image": null,
-      "is_active": true
-    },
-    {
-      "id": "offer-1789618466105",
-      "title": "Brothership Campange",
-      "description": "fvvgvgvjmkm kmlkmdlc",
-      "slug": "BRO420",
-      "code": "BRO420",
-      "discount_type": "percent",
-      "discount_value": "69",
-      "minimum_spend": "500",
-      "valid_from": "2026-09-17",
-      "tour_slug": null,
-      "valid_until": "2026-09-30",
-      "banner_image": null,
-      "is_active": true
-    },
     {
       "id": "offer_winter25",
       "title": "Winter Getaway Discount",
       "code": "WINTER25",
       "slug": "winter25",
       "description": "Book your hill or beach trip before winter ends",
-      "discount_badge": "15% OFF",
       "discount_type": "percent",
       "discount_value": "15",
       "minimum_spend": "3000",
@@ -442,13 +429,27 @@
       "code": "EARLY500",
       "slug": "early500",
       "description": "Book 30 days in advance and save",
-      "discount_badge": "BDT 500 OFF",
       "discount_type": "flat",
       "discount_value": "500",
       "minimum_spend": "4000",
       "valid_from": "2026-09-01",
       "valid_until": "2026-12-31",
       "banner_image": "https://example-cdn.atithi.com/offers/early-bird.jpg",
+      "tour_slug": null,
+      "is_active": true
+    },
+    {
+      "id": "offer-1789442059647",
+      "title": "web dev",
+      "code": "PROMO",
+      "slug": "web-dev",
+      "description": "",
+      "discount_type": "flat",
+      "discount_value": "0",
+      "minimum_spend": "0",
+      "valid_from": "2026-09-18",
+      "valid_until": "2026-10-04",
+      "banner_image": null,
       "tour_slug": null,
       "is_active": true
     }
@@ -565,15 +566,6 @@
       "updated_at": "2026-09-15T03:12:25.327+00:00"
     },
     {
-      "id": "block-testimonials-4",
-      "block_type": "testimonials",
-      "display_order": 7,
-      "content": {
-        "hidden": false
-      },
-      "updated_at": "2026-09-15T03:12:25.351+00:00"
-    },
-    {
       "id": "block-tours-3",
       "block_type": "featured_tours",
       "display_order": 6,
@@ -583,10 +575,53 @@
       "updated_at": "2026-09-15T03:12:25.34+00:00"
     },
     {
+      "id": "block-testimonials-4",
+      "block_type": "testimonials",
+      "display_order": 7,
+      "content": {
+        "hidden": false
+      },
+      "updated_at": "2026-09-15T03:12:25.351+00:00"
+    },
+    {
       "id": "block-home-page",
       "block_type": "home_page",
       "display_order": 8,
       "content": {
+        "hero_media_type": "video",
+        "hero_video_url": "https://www.youtube.com/watch?v=BSO023-1OYI&list=RDBSO023-1OYI&start_radio=1",
+        "hero_slides": [
+          {
+            "id": "slide-coxsbazar",
+            "title": "Cox's Bazar",
+            "subtitle": "World's Longest Natural Sea Beach",
+            "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-sajek",
+            "title": "Sajek Valley",
+            "subtitle": "Valley of Clouds & Green Hills",
+            "image_url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-sundarbans",
+            "title": "Sundarbans",
+            "subtitle": "World's Largest Mangrove Kingdom",
+            "image_url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-sylhet",
+            "title": "Sylhet & Sreemangal",
+            "subtitle": "Lush Rolling Tea Gardens & Waterfalls",
+            "image_url": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-stmartins",
+            "title": "Saint Martin's Island",
+            "subtitle": "Pristine Coral Island & Turquoise Sea",
+            "image_url": "https://images.unsplash.com/photo-1519046904884-53103b34b271?auto=format&fit=crop&w=1920&q=80"
+          }
+        ],
         "hero_eyebrow": "Domestic tours across Bangladesh",
         "hero_headline": "Discover Bangladesh,",
         "hero_highlight": "your way",
@@ -623,12 +658,12 @@
           },
           {
             "title": "Flexible payment",
-            "description": "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
-            "icon": "qr"
+            "description": "Book with a 40% advance and clear the balance on tour day — online or directly with your host, with confirmation to both sides.",
+            "icon": "receipt"
           },
           {
             "title": "Zero-friction booking",
-            "description": "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+            "description": "From browsing to e-ticket in minutes. Your voucher, digital ticket, and reminders arrive automatically on WhatsApp and email.",
             "icon": "ticket"
           },
           {
@@ -700,41 +735,7 @@
         "cta_primary_href": "/contact",
         "cta_secondary_label": "Browse Tours",
         "cta_secondary_href": "/tours",
-        "cta_hidden": false,
-        "hero_media_type": "slideshow",
-        "hero_video_url": "https://www.youtube.com/watch?v=rkpzYNB6xks",
-        "hero_slides": [
-          {
-            "id": "slide-coxsbazar",
-            "title": "Cox's Bazar",
-            "subtitle": "World's Longest Natural Sea Beach",
-            "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80"
-          },
-          {
-            "id": "slide-sajek",
-            "title": "Sajek Valley",
-            "subtitle": "Valley of Clouds & Green Hills",
-            "image_url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
-          },
-          {
-            "id": "slide-sundarbans",
-            "title": "Sundarbans",
-            "subtitle": "World's Largest Mangrove Kingdom",
-            "image_url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80"
-          },
-          {
-            "id": "slide-sylhet",
-            "title": "Sylhet & Sreemangal",
-            "subtitle": "Lush Rolling Tea Gardens & Waterfalls",
-            "image_url": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80"
-          },
-          {
-            "id": "slide-stmartins",
-            "title": "Saint Martin's Island",
-            "subtitle": "Pristine Coral Island & Turquoise Sea",
-            "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/41/St._Martin%27s_Island_%2816471679022%29.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=original"
-          }
-        ]
+        "cta_hidden": false
       }
     },
     {
@@ -829,53 +830,6 @@
   ],
   "customers": [
     {
-      "id": "cust-1789616058292-77",
-      "phone_number": "+8801410207483",
-      "full_name": "The Delusion Gaming Yt",
-      "email": "thedelusiongaming024@gmail.com",
-      "created_at": "2026-09-17T03:34:18.292Z",
-      "updated_at": "2026-09-17T03:34:18.292Z",
-      "last_login_at": "2026-09-17T03:34:18.292Z",
-      "activities": [
-        {
-          "id": "act-1789616071841-617",
-          "customer_id": "cust-1789616058292-77",
-          "type": "payment_completed",
-          "title": "Advance Payment Received",
-          "description": "Payment of ৳4,800 received via BKASH for booking AT-2026-00011.",
-          "metadata": {
-            "booking_id": "book-1789616059724-530",
-            "tran_id": "TRAN-1789616061678-292",
-            "amount": "4800.00",
-            "remaining_due": "7200.00"
-          },
-          "created_at": "2026-09-17T03:34:31.841Z"
-        },
-        {
-          "id": "act-1789616059727-830",
-          "customer_id": "cust-1789616058292-77",
-          "type": "booking_created",
-          "title": "Booked Bandarban Hill & Cloud Package Tour",
-          "description": "Booking reference AT-2026-00011 created for 2 traveler(s). Total: ৳12,000.",
-          "metadata": {
-            "booking_id": "book-1789616059724-530",
-            "reference": "AT-2026-00011",
-            "tour_id": "tour_bandarban_3d2n",
-            "traveler_count": 2
-          },
-          "created_at": "2026-09-17T03:34:19.727Z"
-        },
-        {
-          "id": "act-1789616058293-1",
-          "customer_id": "cust-1789616058292-77",
-          "type": "account_created",
-          "title": "Account Created",
-          "description": "Welcome to Atithi! Account instantly created for The Delusion Gaming Yt (+8801410207483).",
-          "created_at": "2026-09-17T03:34:18.292Z"
-        }
-      ]
-    },
-    {
       "id": "cust-1789565575837-491",
       "phone_number": "+8801826483915",
       "full_name": "arko hassan",
@@ -914,150 +868,777 @@
       "updated_at": "2026-09-16T13:26:09.358+00:00",
       "last_login_at": "2026-09-16T13:25:31.22+00:00",
       "activities": []
+    },
+    {
+      "id": "cust-1789636853132-908",
+      "phone_number": "+8801410207487",
+      "full_name": "Md Anik Islam",
+      "email": "thedelusiongaming024@gmail.com",
+      "created_at": "2026-09-17T09:20:53.132+00:00",
+      "updated_at": "2026-09-17T09:20:53.132+00:00",
+      "last_login_at": "2026-09-17T09:20:53.132+00:00",
+      "activities": [
+        {
+          "id": "act-1789636874616-922",
+          "customer_id": "cust-1789636853132-908",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳7,800 received via DBBLMOBILEB-Dbbl Mobile Banking for booking AT-2026-00012.",
+          "metadata": {
+            "amount": "7800.00",
+            "tran_id": "TRAN-1789636856978-19",
+            "booking_id": "book-1789636854804-584",
+            "remaining_due": "11700.00"
+          },
+          "created_at": "2026-09-17T09:21:14.616+00:00"
+        },
+        {
+          "id": "act-1789636854805-971",
+          "customer_id": "cust-1789636853132-908",
+          "type": "booking_created",
+          "title": "Booked Cox's Bazar Beach & Sunset Package",
+          "description": "Booking reference AT-2026-00012 created for 3 traveler(s). Total: ৳19,500.",
+          "metadata": {
+            "tour_id": "tour_coxsbazar_3d2n",
+            "reference": "AT-2026-00012",
+            "booking_id": "book-1789636854804-584",
+            "traveler_count": 3
+          },
+          "created_at": "2026-09-17T09:20:54.805+00:00"
+        },
+        {
+          "id": "act-1789636853132-1",
+          "customer_id": "cust-1789636853132-908",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for Md Anik Islam (+8801410207487).",
+          "metadata": {},
+          "created_at": "2026-09-17T09:20:53.132+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789643624284-939",
+      "phone_number": "+8801906557841",
+      "full_name": "Miraz Ahmed",
+      "email": "thedelusiongaming024@gmail.com",
+      "created_at": "2026-09-17T11:13:44.284+00:00",
+      "updated_at": "2026-09-17T11:13:44.284+00:00",
+      "last_login_at": "2026-09-17T11:13:44.284+00:00",
+      "activities": [
+        {
+          "id": "act-1789643642316-670",
+          "customer_id": "cust-1789643624284-939",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳3,600 received via DBBLMOBILEB-Dbbl Mobile Banking for booking AT-2026-00013.",
+          "metadata": {
+            "amount": "3600.00",
+            "tran_id": "TRAN-1789643627339-164",
+            "booking_id": "book-1789643625989-220",
+            "remaining_due": "5400.00"
+          },
+          "created_at": "2026-09-17T11:14:02.316+00:00"
+        },
+        {
+          "id": "act-1789643625990-835",
+          "customer_id": "cust-1789643624284-939",
+          "type": "booking_created",
+          "title": "Booked Sylhet Waterfall & Tea Garden Tour",
+          "description": "Booking reference AT-2026-00013 created for 2 traveler(s). Total: ৳9,000.",
+          "metadata": {
+            "tour_id": "tour_sylhet_2d1n",
+            "reference": "AT-2026-00013",
+            "booking_id": "book-1789643625989-220",
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T11:13:45.99+00:00"
+        },
+        {
+          "id": "act-1789643624284-1",
+          "customer_id": "cust-1789643624284-939",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for Miraz Ahmed (+8801906557841).",
+          "metadata": {},
+          "created_at": "2026-09-17T11:13:44.284+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789656188909-455",
+      "phone_number": "+880199999999",
+      "full_name": "Sheikh Prince Khan ",
+      "email": "prince@gmil.com",
+      "created_at": "2026-09-17T14:43:08.909+00:00",
+      "updated_at": "2026-09-17T14:43:08.909+00:00",
+      "last_login_at": "2026-09-17T14:43:08.909+00:00",
+      "activities": [
+        {
+          "id": "act-1789656203972-484",
+          "customer_id": "cust-1789656188909-455",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳5,200 received via BKASH-BKash for booking AT-2026-00016.",
+          "metadata": {
+            "amount": "5200.00",
+            "tran_id": "TRAN-1789656192058-572",
+            "booking_id": "book-1789656190796-900",
+            "remaining_due": "7800.00"
+          },
+          "created_at": "2026-09-17T14:43:23.972+00:00"
+        },
+        {
+          "id": "act-1789656190797-16",
+          "customer_id": "cust-1789656188909-455",
+          "type": "booking_created",
+          "title": "Booked Cox's Bazar Beach & Sunset Package",
+          "description": "Booking reference AT-2026-00016 created for 2 traveler(s). Total: ৳13,000.",
+          "metadata": {
+            "tour_id": "tour_coxsbazar_3d2n",
+            "reference": "AT-2026-00016",
+            "booking_id": "book-1789656190796-900",
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T14:43:10.797+00:00"
+        },
+        {
+          "id": "act-1789656188909-1",
+          "customer_id": "cust-1789656188909-455",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for Sheikh Prince Khan  (+880199999999).",
+          "metadata": {},
+          "created_at": "2026-09-17T14:43:08.909+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789675595017-900",
+      "phone_number": "+8801956565404",
+      "full_name": "orin arko",
+      "email": "orinhossain@gmail.com",
+      "created_at": "2026-09-17T20:06:35.017+00:00",
+      "updated_at": "2026-09-17T20:06:35.017+00:00",
+      "last_login_at": "2026-09-17T20:06:35.017+00:00",
+      "activities": [
+        {
+          "id": "act-1789675615665-354",
+          "customer_id": "cust-1789675595017-900",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳4,800 received via DBBLMOBILEB-Dbbl Mobile Banking for booking AT-2026-00017 · Seats: C1, C2.",
+          "metadata": {
+            "amount": "4800.00",
+            "tran_id": "TRAN-1789675598661-773",
+            "booking_id": "book-1789675596663-281",
+            "remaining_due": "7200.00",
+            "selected_seats": [
+              "C1",
+              "C2"
+            ]
+          },
+          "created_at": "2026-09-17T20:06:55.665+00:00"
+        },
+        {
+          "id": "act-1789675596665-855",
+          "customer_id": "cust-1789675595017-900",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00017 created for 2 traveler(s) · Seats: C1, C2. Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00017",
+            "booking_id": "book-1789675596663-281",
+            "selected_seats": [
+              "C1",
+              "C2"
+            ],
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T20:06:36.665+00:00"
+        },
+        {
+          "id": "act-1789675595017-1",
+          "customer_id": "cust-1789675595017-900",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for orin arko (+8801956565404).",
+          "metadata": {},
+          "created_at": "2026-09-17T20:06:35.017+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789675797426-368",
+      "phone_number": "+8801711000991",
+      "full_name": "Test Passenger A",
+      "email": "passengera@test.com",
+      "created_at": "2026-09-17T20:09:57.426+00:00",
+      "updated_at": "2026-09-17T20:09:57.426+00:00",
+      "last_login_at": "2026-09-17T20:09:57.426+00:00",
+      "activities": [
+        {
+          "id": "act-1789675798546-272",
+          "customer_id": "cust-1789675797426-368",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00018 created for 2 traveler(s) · Seats: I4, J1. Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00018",
+            "booking_id": "book-1789675798496-845",
+            "selected_seats": [
+              "I4",
+              "J1"
+            ],
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T20:09:58.546+00:00"
+        },
+        {
+          "id": "act-1789675797426-1",
+          "customer_id": "cust-1789675797426-368",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for Test Passenger A (+8801711000991).",
+          "metadata": {},
+          "created_at": "2026-09-17T20:09:57.426+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789675799949-385",
+      "phone_number": "+8801711000992",
+      "full_name": "Test Passenger B",
+      "created_at": "2026-09-17T20:09:59.95+00:00",
+      "updated_at": "2026-09-17T20:09:59.95+00:00",
+      "last_login_at": "2026-09-17T20:09:59.95+00:00",
+      "activities": [
+        {
+          "id": "act-1789675800551-861",
+          "customer_id": "cust-1789675799949-385",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00019 created for 1 traveler(s) · Seats: J2. Total: ৳6,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00019",
+            "booking_id": "book-1789675800550-4",
+            "selected_seats": [
+              "J2"
+            ],
+            "traveler_count": 1
+          },
+          "created_at": "2026-09-17T20:10:00.551+00:00"
+        },
+        {
+          "id": "act-1789675799950-1",
+          "customer_id": "cust-1789675799949-385",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for Test Passenger B (+8801711000992).",
+          "metadata": {},
+          "created_at": "2026-09-17T20:09:59.95+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789616058292-77",
+      "phone_number": "+8801410207483",
+      "full_name": "The Delusion Gaming Yt",
+      "email": "thedelusiongaming024@gmail.com",
+      "created_at": "2026-09-17T03:34:18.292+00:00",
+      "updated_at": "2026-09-17T20:13:55.972+00:00",
+      "last_login_at": "2026-09-17T03:34:18.292+00:00",
+      "activities": [
+        {
+          "id": "act-1789676035973-731",
+          "customer_id": "cust-1789616058292-77",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00020 created for 2 traveler(s) · Seats: C1, C2. Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00020",
+            "booking_id": "book-1789676035972-865",
+            "selected_seats": [
+              "C1",
+              "C2"
+            ],
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T20:13:55.973+00:00"
+        },
+        {
+          "id": "act-1789656106767-843",
+          "customer_id": "cust-1789616058292-77",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳4,800 received via BKASH-BKash for booking AT-2026-00015.",
+          "metadata": {
+            "amount": "4800.00",
+            "tran_id": "TRAN-1789656093921-169",
+            "booking_id": "book-1789656091862-998",
+            "remaining_due": "7200.00"
+          },
+          "created_at": "2026-09-17T14:41:46.767+00:00"
+        },
+        {
+          "id": "act-1789656091863-973",
+          "customer_id": "cust-1789616058292-77",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00015 created for 2 traveler(s). Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00015",
+            "booking_id": "book-1789656091862-998",
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T14:41:31.863+00:00"
+        },
+        {
+          "id": "act-1789649696203-771",
+          "customer_id": "cust-1789616058292-77",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳3,600 received via DBBLMOBILEB-Dbbl Mobile Banking for booking AT-2026-00014.",
+          "metadata": {
+            "amount": "3600.00",
+            "tran_id": "TRAN-1789649683267-108",
+            "booking_id": "book-1789649681534-107",
+            "remaining_due": "5400.00"
+          },
+          "created_at": "2026-09-17T12:54:56.203+00:00"
+        },
+        {
+          "id": "act-1789649681535-185",
+          "customer_id": "cust-1789616058292-77",
+          "type": "booking_created",
+          "title": "Booked Sylhet Waterfall & Tea Garden Tour",
+          "description": "Booking reference AT-2026-00014 created for 2 traveler(s). Total: ৳9,000.",
+          "metadata": {
+            "tour_id": "tour_sylhet_2d1n",
+            "reference": "AT-2026-00014",
+            "booking_id": "book-1789649681534-107",
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T12:54:41.535+00:00"
+        },
+        {
+          "id": "act-1789616071841-617",
+          "customer_id": "cust-1789616058292-77",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳4,800 received via BKASH for booking AT-2026-00011.",
+          "metadata": {
+            "amount": "4800.00",
+            "tran_id": "TRAN-1789616061678-292",
+            "booking_id": "book-1789616059724-530",
+            "remaining_due": "7200.00"
+          },
+          "created_at": "2026-09-17T03:34:31.841+00:00"
+        },
+        {
+          "id": "act-1789616059727-830",
+          "customer_id": "cust-1789616058292-77",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00011 created for 2 traveler(s). Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00011",
+            "booking_id": "book-1789616059724-530",
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T03:34:19.727+00:00"
+        },
+        {
+          "id": "act-1789616058293-1",
+          "customer_id": "cust-1789616058292-77",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for The Delusion Gaming Yt (+8801410207483).",
+          "metadata": {},
+          "created_at": "2026-09-17T03:34:18.292+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789676115963-956",
+      "phone_number": "+8801410207409",
+      "full_name": "tonuza khanam",
+      "email": "thedelusiongaming024@gmail.com",
+      "created_at": "2026-09-17T20:15:15.963+00:00",
+      "updated_at": "2026-09-17T20:15:15.963+00:00",
+      "last_login_at": "2026-09-17T20:15:15.963+00:00",
+      "activities": [
+        {
+          "id": "act-1789676135439-338",
+          "customer_id": "cust-1789676115963-956",
+          "type": "payment_completed",
+          "title": "Advance Payment Received",
+          "description": "Payment of ৳2,400 received via MYCASH-Mercantile Bank Limited for booking AT-2026-00021 · Seats: A4.",
+          "metadata": {
+            "amount": "2400.00",
+            "tran_id": "TRAN-1789676119161-808",
+            "booking_id": "book-1789676117527-859",
+            "remaining_due": "3600.00",
+            "selected_seats": [
+              "A4"
+            ]
+          },
+          "created_at": "2026-09-17T20:15:35.439+00:00"
+        },
+        {
+          "id": "act-1789676117529-581",
+          "customer_id": "cust-1789676115963-956",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00021 created for 1 traveler(s) · Seats: A4. Total: ৳6,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00021",
+            "booking_id": "book-1789676117527-859",
+            "selected_seats": [
+              "A4"
+            ],
+            "traveler_count": 1
+          },
+          "created_at": "2026-09-17T20:15:17.529+00:00"
+        },
+        {
+          "id": "act-1789676115963-1",
+          "customer_id": "cust-1789676115963-956",
+          "type": "account_created",
+          "title": "Account Created",
+          "description": "Welcome to Atithi! Account instantly created for tonuza khanam (+8801410207409).",
+          "metadata": {},
+          "created_at": "2026-09-17T20:15:15.963+00:00"
+        }
+      ]
+    },
+    {
+      "id": "cust-1789678515226-458",
+      "phone_number": "+8801899112233",
+      "full_name": "Persistence Test Traveler",
+      "email": "persistence@test.com",
+      "created_at": "2026-09-17T20:55:15.226+00:00",
+      "updated_at": "2026-09-18T03:42:50.13+00:00",
+      "last_login_at": "2026-09-17T20:55:15.226+00:00",
+      "activities": [
+        {
+          "id": "act-1789702970147-608",
+          "customer_id": "cust-1789678515226-458",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00023 created for 2 traveler(s) · Seats: E1, E2. Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00023",
+            "booking_id": "book-1789702970130-946",
+            "departure_date": "2026-09-25",
+            "selected_seats": [
+              "E1",
+              "E2"
+            ],
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-18T03:42:50.147+00:00"
+        },
+        {
+          "id": "act-1789678516994-314",
+          "customer_id": "cust-1789678515226-458",
+          "type": "booking_created",
+          "title": "Booked Bandarban Hill & Cloud Package Tour",
+          "description": "Booking reference AT-2026-00022 created for 2 traveler(s) · Seats: E1, E2. Total: ৳12,000.",
+          "metadata": {
+            "tour_id": "tour_bandarban_3d2n",
+            "reference": "AT-2026-00022",
+            "booking_id": "book-1789678516928-117",
+            "departure_date": "2026-09-24",
+            "selected_seats": [
+              "E1",
+              "E2"
+            ],
+            "traveler_count": 2
+          },
+          "created_at": "2026-09-17T20:55:16.994+00:00"
+        }
+      ]
     }
   ],
   "bookings": [
     {
-      "id": "book-1789616059724-530",
-      "reference": "AT-2026-00011",
-      "tour_id": "tour_bandarban_3d2n",
-      "tour_title": "Bandarban Hill & Cloud Package Tour",
-      "tour_slug": "bandarban-hill-cloud-package",
-      "destination_slug": "bandarban",
-      "traveler_count": 2,
-      "unit_price": "6000.00",
-      "total_price": "12000.00",
-      "final_price": "12000.00",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "4800.00",
-      "amount_paid": "4800.00",
-      "amount_due": "7200.00",
-      "due_date": "2026-09-17",
-      "status": "confirmed_advance_paid",
-      "customer_id": "cust-1789616058292-77",
-      "customer_full_name": "The Delusion Gaming Yt",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789616059724-530-1",
-          "full_name": "The Delusion Gaming Yt",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-17T03:34:19.724Z",
-      "updated_at": "2026-09-17T03:34:19.724Z"
-    },
-    {
-      "id": "book-1789442121939-292",
-      "reference": "AT-39-292",
-      "tour_id": "tour_rangamati_2d1n",
-      "tour_title": "Rangamati Kaptai Lake Tour",
-      "tour_slug": "rangamati-kaptai-lake-tour",
-      "destination_slug": "rangamati-kaptai-lake-tour",
-      "departure_date": "2026-09-15",
-      "traveler_count": 1,
-      "unit_price": "4000",
-      "total_price": "4000",
-      "final_price": "4000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "4000",
-      "amount_paid": "0",
-      "amount_due": "4000",
-      "due_date": "2026-09-15",
-      "status": "pending_payment",
-      "customer_full_name": "The Delusion Gaming Yt",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789442121939-292-1",
-          "full_name": "The Delusion Gaming Yt",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-15T03:15:22.335086+00:00",
-      "updated_at": "2026-09-16T14:19:15.344+00:00"
-    },
-    {
-      "id": "book-1789442094716-212",
-      "reference": "AT-16-212",
-      "tour_id": "tour_rangamati_2d1n",
-      "tour_title": "Rangamati Kaptai Lake Tour",
-      "tour_slug": "rangamati-kaptai-lake-tour",
-      "destination_slug": "rangamati-kaptai-lake-tour",
-      "departure_date": "2026-09-15",
-      "traveler_count": 4,
-      "unit_price": "4000",
-      "total_price": "16000",
-      "final_price": "16000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "16000",
-      "amount_paid": "0",
-      "amount_due": "16000",
-      "due_date": "2026-09-15",
-      "status": "pending_payment",
-      "customer_full_name": "Md Rakib Mia",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789442094716-212-1",
-          "full_name": "Md Rakib Mia",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-15T03:14:55.094892+00:00",
-      "updated_at": "2026-09-16T14:19:15.494+00:00"
-    },
-    {
-      "id": "book-1789565575838-839",
-      "reference": "AT-38-839",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "full",
-      "advance_required_percent": "40",
-      "advance_amount": "13000",
-      "amount_paid": "13000",
-      "amount_due": "0",
-      "due_date": "2026-09-16",
-      "status": "confirmed_fully_paid",
-      "customer_full_name": "arko hassan",
-      "customer_phone_number": "+8801826483915",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789565575838-839-1",
-          "full_name": "arko hassan",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:50.97878+00:00",
-      "updated_at": "2026-09-16T14:19:15.64+00:00"
-    },
-    {
-      "id": "book-1789565214498-560",
-      "reference": "AT-98-560",
+      "id": "book-1789702970130-946",
+      "reference": "AT-30-946",
       "tour_id": "tour_bandarban_3d2n",
       "tour_title": "Bandarban Hill & Cloud Package Tour",
       "tour_slug": "bandarban-hill-cloud-package",
       "destination_slug": "bandarban-hill-cloud-package",
-      "departure_date": "2026-09-18",
+      "departure_date": "2026-09-25",
       "traveler_count": 2,
+      "selected_seats": [
+        "E1",
+        "E2"
+      ],
+      "unit_price": "6000",
+      "total_price": "12000",
+      "final_price": "12000",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "4800",
+      "amount_paid": "0",
+      "amount_due": "12000",
+      "due_date": "2026-09-25",
+      "status": "cancelled",
+      "customer_id": "cust-1789678515226-458",
+      "customer_full_name": "Persistence Test Traveler",
+      "customer_phone_number": "+8801899112233",
+      "customer_email": "persistence@test.com",
+      "special_requests": "[Seats: E1, E2]",
+      "travelers": [
+        {
+          "id": "trav-book-1789702970130-946-1",
+          "full_name": "Persistence Test Traveler",
+          "seat_number": "E1",
+          "is_lead_traveler": true
+        },
+        {
+          "id": "trav-book-1789702970130-946-2",
+          "full_name": "Traveler 2",
+          "seat_number": "E2",
+          "is_lead_traveler": false
+        }
+      ],
+      "created_at": "2026-09-18T03:42:52.553095+00:00",
+      "updated_at": "2026-09-18T03:42:53.631+00:00"
+    },
+    {
+      "id": "book-1789678516928-117",
+      "reference": "AT-28-117",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban-hill-cloud-package",
+      "departure_date": "2026-09-24",
+      "traveler_count": 2,
+      "selected_seats": [
+        "E1",
+        "E2"
+      ],
+      "unit_price": "6000",
+      "total_price": "12000",
+      "final_price": "12000",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "4800",
+      "amount_paid": "0",
+      "amount_due": "12000",
+      "due_date": "2026-09-24",
+      "status": "cancelled",
+      "customer_id": "cust-1789678515226-458",
+      "customer_full_name": "Persistence Test Traveler",
+      "customer_phone_number": "+8801899112233",
+      "customer_email": "persistence@test.com",
+      "special_requests": "[Seats: E1, E2]",
+      "travelers": [
+        {
+          "id": "trav-book-1789678516928-117-1",
+          "full_name": "Persistence Test Traveler",
+          "seat_number": "E1",
+          "is_lead_traveler": true
+        },
+        {
+          "id": "trav-book-1789678516928-117-2",
+          "full_name": "Traveler 2",
+          "seat_number": "E2",
+          "is_lead_traveler": false
+        }
+      ],
+      "created_at": "2026-09-17T20:55:18.290888+00:00",
+      "updated_at": "2026-09-17T20:55:19.436+00:00"
+    },
+    {
+      "id": "book-1789676117527-859",
+      "reference": "AT-27-859",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban-hill-cloud-package",
+      "departure_date": "2026-09-24",
+      "traveler_count": 1,
+      "selected_seats": [
+        "A4"
+      ],
+      "unit_price": "6000",
+      "total_price": "6000",
+      "final_price": "6000",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "2400",
+      "amount_paid": "2400",
+      "amount_due": "3600",
+      "due_date": "2026-09-24",
+      "status": "confirmed_advance_paid",
+      "customer_id": "cust-1789676115963-956",
+      "customer_full_name": "tonuza khanam",
+      "customer_phone_number": "+8801410207409",
+      "customer_email": "thedelusiongaming024@gmail.com",
+      "special_requests": "[Seats: A4]",
+      "travelers": [
+        {
+          "id": "trav-book-1789676117527-859-1",
+          "full_name": "tonuza khanam",
+          "seat_number": "A4",
+          "is_lead_traveler": true
+        }
+      ],
+      "created_at": "2026-09-17T20:15:18.961311+00:00",
+      "updated_at": "2026-09-17T20:52:15.16+00:00"
+    },
+    {
+      "id": "book-1789676035972-865",
+      "reference": "AT-72-865",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban-hill-cloud-package",
+      "departure_date": "2026-09-24",
+      "traveler_count": 2,
+      "selected_seats": [
+        "C1",
+        "C2"
+      ],
+      "unit_price": "6000",
+      "total_price": "12000",
+      "final_price": "12000",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "4800",
+      "amount_paid": "0",
+      "amount_due": "12000",
+      "due_date": "2026-09-24",
+      "status": "pending_payment",
+      "customer_id": "cust-1789616058292-77",
+      "customer_full_name": "The Delusion Gaming Yt",
+      "customer_phone_number": "+8801410207483",
+      "customer_email": "thedelusiongaming024@gmail.com",
+      "special_requests": "[Seats: C1, C2]",
+      "travelers": [
+        {
+          "id": "trav-book-1789676035972-865-1",
+          "full_name": "The Delusion Gaming Yt",
+          "seat_number": "C1",
+          "is_lead_traveler": true
+        },
+        {
+          "id": "trav-book-1789676035972-865-2",
+          "full_name": "Traveler 2",
+          "seat_number": "C2",
+          "is_lead_traveler": false
+        }
+      ],
+      "created_at": "2026-09-17T20:13:58.079049+00:00",
+      "updated_at": "2026-09-17T20:52:16.674+00:00"
+    },
+    {
+      "id": "book-1789675800550-4",
+      "reference": "AT-0550-4",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban-hill-cloud-package",
+      "departure_date": "2026-09-24",
+      "traveler_count": 1,
+      "selected_seats": [
+        "J2"
+      ],
+      "unit_price": "6000",
+      "total_price": "6000",
+      "final_price": "6000",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "6000",
+      "amount_paid": "0",
+      "amount_due": "6000",
+      "due_date": "2026-09-24",
+      "status": "cancelled",
+      "customer_id": "cust-1789675799949-385",
+      "customer_full_name": "Test Passenger B",
+      "customer_phone_number": "+8801711000992",
+      "customer_email": "guest@example.com",
+      "special_requests": "[Seats: J2]",
+      "travelers": [
+        {
+          "id": "trav-book-1789675800550-4-1",
+          "full_name": "Test Passenger B",
+          "seat_number": "J2",
+          "is_lead_traveler": true
+        }
+      ],
+      "created_at": "2026-09-17T20:10:01.87386+00:00",
+      "updated_at": "2026-09-17T20:52:16.887+00:00"
+    },
+    {
+      "id": "book-1789675798496-845",
+      "reference": "AT-96-845",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban-hill-cloud-package",
+      "departure_date": "2026-09-24",
+      "traveler_count": 2,
+      "selected_seats": [
+        "I4",
+        "J1"
+      ],
+      "unit_price": "6000",
+      "total_price": "12000",
+      "final_price": "12000",
+      "payment_plan": "partial",
+      "advance_required_percent": "40",
+      "advance_amount": "4800",
+      "amount_paid": "0",
+      "amount_due": "12000",
+      "due_date": "2026-09-24",
+      "status": "cancelled",
+      "customer_id": "cust-1789675797426-368",
+      "customer_full_name": "Test Passenger A",
+      "customer_phone_number": "+8801711000991",
+      "customer_email": "passengera@test.com",
+      "special_requests": "[Seats: I4, J1]",
+      "travelers": [
+        {
+          "id": "trav-book-1789675798496-845-1",
+          "full_name": "Test Passenger A",
+          "seat_number": "I4",
+          "is_lead_traveler": true
+        },
+        {
+          "id": "trav-book-1789675798496-845-2",
+          "full_name": "Traveler 2",
+          "seat_number": "J1",
+          "is_lead_traveler": false
+        }
+      ],
+      "created_at": "2026-09-17T20:09:59.873469+00:00",
+      "updated_at": "2026-09-17T20:52:17.062+00:00"
+    },
+    {
+      "id": "book-1789675596663-281",
+      "reference": "AT-63-281",
+      "tour_id": "tour_bandarban_3d2n",
+      "tour_title": "Bandarban Hill & Cloud Package Tour",
+      "tour_slug": "bandarban-hill-cloud-package",
+      "destination_slug": "bandarban-hill-cloud-package",
+      "departure_date": "2026-09-17",
+      "traveler_count": 2,
+      "selected_seats": [
+        "C1",
+        "C2"
+      ],
       "unit_price": "6000",
       "total_price": "12000",
       "final_price": "12000",
@@ -1066,423 +1647,34 @@
       "advance_amount": "4800",
       "amount_paid": "4800",
       "amount_due": "7200",
-      "due_date": "2026-09-18",
+      "due_date": "2026-09-17",
       "status": "confirmed_advance_paid",
-      "customer_full_name": "Md Rakib",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
+      "customer_id": "cust-1789675595017-900",
+      "customer_full_name": "orin arko",
+      "customer_phone_number": "+8801956565404",
+      "customer_email": "orinhossain@gmail.com",
+      "special_requests": "[Seats: C1, C2]",
       "travelers": [
         {
-          "id": "trav-book-1789565214498-560-1",
-          "full_name": "Md Rakib",
+          "id": "trav-book-1789675596663-281-1",
+          "full_name": "orin arko",
+          "seat_number": "C1",
           "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.117606+00:00",
-      "updated_at": "2026-09-16T14:19:15.785+00:00"
-    },
-    {
-      "id": "book-1789565201179-387",
-      "reference": "AT-79-387",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+88017888858",
-      "customer_email": "tanvir.888858@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
+        },
         {
-          "id": "trav-book-1789565201179-387-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
+          "id": "trav-book-1789675596663-281-2",
+          "full_name": "Traveler 2",
+          "seat_number": "C2",
+          "is_lead_traveler": false
         }
       ],
-      "created_at": "2026-09-16T14:17:51.252365+00:00",
-      "updated_at": "2026-09-16T14:19:15.927+00:00"
-    },
-    {
-      "id": "book-1789565185234-284",
-      "reference": "AT-34-284",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+88017734495",
-      "customer_email": "tanvir.734495@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565185234-284-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.394644+00:00",
-      "updated_at": "2026-09-16T14:19:16.06+00:00"
-    },
-    {
-      "id": "book-1789565169358-167",
-      "reference": "AT-58-167",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+8801755998877",
-      "customer_email": "tanvir.ahmed@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565169358-167-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.531365+00:00",
-      "updated_at": "2026-09-16T14:19:16.195+00:00"
-    },
-    {
-      "id": "book-1789565130869-510",
-      "reference": "AT-69-510",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+8801755998877",
-      "customer_email": "tanvir.ahmed@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565130869-510-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.666306+00:00",
-      "updated_at": "2026-09-16T14:19:16.33+00:00"
-    },
-    {
-      "id": "book-1789458839783-560",
-      "reference": "AT-83-560",
-      "tour_id": "tour_bandarban_3d2n",
-      "tour_title": "Bandarban Hill & Cloud Package Tour",
-      "tour_slug": "bandarban-hill-cloud-package",
-      "destination_slug": "bandarban-hill-cloud-package",
-      "departure_date": "2026-09-16",
-      "traveler_count": 85,
-      "unit_price": "6000",
-      "total_price": "510000",
-      "final_price": "510000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "204000",
-      "amount_paid": "204000",
-      "amount_due": "306000",
-      "due_date": "2026-09-16",
-      "status": "confirmed_advance_paid",
-      "customer_full_name": "Md Rakib Mia",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789458839783-560-1",
-          "full_name": "Md Rakib Mia",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.800616+00:00",
-      "updated_at": "2026-09-16T14:19:16.466+00:00"
-    },
-    {
-      "id": "book-1789571072064-655",
-      "reference": "AT-64-655",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "5200",
-      "amount_due": "7800",
-      "due_date": "2026-09-16",
-      "status": "confirmed_advance_paid",
-      "customer_full_name": "Md Rakib Mia",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789571072064-655-1",
-          "full_name": "Md Rakib Mia",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T15:04:35.318382+00:00",
-      "updated_at": "2026-09-16T15:04:35.212+00:00"
+      "created_at": "2026-09-17T20:06:38.311507+00:00",
+      "updated_at": "2026-09-17T20:52:17.317+00:00"
     }
   ],
-  "payments": [
-    {
-      "id": "pay-1789616061679",
-      "booking_id": "book-1789616059724-530",
-      "amount": "4800.00",
-      "payment_type": "advance",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789616061678-292",
-      "created_at": "2026-09-17T03:34:21.679Z",
-      "val_id": "SIM-1789616070464",
-      "card_type": "BKASH",
-      "paid_at": "2026-09-17T03:34:31.837Z"
-    },
-    {
-      "id": "pay-1789565575891",
-      "booking_id": "book-1789565575838-839",
-      "amount": "13000.00",
-      "payment_type": "full",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789565575891-696",
-      "created_at": "2026-09-16T13:32:55.891Z",
-      "val_id": "SIM-1789565578871",
-      "card_type": "NAGAD",
-      "paid_at": "2026-09-16T13:32:58.883Z"
-    },
-    {
-      "id": "pay-1789565214701",
-      "booking_id": "book-1789565214498-560",
-      "amount": "4800.00",
-      "payment_type": "advance",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789565214701-667",
-      "created_at": "2026-09-16T13:26:54.701Z",
-      "val_id": "SIM-1789565222492",
-      "card_type": "NAGAD",
-      "paid_at": "2026-09-16T13:27:02.670Z"
-    },
-    {
-      "id": "pay-1789458840023",
-      "booking_id": "book-1789458839783-560",
-      "amount": "204000.00",
-      "payment_type": "advance",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789458840023-357",
-      "created_at": "2026-09-15T07:54:00.023Z",
-      "val_id": "SIM-1789458846147",
-      "card_type": "BKASH",
-      "paid_at": "2026-09-15T07:54:06.346Z"
-    }
-  ],
-  "clearanceTickets": [
-    {
-      "id": "ticket-book-1789616059724-530",
-      "booking_id": "book-1789616059724-530",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NjE2MDU5NzI0LTUzMCIsImNyZWF0ZWRfYXQiOjE3ODk2MTYwNzF9.m6BQOzNpaf_GYH7Lkf-IOngi6xlf-2HwAbvP3eQcaHA",
-      "token_expires_at": "2026-09-24T03:34:31.839Z",
-      "is_cleared": false,
-      "created_at": "2026-09-17T03:34:31.839Z"
-    },
-    {
-      "id": "ticket-book-1789565575838-839",
-      "booking_id": "book-1789565575838-839",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1NTc1ODM4LTgzOSIsImNyZWF0ZWRfYXQiOjE3ODk1NjU1Nzh9.asHrPgod5P47c3EeEyObmmgLHKnbBV2P2mAc6JDoMt0",
-      "token_expires_at": "2026-09-23T13:32:58.883Z",
-      "is_cleared": true,
-      "created_at": "2026-09-16T13:32:58.883Z"
-    },
-    {
-      "id": "ticket-book-1789565214498-560",
-      "booking_id": "book-1789565214498-560",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1MjE0NDk4LTU2MCIsImNyZWF0ZWRfYXQiOjE3ODk1NjUyMjJ9.j6CNmPkcqHMpitvdrYTJjrR9EjPSbgyM5yV_ZhdAxyI",
-      "token_expires_at": "2026-09-25T00:00:00.000Z",
-      "is_cleared": false,
-      "created_at": "2026-09-16T13:27:02.670Z"
-    },
-    {
-      "id": "ticket-book-1789565201179-387",
-      "booking_id": "book-1789565201179-387",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1MjAxMTc5LTM4NyIsImNyZWF0ZWRfYXQiOjE3ODk1NjUyMDF9.DXgKHx7qzVtntuH1KrEB0cjzkmn7vo5bmMbKXcGH1wE",
-      "token_expires_at": "2026-09-30T13:26:41.359Z",
-      "is_cleared": false,
-      "created_at": "2026-09-16T13:26:41.359Z"
-    },
-    {
-      "id": "ticket-book-1789565185234-284",
-      "booking_id": "book-1789565185234-284",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1MTg1MjM0LTI4NCIsImNyZWF0ZWRfYXQiOjE3ODk1NjUxODV9.09C14P3cBxucSV7WAuP76ZeAEs_4VhZUMz3NciRvY8o",
-      "token_expires_at": "2026-09-30T13:26:25.385Z",
-      "is_cleared": false,
-      "created_at": "2026-09-16T13:26:25.385Z"
-    },
-    {
-      "id": "ticket-book-1789458839783-560",
-      "booking_id": "book-1789458839783-560",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NDU4ODM5NzgzLTU2MCIsImNyZWF0ZWRfYXQiOjE3ODk0NTg4NDZ9.6xrGRhT9wOJBLeBQH7Zlg55K7X-aJUHzLlooM0kqJFY",
-      "token_expires_at": "2026-09-22T07:54:06.347Z",
-      "is_cleared": false,
-      "created_at": "2026-09-15T07:54:06.347Z"
-    }
-  ],
-  "alerts": [
-    {
-      "id": "alt-pay-1789616071839",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳4,800 received for booking AT-2026-00011 (The Delusion Gaming Yt).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-17T03:34:31.839Z"
-    },
-    {
-      "id": "alt-book-1789616059724",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00011 created for Bandarban Hill & Cloud Package Tour (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-17T03:34:19.724Z"
-    },
-    {
-      "id": "alt-pay-1789565578883",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳13,000 received for booking AT-2026-00007 (arko hassan).",
-      "is_acknowledged": true,
-      "created_at": "2026-09-16T13:32:58.883Z"
-    },
-    {
-      "id": "alt-book-1789565575838",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00007 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:32:55.838Z"
-    },
-    {
-      "id": "alt-pay-1789565222670",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳4,800 received for booking AT-2026-00006 (Md Rakib).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:27:02.670Z"
-    },
-    {
-      "id": "alt-book-1789565214498",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00006 created for Bandarban Hill & Cloud Package Tour (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:54.498Z"
-    },
-    {
-      "id": "alt-book-1789565201179",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00005 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:41.179Z"
-    },
-    {
-      "id": "alt-book-1789565185234",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00004 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:25.234Z"
-    },
-    {
-      "id": "alt-book-1789565169358",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00003 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:09.358Z"
-    },
-    {
-      "id": "alt-book-1789565130869",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00002 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:25:30.869Z"
-    },
-    {
-      "id": "alt-pay-1789458846347",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳204,000 received for booking AT-2026-00001 (Md Rakib Mia).",
-      "is_acknowledged": true,
-      "created_at": "2026-09-15T07:54:06.347Z"
-    },
-    {
-      "id": "alt-book-1789458839783",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00001 created for Bandarban Hill & Cloud Package Tour (85 travelers).",
-      "is_acknowledged": true,
-      "created_at": "2026-09-15T07:53:59.783Z"
-    }
-  ],
+  "payments": [],
+  "clearanceTickets": [],
+  "alerts": [],
   "expenses": [],
   "suppliers": [],
   "contactInquiries": []

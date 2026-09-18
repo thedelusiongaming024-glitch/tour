@@ -157,6 +157,8 @@ function adaptTour(t: any): Tour {
           id: d.id || `dep-${d.departure_date}`,
           date: d.departure_date || "",
           seatsRemaining: Number(d.seats_remaining) || 10,
+          totalSeats: Number(d.total_seats) || Number(t.total_seats) || 40,
+          bookedSeats: Array.isArray(d.booked_seats) ? d.booked_seats : [],
         }))
     : [];
 

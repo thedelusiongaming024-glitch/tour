@@ -1,9 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { destinations as staticDestinations } from "@/data/destinations";
-import { tours as staticTours } from "@/data/tours";
-import { journalPosts as staticJournalPosts } from "@/data/journal";
-import { specialOffers as staticSpecialOffers, reviews as staticReviews } from "@/data/site";
 import { hashPassword } from "./auth";
 import { generateClearanceToken } from "./clearance";
 import {
@@ -192,17 +188,7 @@ let lastSupabaseFetch = 0;
 let isFetchingSupabase = false;
 
 async function getCloudDatabase(): Promise<DatabaseSchema | null> {
-  try {
-    // 1. First attempt to read from Supabase Storage CDN mirror (sub-50ms, 0 Postgres DB connections)
-    const bucketDb = await fetchDatabaseFromStorageBucket();
-    if (bucketDb && (bucketDb.destinations?.length > 0 || bucketDb.tours?.length > 0)) {
-      return bucketDb;
-    }
-  } catch (err) {
-    console.warn("[DB Hydration] Bucket mirror read attempt failed, falling back to PostgreSQL tables:", err);
-  }
-
-  // 2. Fallback to direct PostgreSQL queries across tables
+  // Always query direct PostgreSQL tables as primary single source of truth!
   return await fetchDatabaseFromSupabase();
 }
 
@@ -218,43 +204,65 @@ function triggerBackgroundSupabaseSync() {
       if (!cloudDb) return;
       if (cloudDb.destinations.length > 0 || cloudDb.tours.length > 0) {
         if (memoryDb) {
-          // Supabase is the single authoritative source of truth for catalog data
-          // Only preserve local in-flight bookings/customers created within the last 60 seconds
-          const oneMinuteAgo = Date.now() - 60000;
-          const mergedCustomers = [...(cloudDb.customers || [])];
-          const onlineCustIds = new Set(mergedCustomers.map((c) => c.id));
-          for (const localCust of memoryDb.customers || []) {
-            if (!onlineCustIds.has(localCust.id)) {
-              const createdAt = new Date(localCust.created_at || 0).getTime();
-              if (createdAt > oneMinuteAgo) {
-                mergedCustomers.push(localCust);
-              }
+          // 1. Enrich existing cloud customers with local activities (NEVER re-add deleted customers)
+          const localCustMap = new Map((memoryDb.customers || []).map((c) => [c.id, c]));
+          cloudDb.customers = (cloudDb.customers || []).map((cloudC) => {
+            const localC = localCustMap.get(cloudC.id);
+            if (!localC) return cloudC;
+            const localActs = localC.activities || [];
+            const cloudActs = cloudC.activities || [];
+            const actIds = new Set(cloudActs.map((a) => a.id));
+            const mergedActs = [...cloudActs];
+            for (const la of localActs) {
+              if (!actIds.has(la.id)) mergedActs.push(la);
             }
-          }
-          cloudDb.customers = mergedCustomers;
+            return {
+              ...cloudC,
+              activities: mergedActs,
+            };
+          });
 
-          const mergedBookings = [...(cloudDb.bookings || [])];
-          const onlineBookingIds = new Set(mergedBookings.map((b) => b.id));
-          for (const localBooking of memoryDb.bookings || []) {
-            if (!onlineBookingIds.has(localBooking.id)) {
-              const createdAt = new Date(localBooking.created_at || 0).getTime();
-              if (createdAt > oneMinuteAgo) {
-                mergedBookings.push(localBooking);
-              }
-            }
-          }
-          cloudDb.bookings = mergedBookings;
+          // 2. Enrich existing cloud bookings with local selected_seats/travelers (NEVER re-add deleted bookings)
+          const localBookingMap = new Map((memoryDb.bookings || []).map((b) => [b.id, b]));
+          cloudDb.bookings = (cloudDb.bookings || []).map((cloudB) => {
+            const localB = localBookingMap.get(cloudB.id);
+            if (!localB) return cloudB;
+            return {
+              ...cloudB,
+              selected_seats:
+                cloudB.selected_seats && cloudB.selected_seats.length > 0
+                  ? cloudB.selected_seats
+                  : localB.selected_seats || [],
+              travelers:
+                cloudB.travelers && cloudB.travelers.length > 0
+                  ? cloudB.travelers
+                  : localB.travelers,
+            };
+          });
 
           if (memoryDb.payments?.length) cloudDb.payments = memoryDb.payments;
           if (memoryDb.clearanceTickets?.length) cloudDb.clearanceTickets = memoryDb.clearanceTickets;
           if (memoryDb.alerts?.length) cloudDb.alerts = memoryDb.alerts;
           if (memoryDb.contactInquiries?.length) cloudDb.contactInquiries = memoryDb.contactInquiries;
-          if (memoryDb.homepageBlocks?.length) {
-            const cloudBlocksMap = new Map((cloudDb.homepageBlocks || []).map((b) => [b.id, b]));
-            for (const localBlock of memoryDb.homepageBlocks) {
-              cloudBlocksMap.set(localBlock.id, localBlock);
+
+          // Preserve CMS homepage blocks so hero background media type and live customizations are never lost
+          if (memoryDb.homepageBlocks && memoryDb.homepageBlocks.length > 0) {
+            const cloudBlockIds = new Set((cloudDb.homepageBlocks || []).map((b) => b.id));
+            const mergedBlocks = [...(cloudDb.homepageBlocks || [])];
+            for (const localB of memoryDb.homepageBlocks) {
+              if (!cloudBlockIds.has(localB.id)) {
+                mergedBlocks.push(localB);
+              } else if (localB.id === "block-home-page" || localB.id === "block-about-page" || localB.id === "block-journal-page" || localB.id === "block-hero-1") {
+                const idx = mergedBlocks.findIndex((b) => b.id === localB.id);
+                if (idx !== -1) {
+                  mergedBlocks[idx] = {
+                    ...mergedBlocks[idx],
+                    content: { ...mergedBlocks[idx].content, ...localB.content },
+                  };
+                }
+              }
             }
-            cloudDb.homepageBlocks = Array.from(cloudBlocksMap.values());
+            cloudDb.homepageBlocks = mergedBlocks;
           }
         }
         memoryDb = cloudDb;
@@ -275,42 +283,65 @@ export async function refreshFromSupabase(): Promise<DatabaseSchema> {
   const cloudDb = await fetchDatabaseFromSupabase();
   if (cloudDb && (cloudDb.destinations.length > 0 || cloudDb.tours.length > 0)) {
     if (memoryDb) {
-      // Supabase is the single authoritative source of truth
-      const oneMinuteAgo = Date.now() - 60000;
-      const mergedCustomers = [...(cloudDb.customers || [])];
-      const onlineCustIds = new Set(mergedCustomers.map((c) => c.id));
-      for (const localCust of memoryDb.customers || []) {
-        if (!onlineCustIds.has(localCust.id)) {
-          const createdAt = new Date(localCust.created_at || 0).getTime();
-          if (createdAt > oneMinuteAgo) {
-            mergedCustomers.push(localCust);
-          }
+      // 1. Enrich existing cloud customers with local activities (NEVER re-add deleted customers)
+      const localCustMap = new Map((memoryDb.customers || []).map((c) => [c.id, c]));
+      cloudDb.customers = (cloudDb.customers || []).map((cloudC) => {
+        const localC = localCustMap.get(cloudC.id);
+        if (!localC) return cloudC;
+        const localActs = localC.activities || [];
+        const cloudActs = cloudC.activities || [];
+        const actIds = new Set(cloudActs.map((a) => a.id));
+        const mergedActs = [...cloudActs];
+        for (const la of localActs) {
+          if (!actIds.has(la.id)) mergedActs.push(la);
         }
-      }
-      cloudDb.customers = mergedCustomers;
+        return {
+          ...cloudC,
+          activities: mergedActs,
+        };
+      });
 
-      const mergedBookings = [...(cloudDb.bookings || [])];
-      const onlineBookingIds = new Set(mergedBookings.map((b) => b.id));
-      for (const localBooking of memoryDb.bookings || []) {
-        if (!onlineBookingIds.has(localBooking.id)) {
-          const createdAt = new Date(localBooking.created_at || 0).getTime();
-          if (createdAt > oneMinuteAgo) {
-            mergedBookings.push(localBooking);
-          }
-        }
-      }
-      cloudDb.bookings = mergedBookings;
+      // 2. Enrich existing cloud bookings with local selected_seats/travelers (NEVER re-add deleted bookings)
+      const localBookingMap = new Map((memoryDb.bookings || []).map((b) => [b.id, b]));
+      cloudDb.bookings = (cloudDb.bookings || []).map((cloudB) => {
+        const localB = localBookingMap.get(cloudB.id);
+        if (!localB) return cloudB;
+        return {
+          ...cloudB,
+          selected_seats:
+            cloudB.selected_seats && cloudB.selected_seats.length > 0
+              ? cloudB.selected_seats
+              : localB.selected_seats || [],
+          travelers:
+            cloudB.travelers && cloudB.travelers.length > 0
+              ? cloudB.travelers
+              : localB.travelers,
+        };
+      });
 
       if (memoryDb.payments?.length) cloudDb.payments = memoryDb.payments;
       if (memoryDb.clearanceTickets?.length) cloudDb.clearanceTickets = memoryDb.clearanceTickets;
       if (memoryDb.alerts?.length) cloudDb.alerts = memoryDb.alerts;
       if (memoryDb.contactInquiries?.length) cloudDb.contactInquiries = memoryDb.contactInquiries;
-      if (memoryDb.homepageBlocks?.length) {
-        const cloudBlocksMap = new Map((cloudDb.homepageBlocks || []).map((b) => [b.id, b]));
-        for (const localBlock of memoryDb.homepageBlocks) {
-          cloudBlocksMap.set(localBlock.id, localBlock);
+
+      // Preserve CMS homepage blocks so hero background media type and live customizations are never lost
+      if (memoryDb.homepageBlocks && memoryDb.homepageBlocks.length > 0) {
+        const cloudBlockIds = new Set((cloudDb.homepageBlocks || []).map((b) => b.id));
+        const mergedBlocks = [...(cloudDb.homepageBlocks || [])];
+        for (const localB of memoryDb.homepageBlocks) {
+          if (!cloudBlockIds.has(localB.id)) {
+            mergedBlocks.push(localB);
+          } else if (localB.id === "block-home-page" || localB.id === "block-about-page" || localB.id === "block-journal-page" || localB.id === "block-hero-1") {
+            const idx = mergedBlocks.findIndex((b) => b.id === localB.id);
+            if (idx !== -1) {
+              mergedBlocks[idx] = {
+                ...mergedBlocks[idx],
+                content: { ...mergedBlocks[idx].content, ...localB.content },
+              };
+            }
+          }
         }
-        cloudDb.homepageBlocks = Array.from(cloudBlocksMap.values());
+        cloudDb.homepageBlocks = mergedBlocks;
       }
     }
     memoryDb = cloudDb;
@@ -407,6 +438,61 @@ export function getDestinationBySlug(slug: string): DbDestination | null {
 // Tours
 // ---------------------------------------------------------------------------
 
+/**
+ * Calculates all currently occupied/booked seats for a specific tour departure.
+ * Gathers selected seats from all non-cancelled bookings.
+ */
+export function getBookedSeatsForDeparture(
+  tourId: string,
+  departureId?: string,
+  departureDate?: string
+): string[] {
+  const db = loadDb();
+  const bookedSet = new Set<string>();
+
+  for (const b of db.bookings) {
+    if (b.status === "cancelled" || b.status === "refunded") continue;
+    if (b.tour_id !== tourId && b.tour_slug !== tourId) continue;
+
+    const matchDepId = departureId && b.departure_id === departureId;
+    const matchDepDate =
+      departureDate && b.departure_date && b.departure_date.slice(0, 10) === departureDate.slice(0, 10);
+
+    if (matchDepId || matchDepDate || (!departureId && !departureDate)) {
+      if (Array.isArray(b.selected_seats)) {
+        for (const seat of b.selected_seats) {
+          if (seat && typeof seat === "string") bookedSet.add(seat.trim().toUpperCase());
+        }
+      }
+    }
+  }
+
+  return Array.from(bookedSet).sort();
+}
+
+function attachDepartureSeats(tour: DbTour): DbTour {
+  const totalSeats = Number(tour.total_seats) || 40;
+  const rawDepartures =
+    tour.departures && tour.departures.length > 0
+      ? tour.departures
+      : generateInitialDepartures();
+
+  return {
+    ...tour,
+    total_seats: totalSeats,
+    departures: rawDepartures.map((d) => {
+      const booked = getBookedSeatsForDeparture(tour.id, d.id, d.departure_date);
+      const depTotalSeats = d.total_seats || totalSeats;
+      return {
+        ...d,
+        total_seats: depTotalSeats,
+        seats_remaining: Math.max(0, depTotalSeats - booked.length),
+        booked_seats: booked,
+      };
+    }),
+  };
+}
+
 export function getTours(destinationSlug?: string, category?: string): DbTour[] {
   const db = loadDb();
   let results = db.tours.filter((t) => t.status === "published");
@@ -422,17 +508,21 @@ export function getTours(destinationSlug?: string, category?: string): DbTour[] 
     });
   }
 
-  return results;
+  return results.map(attachDepartureSeats);
 }
 
 export function getTourBySlug(slug: string): DbTour | null {
   const db = loadDb();
-  return db.tours.find((t) => t.slug === slug) || null;
+  const tour = db.tours.find((t) => t.slug === slug);
+  if (!tour) return null;
+  return attachDepartureSeats(tour);
 }
 
 export function getTourById(id: string): DbTour | null {
   const db = loadDb();
-  return db.tours.find((t) => t.id === id) || null;
+  const tour = db.tours.find((t) => t.id === id);
+  if (!tour) return null;
+  return attachDepartureSeats(tour);
 }
 
 // ---------------------------------------------------------------------------
@@ -598,38 +688,7 @@ export async function saveJournalPageCms(content: Partial<JournalPageCmsContent>
   return await saveHomepageBlock("block-journal-page", "journal_page", merged as Record<string, unknown>);
 }
 
-export const DEFAULT_HERO_SLIDES: HeroSlideItem[] = [
-  {
-    id: "slide-coxsbazar",
-    title: "Cox's Bazar",
-    subtitle: "World's Longest Natural Sea Beach",
-    image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "slide-sajek",
-    title: "Sajek Valley",
-    subtitle: "Valley of Clouds & Green Hills",
-    image_url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "slide-sundarbans",
-    title: "Sundarbans",
-    subtitle: "World's Largest Mangrove Kingdom",
-    image_url: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "slide-sylhet",
-    title: "Sylhet & Sreemangal",
-    subtitle: "Lush Rolling Tea Gardens & Waterfalls",
-    image_url: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "slide-stmartins",
-    title: "Saint Martin's Island",
-    subtitle: "Pristine Coral Island & Turquoise Sea",
-    image_url: "https://images.unsplash.com/photo-1519046904884-53103b34b271?auto=format&fit=crop&w=1920&q=80",
-  },
-];
+export const DEFAULT_HERO_SLIDES: HeroSlideItem[] = [];
 
 export const DEFAULT_HOME_CMS: HomePageCmsContent = {
   // 1. Hero
@@ -776,8 +835,32 @@ export function getHomePageCms(): HomePageCmsContent {
   const block = db.homepageBlocks.find(
     (b) => b.block_type === "home_page" || b.id === "block-home-page"
   );
-  if (!block || !block.content) return DEFAULT_HOME_CMS;
-  return { ...DEFAULT_HOME_CMS, ...(block.content as Partial<HomePageCmsContent>) };
+
+  // Derive dynamic hero slides ONLY from real published destinations in the database
+  const dynamicHeroSlides: HeroSlideItem[] = (db.destinations || [])
+    .filter((d) => d.status === "published" && d.cover_image)
+    .map((d) => ({
+      id: `slide-${d.slug}`,
+      title: d.name,
+      subtitle: d.tagline || d.description ? (d.tagline || d.description).slice(0, 70) : "",
+      image_url: d.cover_image || "",
+    }));
+
+  const baseHomeCms: HomePageCmsContent = {
+    ...DEFAULT_HOME_CMS,
+    hero_slides: dynamicHeroSlides.length > 0 ? dynamicHeroSlides : [],
+  };
+
+  if (!block || !block.content) return baseHomeCms;
+  const content = block.content as Partial<HomePageCmsContent>;
+  return {
+    ...baseHomeCms,
+    ...content,
+    hero_slides:
+      Array.isArray(content.hero_slides) && content.hero_slides.length > 0
+        ? content.hero_slides
+        : (dynamicHeroSlides.length > 0 ? dynamicHeroSlides : []),
+  };
 }
 
 export async function saveHomePageCms(content: Partial<HomePageCmsContent>): Promise<DbHomepageBlock> {
@@ -950,14 +1033,15 @@ export async function addCustomerActivity(
   await syncCustomerActivityToSupabase(newActivity);
 }
 
-export function getCustomerBookings(phone: string): DbBooking[] {
+export function getCustomerBookings(phone: string, customerId?: string): DbBooking[] {
   const db = loadDb();
   const normalized = normalizePhoneNumber(phone);
-  if (!normalized) return [];
 
-  return db.bookings.filter(
-    (b) => normalizePhoneNumber(b.customer_phone_number) === normalized
-  );
+  return db.bookings.filter((b) => {
+    if (customerId && b.customer_id === customerId) return true;
+    if (normalized && normalizePhoneNumber(b.customer_phone_number) === normalized) return true;
+    return false;
+  });
 }
 
 export interface CustomerWithDetails extends DbCustomerUser {
@@ -974,7 +1058,7 @@ export function getAllCustomers(): CustomerWithDetails[] {
   }
 
   return db.customers.map((c) => {
-    const custBookings = getCustomerBookings(c.phone_number);
+    const custBookings = getCustomerBookings(c.phone_number, c.id);
     const totalSpent = custBookings.reduce(
       (acc, b) => acc + (parseFloat(b.amount_paid) || 0),
       0
@@ -1008,6 +1092,7 @@ export async function createBooking(input: {
   customer_phone_number: string;
   customer_email?: string;
   special_requests?: string;
+  selected_seats?: string[];
 }): Promise<{ booking: DbBooking; customer: DbCustomerUser }> {
   const db = loadDb();
   const tour = db.tours.find((t) => t.id === input.tour_id || t.slug === input.tour_id);
@@ -1015,17 +1100,47 @@ export async function createBooking(input: {
     throw new Error("Tour not found");
   }
 
+  const selectedSeats = Array.isArray(input.selected_seats)
+    ? input.selected_seats.map((s) => String(s).trim().toUpperCase()).filter(Boolean)
+    : [];
+
+  const effectiveTravelerCount =
+    selectedSeats.length > 0 ? selectedSeats.length : Math.max(1, Number(input.traveler_count) || 1);
+
   let departure: DbDeparture | undefined;
   if (input.departure_id) {
+    if (!tour.departures || tour.departures.length === 0) {
+      tour.departures = generateInitialDepartures();
+    }
     departure = tour.departures.find((d) => d.id === input.departure_id);
     if (!departure) {
       throw new Error("Departure date not found");
     }
-    if (departure.seats_remaining < input.traveler_count) {
+
+    // Anti-double-booking check: ensure none of the requested seats are already taken
+    if (selectedSeats.length > 0) {
+      const alreadyBooked = getBookedSeatsForDeparture(tour.id, departure.id, departure.departure_date);
+      const conflicts = selectedSeats.filter((seat) => alreadyBooked.includes(seat));
+      if (conflicts.length > 0) {
+        throw new Error(
+          `Seat(s) ${conflicts.join(", ")} are already booked by another traveler. Please choose other available seats.`
+        );
+      }
+    }
+
+    if (departure.seats_remaining < effectiveTravelerCount) {
       throw new Error("Not enough seats remaining for this departure");
     }
     // Decrement seats remaining
-    departure.seats_remaining -= input.traveler_count;
+    departure.seats_remaining = Math.max(0, departure.seats_remaining - effectiveTravelerCount);
+  } else if (selectedSeats.length > 0) {
+    const alreadyBooked = getBookedSeatsForDeparture(tour.id);
+    const conflicts = selectedSeats.filter((seat) => alreadyBooked.includes(seat));
+    if (conflicts.length > 0) {
+      throw new Error(
+        `Seat(s) ${conflicts.join(", ")} are already booked by another traveler. Please choose other available seats.`
+      );
+    }
   }
 
   const normalizedPhone = normalizePhoneNumber(input.customer_phone_number) || input.customer_phone_number;
@@ -1038,7 +1153,7 @@ export async function createBooking(input: {
   });
 
   const unitPrice = parseFloat(tour.final_price);
-  const totalPrice = unitPrice * input.traveler_count;
+  const totalPrice = unitPrice * effectiveTravelerCount;
   const advancePercent = input.payment_plan === "full" ? 100 : parseFloat(tour.advance_payment_percent);
   const advanceAmount = Math.round((totalPrice * advancePercent) / 100);
 
@@ -1056,7 +1171,8 @@ export async function createBooking(input: {
     destination_slug: tour.destination_slug,
     departure_id: departure?.id,
     departure_date: departure?.departure_date,
-    traveler_count: input.traveler_count,
+    traveler_count: effectiveTravelerCount,
+    selected_seats: selectedSeats,
     unit_price: unitPrice.toFixed(2),
     total_price: totalPrice.toFixed(2),
     final_price: totalPrice.toFixed(2),
@@ -1072,13 +1188,21 @@ export async function createBooking(input: {
     customer_phone_number: normalizedPhone,
     customer_email: input.customer_email || "",
     special_requests: input.special_requests || "",
-    travelers: [
-      {
-        id: `trav-${bookingId}-1`,
-        full_name: input.customer_full_name,
-        is_lead_traveler: true,
-      },
-    ],
+    travelers:
+      selectedSeats.length > 0
+        ? selectedSeats.map((seat, idx) => ({
+            id: `trav-${bookingId}-${idx + 1}`,
+            full_name: idx === 0 ? input.customer_full_name : `Traveler ${idx + 1}`,
+            seat_number: seat,
+            is_lead_traveler: idx === 0,
+          }))
+        : [
+            {
+              id: `trav-${bookingId}-1`,
+              full_name: input.customer_full_name,
+              is_lead_traveler: true,
+            },
+          ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -1090,7 +1214,7 @@ export async function createBooking(input: {
     id: `alt-book-${Date.now()}`,
     alert_type: "new_booking",
     severity: "info",
-    message: `New booking ${ref} created for ${tour.title} (${input.traveler_count} travelers).`,
+    message: `New booking ${ref} created for ${tour.title} (${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}).`,
     is_acknowledged: false,
     created_at: new Date().toISOString(),
   });
@@ -1099,8 +1223,15 @@ export async function createBooking(input: {
   await addCustomerActivity(customer.id, {
     type: "booking_created",
     title: `Booked ${tour.title}`,
-    description: `Booking reference ${ref} created for ${input.traveler_count} traveler(s). Total: ৳${totalPrice.toLocaleString()}.`,
-    metadata: { booking_id: bookingId, reference: ref, tour_id: tour.id, traveler_count: input.traveler_count },
+    description: `Booking reference ${ref} created for ${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}. Total: ৳${totalPrice.toLocaleString()}.`,
+    metadata: {
+      booking_id: bookingId,
+      reference: ref,
+      tour_id: tour.id,
+      traveler_count: effectiveTravelerCount,
+      selected_seats: selectedSeats,
+      departure_date: departure?.departure_date,
+    },
   });
 
   await saveDb(db);
@@ -1230,8 +1361,15 @@ export async function confirmPaymentSuccess(tranId: string, valId?: string, card
     await addCustomerActivity(customer.id, {
       type: "payment_completed",
       title: remainingDue <= 0 ? "Full Payment Confirmed" : "Advance Payment Received",
-      description: `Payment of ৳${Math.round(paidAmount).toLocaleString()} received via ${payment.card_type || payment.payment_method} for booking ${booking.reference}.`,
-      metadata: { booking_id: booking.id, tran_id: tranId, amount: payment.amount, remaining_due: booking.amount_due },
+      description: `Payment of ৳${Math.round(paidAmount).toLocaleString()} received via ${payment.card_type || payment.payment_method} for booking ${booking.reference}${booking.selected_seats?.length ? ` (Seats: ${booking.selected_seats.join(", ")})` : ""}.`,
+      metadata: {
+        booking_id: booking.id,
+        reference: booking.reference,
+        tran_id: tranId,
+        amount: payment.amount,
+        remaining_due: booking.amount_due,
+        selected_seats: booking.selected_seats || [],
+      },
     });
   }
 
@@ -1706,11 +1844,10 @@ export async function saveHomepageBlock(id: string, blockType: DbHomepageBlock["
   const db = loadDb();
   const index = db.homepageBlocks.findIndex((b) => b.id === id);
 
+  let targetBlock: DbHomepageBlock;
   if (index !== -1) {
     db.homepageBlocks[index].content = { ...db.homepageBlocks[index].content, ...content };
-    await saveDb(db);
-    await syncHomepageBlockToSupabase(db.homepageBlocks[index]);
-    return db.homepageBlocks[index];
+    targetBlock = db.homepageBlocks[index];
   } else {
     const newBlock: DbHomepageBlock = {
       id,
@@ -1719,10 +1856,34 @@ export async function saveHomepageBlock(id: string, blockType: DbHomepageBlock["
       content,
     };
     db.homepageBlocks.push(newBlock);
-    await saveDb(db);
-    await syncHomepageBlockToSupabase(newBlock);
-    return newBlock;
+    targetBlock = newBlock;
   }
+
+  // Cross-link: Keep block-home-page and block-hero-1 in lockstep for hero settings
+  if (id === "block-home-page") {
+    const heroIdx = db.homepageBlocks.findIndex((b) => b.id === "block-hero-1");
+    if (heroIdx !== -1) {
+      db.homepageBlocks[heroIdx].content = {
+        ...db.homepageBlocks[heroIdx].content,
+        hero_media_type: content.hero_media_type,
+        hero_video_url: content.hero_video_url,
+        hero_slides: content.hero_slides,
+        eyebrow: content.hero_eyebrow,
+        headline: content.hero_headline,
+        highlight: content.hero_highlight,
+        subheadline: content.hero_subheadline,
+        primary_cta_label: content.hero_primary_cta_label,
+        primary_cta_href: content.hero_primary_cta_href,
+        secondary_cta_label: content.hero_secondary_cta_label,
+        secondary_cta_href: content.hero_secondary_cta_href,
+      };
+    }
+  }
+
+  memoryDb = db;
+  await saveDb(db);
+  await syncHomepageBlockToSupabase(targetBlock);
+  return targetBlock;
 }
 
 export function getAllBookingsAdmin(): DbBooking[] {

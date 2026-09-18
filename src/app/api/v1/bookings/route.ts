@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       customer_phone_number,
       customer_email,
       special_requests,
+      selected_seats,
     } = body;
 
     if (!tour_id) {
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       customer_phone_number,
       customer_email,
       special_requests,
+      selected_seats: Array.isArray(selected_seats) ? selected_seats : undefined,
     });
 
     const customer_token = generateCustomerToken(customer);

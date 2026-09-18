@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearStaffSession, getStaffUser, staffFetch, type StaffUser } from "@/lib/staffAuth";
 import { normalizeImageUrl, normalizeVideoUrl } from "@/lib/media";
@@ -53,6 +53,8 @@ interface Alert {
   created_at: string;
 }
 
+import { TourReportManager } from "@/components/TourReportManager";
+
 type ActiveTab =
   | "overview"
   | "tours"
@@ -64,6 +66,7 @@ type ActiveTab =
   | "offers"
   | "reviews"
   | "bookings"
+  | "reports"
   | "inquiries";
 
 const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
@@ -413,6 +416,14 @@ function StaffDashboardContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const tabScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    if (tabScrollRef.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      tabScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // Overview data
   const [overview, setOverview] = useState<AgencyOverview | null>(null);
@@ -527,6 +538,12 @@ function StaffDashboardContent() {
         const heroBlock = blocks.find((b) => b.block_type === "hero");
         if (heroBlock && heroBlock.content) {
           setHeroCms((prev) => ({ ...prev, ...(heroBlock.content as Record<string, string>) }));
+          setHomeCms((prev) => ({
+            ...prev,
+            hero_media_type: (homeBlock?.content as any)?.hero_media_type ?? (heroBlock.content as any)?.hero_media_type ?? prev.hero_media_type,
+            hero_video_url: (homeBlock?.content as any)?.hero_video_url ?? (heroBlock.content as any)?.hero_video_url ?? prev.hero_video_url,
+            hero_slides: (homeBlock?.content as any)?.hero_slides ?? (heroBlock.content as any)?.hero_slides ?? prev.hero_slides,
+          }));
         }
         const aboutBlock = blocks.find((b) => b.block_type === "about_page" || b.id === "block-about-page");
         if (aboutBlock && aboutBlock.content) {
@@ -610,7 +627,7 @@ function StaffDashboardContent() {
       meals_notes: formData.get("meals_notes") as string,
       meeting_point: formData.get("meeting_point") as string,
       departure_schedule: formData.get("departure_schedule") as string,
-      total_seats: Number(formData.get("total_seats") || 14),
+      total_seats: Number(formData.get("total_seats") || 40),
       is_featured: formData.get("is_featured") === "on",
       status: formData.get("status") as "published" | "draft",
     };
@@ -887,6 +904,29 @@ function StaffDashboardContent() {
           content: homeCms,
         }),
       });
+
+      // Keep block-hero-1 directly in sync for any components that query block-hero-1
+      await staffFetch("/admin/cms", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "block-hero-1",
+          block_type: "hero",
+          content: {
+            eyebrow: homeCms.hero_eyebrow,
+            headline: homeCms.hero_headline,
+            highlight: homeCms.hero_highlight,
+            subheadline: homeCms.hero_subheadline,
+            primary_cta_label: homeCms.hero_primary_cta_label,
+            primary_cta_href: homeCms.hero_primary_cta_href,
+            secondary_cta_label: homeCms.hero_secondary_cta_label,
+            secondary_cta_href: homeCms.hero_secondary_cta_href,
+            hero_media_type: homeCms.hero_media_type,
+            hero_video_url: homeCms.hero_video_url,
+            hero_slides: homeCms.hero_slides,
+          },
+        }),
+      });
+
       if (res.ok) {
         showNotification("success", "Homepage configurations updated and published live!");
         loadData();
@@ -1075,45 +1115,85 @@ function StaffDashboardContent() {
         </div>
       )}
 
-      {/* Clean Tab Navigation */}
-      <div className="border-b border-slate-200 bg-white px-6">
-        <div className="mx-auto max-w-7xl flex gap-1 overflow-x-auto py-2 scrollbar-none">
-          {[
-            { id: "overview", label: "Overview", count: null },
-            ...(isSuperAdmin
-              ? [
-                  { id: "tours", label: "Tours", count: tours.length },
-                  { id: "destinations", label: "Destinations", count: destinations.length },
-                  { id: "users", label: "Users / Travelers", count: customers.length },
-                  { id: "bookings", label: "Bookings", count: bookings.length },
-                  { id: "cms", label: "Homepage CMS", count: null },
-                  { id: "about_cms", label: "About Page CMS", count: null },
-                  { id: "blog", label: "Travel Journal", count: blogPosts.length },
-                  { id: "offers", label: "Special Offers", count: offers.length },
-                  { id: "reviews", label: "Testimonials", count: testimonials.length },
-                  { id: "inquiries", label: "Inquiries", count: inquiries.length },
-                ]
-              : []),
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as ActiveTab)}
-              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs sm:text-sm font-medium whitespace-nowrap transition ${
-                activeTab === tab.id
-                  ? "bg-slate-100 text-slate-900 font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <span>{tab.label}</span>
-              {tab.count !== null && (
-                <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-semibold ${
-                  activeTab === tab.id ? "bg-white text-slate-800 border border-slate-200" : "bg-slate-100 text-slate-500"
-                }`}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+      {/* Tab Navigation with Ash Gradient & Visible Scroller */}
+      <div className="border-b border-slate-300/80 bg-gradient-to-r from-slate-200 via-slate-100 to-zinc-200 px-3 sm:px-6 shadow-xs">
+        <div className="mx-auto max-w-7xl flex items-center gap-1 sm:gap-2 py-1.5">
+          {/* Scroll Left Button */}
+          <button
+            type="button"
+            onClick={() => scrollTabs("left")}
+            aria-label="Scroll tabs left"
+            className="hidden sm:flex shrink-0 items-center justify-center h-8 w-8 rounded-lg bg-white/70 hover:bg-white text-slate-600 hover:text-slate-950 shadow-xs border border-slate-300/70 transition cursor-pointer"
+            title="Scroll left"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Scrollable Tabs Bar with Visible Scroller */}
+          <div
+            ref={tabScrollRef}
+            className="admin-tab-scroller flex-1 flex items-center gap-1.5 overflow-x-auto pb-2 pt-1 scroll-smooth"
+          >
+            {[
+              { id: "overview", label: "Overview", count: null },
+              ...(isSuperAdmin
+                ? [
+                    { id: "tours", label: "Tours", count: tours.length },
+                    { id: "destinations", label: "Destinations", count: destinations.length },
+                    { id: "users", label: "Users / Travelers", count: customers.length },
+                    { id: "bookings", label: "Bookings", count: bookings.length },
+                    { id: "reports", label: "Reports & Manifest", count: bookings.length },
+                    { id: "cms", label: "Homepage CMS", count: null },
+                    { id: "about_cms", label: "About Page CMS", count: null },
+                    { id: "blog", label: "Travel Journal", count: blogPosts.length },
+                    { id: "offers", label: "Special Offers", count: offers.length },
+                    { id: "reviews", label: "Testimonials", count: testimonials.length },
+                    { id: "inquiries", label: "Inquiries", count: inquiries.length },
+                  ]
+                : []),
+            ].map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as ActiveTab)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "bg-gradient-to-r from-sky-400 via-sky-500 to-blue-500 text-white shadow-md shadow-sky-500/25 border border-sky-300/70 ring-1 ring-sky-400/40"
+                      : "text-slate-700 hover:text-slate-950 hover:bg-white/70 border border-transparent"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== null && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold transition-colors ${
+                        isSelected
+                          ? "bg-white/25 text-white border border-white/30 backdrop-blur-xs shadow-xs"
+                          : "bg-slate-300/70 text-slate-700 border border-slate-300/90"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Scroll Right Button */}
+          <button
+            type="button"
+            onClick={() => scrollTabs("right")}
+            aria-label="Scroll tabs right"
+            className="hidden sm:flex shrink-0 items-center justify-center h-8 w-8 rounded-lg bg-white/70 hover:bg-white text-slate-600 hover:text-slate-950 shadow-xs border border-slate-300/70 transition cursor-pointer"
+            title="Scroll right"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -1143,6 +1223,12 @@ function StaffDashboardContent() {
                       className="rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
                     >
                       + Add Tour Package
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("reports")}
+                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition shadow-xs"
+                    >
+                      📊 Tour & Customer Reports
                     </button>
                     <button
                       onClick={() => setDestModal({ isOpen: true, destination: null })}
@@ -3280,6 +3366,11 @@ function StaffDashboardContent() {
                           <div className="text-xs text-slate-500">
                             {b.traveler_count} traveler(s) · {b.departure_date ? b.departure_date.slice(0, 10) : "Open"}
                           </div>
+                          {b.selected_seats && b.selected_seats.length > 0 && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
+                              Seats: {b.selected_seats.join(", ")}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-semibold text-emerald-800">{formatBDT(b.amount_paid)} paid</div>
@@ -3320,6 +3411,17 @@ function StaffDashboardContent() {
               </table>
             </div>
           </div>
+        )}
+
+        {/* ================= REPORTS & MANIFEST TAB ================= */}
+        {activeTab === "reports" && (
+          <TourReportManager
+            bookings={bookings}
+            tours={tours}
+            destinations={destinations}
+            customers={customers}
+            currentUser={user}
+          />
         )}
 
         {/* ================= USERS / TRAVELERS TAB ================= */}
@@ -3598,7 +3700,14 @@ function StaffDashboardContent() {
                                 </div>
                                 <div>
                                   <span className="text-slate-400 block">Travelers:</span>
-                                  <span className="font-medium text-slate-800">{b.traveler_count} person(s)</span>
+                                  <span className="font-medium text-slate-800">
+                                    {b.traveler_count} person(s)
+                                    {b.selected_seats && b.selected_seats.length > 0 && (
+                                      <span className="block text-[11px] text-emerald-700 font-semibold">
+                                        Seats: {b.selected_seats.join(", ")}
+                                      </span>
+                                    )}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-slate-400 block">Paid:</span>
@@ -3641,6 +3750,11 @@ function StaffDashboardContent() {
                                   </span>
                                 </div>
                                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">{act.description}</p>
+                                {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
+                                  <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
+                                    Seats: {(act.metadata.selected_seats as string[]).join(", ")}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -3868,7 +3982,7 @@ function StaffDashboardContent() {
                   <input
                     type="number"
                     name="total_seats"
-                    defaultValue={tourModal.tour?.total_seats || 14}
+                    defaultValue={tourModal.tour?.total_seats || 40}
                     className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>

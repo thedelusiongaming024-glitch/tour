@@ -41,6 +41,9 @@ export async function GET(
       tour_title: booking.tour_title,
       amount_due: booking.amount_due,
       is_cleared: isCleared,
+      departure_date: booking.departure_date,
+      traveler_count: booking.traveler_count,
+      selected_seats: booking.selected_seats || [],
     };
 
     if (isCleared) {

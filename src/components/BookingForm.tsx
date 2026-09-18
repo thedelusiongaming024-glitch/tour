@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Tour } from "@/lib/types";
+import { BusSeatSelector } from "@/components/BusSeatSelector";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
@@ -23,19 +24,42 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [travelerCount, setTravelerCount] = useState(1);
+  const [departureId, setDepartureId] = useState(tour.departures?.[0]?.id ?? "");
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [paymentPlan, setPaymentPlan] = useState<"full" | "partial">(
     tour.allowPartialPayment === false ? "full" : "partial"
   );
-  const [departureId, setDepartureId] = useState(tour.departures?.[0]?.id ?? "");
 
+  const selectedDeparture =
+    tour.departures?.find((d) => d.id === departureId) || tour.departures?.[0];
+  const departureTotalSeats = selectedDeparture?.totalSeats || tour.capacity || 40;
+  const departureBookedSeats = selectedDeparture?.bookedSeats || [];
+
+  const travelerCount = selectedSeats.length > 0 ? selectedSeats.length : 1;
   const totalFinalPrice = finalPrice * travelerCount;
   const totalAdvanceAmount = advanceAmount * travelerCount;
   const dueOnTourDay = paymentPlan === "full" ? 0 : totalFinalPrice - totalAdvanceAmount;
 
+  function handleDepartureChange(newId: string) {
+    setDepartureId(newId);
+    setSelectedSeats([]); // reset seats for new date
+    setError("");
+  }
+
+  function handleSeatsChange(newSeats: string[]) {
+    setSelectedSeats(newSeats);
+    if (error) setError("");
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!tour.id) return;
+
+    if (selectedSeats.length === 0) {
+      setError("Please select at least 1 seat on the bus layout before proceeding.");
+      return;
+    }
+
     setStep("submitting");
     setError("");
 
@@ -46,18 +70,21 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
         body: JSON.stringify({
           tour_id: tour.id,
           departure_id: departureId || undefined,
-          traveler_count: travelerCount,
+          traveler_count: selectedSeats.length,
           payment_plan: paymentPlan,
           customer_full_name: name,
           customer_phone_number: phone,
           customer_email: email,
+          selected_seats: selectedSeats,
         }),
       });
 
       if (!bookingRes.ok) {
         const body = await bookingRes.json().catch(() => ({}));
         throw new Error(
-          typeof body === "object" ? Object.values(body).flat().join(" ") || "Could not create booking." : "Could not create booking."
+          typeof body === "object"
+            ? Object.values(body).flat().join(" ") || "Could not create booking."
+            : "Could not create booking."
         );
       }
 
@@ -109,10 +136,11 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/40 bg-white/60 p-5 backdrop-blur">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/40 bg-white/60 p-5 backdrop-blur shadow-sm">
+      {/* Traveler contact info */}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-ink-soft">Full name</span>
+          <span className="text-ink-soft font-medium">Full name</span>
           <input
             required
             value={name}
@@ -122,7 +150,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-ink-soft">Phone number</span>
+          <span className="text-ink-soft font-medium">Phone number</span>
           <input
             required
             value={phone}
@@ -134,7 +162,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
       </div>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-ink-soft">Email (optional)</span>
+        <span className="text-ink-soft font-medium">Email (optional)</span>
         <input
           type="email"
           value={email}
@@ -144,50 +172,112 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
         />
       </label>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Departure date selection */}
+      {tour.departures && tour.departures.length > 0 && (
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-ink-soft">Travelers</span>
-          <input
-            type="number"
-            min={1}
-            value={travelerCount}
-            onChange={(e) => setTravelerCount(Math.max(1, Number(e.target.value)))}
+          <div className="flex items-center justify-between">
+            <span className="text-ink-soft font-medium">Departure Date</span>
+            {selectedDeparture && (
+              <span className="text-xs text-emerald-700 font-medium">
+                {selectedDeparture.seatsRemaining} available seats
+              </span>
+            )}
+          </div>
+          <select
+            value={departureId}
+            onChange={(e) => handleDepartureChange(e.target.value)}
             className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 outline-none focus:border-emerald-deep"
-          />
+          >
+            {tour.departures.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.date} — {d.seatsRemaining} seats left
+              </option>
+            ))}
+          </select>
         </label>
+      )}
 
-        {tour.departures && tour.departures.length > 0 && (
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink-soft">Departure date</span>
-            <select
-              value={departureId}
-              onChange={(e) => setDepartureId(e.target.value)}
-              className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 outline-none focus:border-emerald-deep"
-            >
-              {tour.departures.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.date} — {d.seatsRemaining} seats left
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+      {/* Interactive Bus Seat Selection */}
+      <div className="rounded-xl border border-white/70 bg-white/70 p-3 sm:p-4 backdrop-blur-xs">
+        <div className="mb-2 text-center">
+          <h4 className="text-sm font-semibold text-slate-800">
+            Select Your Bus Seats
+          </h4>
+          <p className="text-xs text-slate-500">
+            Pick your preferred seat(s) on the bus layout below.
+          </p>
+        </div>
+
+        <BusSeatSelector
+          totalSeats={departureTotalSeats}
+          bookedSeats={departureBookedSeats}
+          selectedSeats={selectedSeats}
+          onSeatsChange={handleSeatsChange}
+          disabled={step === "submitting" || step === "redirecting"}
+        />
       </div>
 
+      {/* Pricing and seats breakdown */}
+      {selectedSeats.length > 0 && (
+        <div className="rounded-xl bg-slate-50/90 p-3 border border-slate-200/80 text-xs space-y-1.5 animate-in fade-in">
+          <div className="flex justify-between text-slate-600">
+            <span>Selected Seats ({selectedSeats.length}):</span>
+            <span className="font-semibold text-emerald-800">{selectedSeats.join(", ")}</span>
+          </div>
+          <div className="flex justify-between text-slate-600">
+            <span>Price per seat:</span>
+            <span>{formatBDT(finalPrice)}</span>
+          </div>
+          <div className="flex justify-between text-slate-900 font-semibold border-t border-slate-200 pt-1">
+            <span>Total Tour Cost:</span>
+            <span>{formatBDT(totalFinalPrice)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Payment plan selection */}
       {tour.allowPartialPayment !== false && (
         <div className="flex flex-col gap-2 text-sm">
-          <span className="text-ink-soft">Payment</span>
-          <div className="flex gap-3">
-            <label className="flex items-center gap-2 rounded-xl border border-white/60 bg-white/80 px-3 py-2">
-              <input type="radio" checked={paymentPlan === "partial"} onChange={() => setPaymentPlan("partial")} />
-              Pay {formatBDT(totalAdvanceAmount)} advance now
+          <span className="text-ink-soft font-medium">Payment Option</span>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label
+              className={`flex items-center gap-2 rounded-xl border p-3 cursor-pointer transition-all ${
+                paymentPlan === "partial"
+                  ? "border-emerald-600 bg-emerald-50/60 shadow-xs"
+                  : "border-white/60 bg-white/80"
+              }`}
+            >
+              <input
+                type="radio"
+                name="paymentPlan"
+                checked={paymentPlan === "partial"}
+                onChange={() => setPaymentPlan("partial")}
+              />
+              <div>
+                <div className="font-semibold text-ink">Pay {formatBDT(totalAdvanceAmount)}</div>
+                <div className="text-[11px] text-ink-soft">Advance confirmation now</div>
+              </div>
             </label>
-            <label className="flex items-center gap-2 rounded-xl border border-white/60 bg-white/80 px-3 py-2">
-              <input type="radio" checked={paymentPlan === "full"} onChange={() => setPaymentPlan("full")} />
-              Pay {formatBDT(totalFinalPrice)} in full
+            <label
+              className={`flex items-center gap-2 rounded-xl border p-3 cursor-pointer transition-all ${
+                paymentPlan === "full"
+                  ? "border-emerald-600 bg-emerald-50/60 shadow-xs"
+                  : "border-white/60 bg-white/80"
+              }`}
+            >
+              <input
+                type="radio"
+                name="paymentPlan"
+                checked={paymentPlan === "full"}
+                onChange={() => setPaymentPlan("full")}
+              />
+              <div>
+                <div className="font-semibold text-ink">Pay {formatBDT(totalFinalPrice)}</div>
+                <div className="text-[11px] text-ink-soft">Full payment in one step</div>
+              </div>
             </label>
           </div>
-          {dueOnTourDay > 0 && (
+          {dueOnTourDay > 0 && selectedSeats.length > 0 && (
             <span className="text-xs text-ink-faint">
               Remaining {formatBDT(dueOnTourDay)} due on tour day via online self-pay link or cash to host.
             </span>
@@ -195,18 +285,24 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
         </div>
       )}
 
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {error && (
+        <div className="rounded-lg bg-rose-50 border border-rose-200 p-2.5 text-xs text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
 
       <button
         type="submit"
         disabled={step === "submitting" || step === "redirecting"}
-        className="w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 disabled:opacity-60"
+        className="w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 disabled:opacity-60 shadow-xs"
       >
         {step === "submitting"
           ? "Creating your booking…"
           : step === "redirecting"
             ? "Redirecting to payment…"
-            : `Continue to payment — ${formatBDT(paymentPlan === "full" ? totalFinalPrice : totalAdvanceAmount)}`}
+            : selectedSeats.length === 0
+              ? "Select seats to continue"
+              : `Continue to payment — ${formatBDT(paymentPlan === "full" ? totalFinalPrice : totalAdvanceAmount)}`}
       </button>
     </form>
   );

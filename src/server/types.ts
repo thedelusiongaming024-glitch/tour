@@ -24,6 +24,8 @@ export interface DbDeparture {
   id: string;
   departure_date: string;
   seats_remaining: number;
+  total_seats?: number;
+  booked_seats?: string[];
   is_active: boolean;
 }
 
@@ -318,6 +320,7 @@ export interface DbTraveler {
   full_name: string;
   age?: number;
   nid_or_birth_cert?: string;
+  seat_number?: string;
   is_lead_traveler: boolean;
 }
 
@@ -331,6 +334,7 @@ export interface DbBooking {
   departure_id?: string;
   departure_date?: string;
   traveler_count: number;
+  selected_seats?: string[];
   unit_price: string;
   total_price: string;
   final_price: string;
@@ -345,6 +349,7 @@ export interface DbBooking {
   customer_full_name: string;
   customer_phone_number: string;
   customer_email: string;
+  pickup_point?: string;
   special_requests?: string;
   travelers: DbTraveler[];
   created_at: string;

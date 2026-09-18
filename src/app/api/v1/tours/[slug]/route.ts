@@ -42,6 +42,8 @@ export async function GET(
       id: d.id,
       departure_date: d.departure_date,
       seats_remaining: d.seats_remaining,
+      total_seats: d.total_seats || tour.total_seats || 40,
+      booked_seats: d.booked_seats || [],
       is_active: d.is_active,
     })),
     itinerary: tour.itinerary,

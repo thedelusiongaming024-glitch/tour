@@ -69,6 +69,8 @@ export interface TourDeparture {
   id: string;
   date: string;
   seatsRemaining: number;
+  totalSeats?: number;
+  bookedSeats?: string[];
 }
 
 export interface Tour {

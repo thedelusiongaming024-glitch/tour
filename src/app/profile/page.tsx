@@ -629,6 +629,17 @@ export default function CustomerProfilePage() {
                                 👥 <strong>{isBn ? "যাত্রী সংখ্যা: " : "Travelers: "}</strong>
                                 {b.traveler_count} {isBn ? "জন" : "person(s)"}
                               </span>
+                              {b.selected_seats && b.selected_seats.length > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span>
+                                    💺 <strong>{isBn ? "সিট নম্বর: " : "Seats: "}</strong>
+                                    <span className="font-semibold text-emerald-800">
+                                      {b.selected_seats.join(", ")}
+                                    </span>
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
 
@@ -733,6 +744,11 @@ export default function CustomerProfilePage() {
                             <p className="mt-1 text-xs text-ink-soft leading-relaxed">
                               {act.description}
                             </p>
+                            {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
+                              <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                                💺 {isBn ? "সিট নম্বর: " : "Seats: "} {(act.metadata.selected_seats as string[]).join(", ")}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

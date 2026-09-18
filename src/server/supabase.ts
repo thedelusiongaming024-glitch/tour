@@ -313,7 +313,17 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
   const supabase = getSupabaseAdminClient();
   try {
     const b = booking as any;
-    const payload = {
+    const seatsStr =
+      Array.isArray(booking.selected_seats) && booking.selected_seats.length > 0
+        ? `Seats: ${booking.selected_seats.join(", ")}`
+        : null;
+
+    let specialReqs = booking.special_requests || "";
+    if (seatsStr && !specialReqs.includes("[Seats:")) {
+      specialReqs = specialReqs ? `${specialReqs} [${seatsStr}]` : `[${seatsStr}]`;
+    }
+
+    const basePayload = {
       id: booking.id,
       tour_id: booking.tour_id,
       tour_title: booking.tour_title,
@@ -324,8 +334,8 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       customer_email: booking.customer_email || "guest@example.com",
       customer_phone: booking.customer_phone_number || "+8801700000000",
       customer_id: b.customer_id || null,
-      pickup_point: b.pickup_point || null,
-      special_requests: booking.special_requests || null,
+      pickup_point: seatsStr || b.pickup_point || null,
+      special_requests: specialReqs || null,
       total_price: Number(booking.total_price || 0),
       advance_amount: Number(booking.advance_amount || 0),
       amount_paid: Number(booking.amount_paid || 0),
@@ -333,8 +343,25 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       status: booking.status || "pending_payment",
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from("bookings").upsert(payload);
+
+    const fullPayload = {
+      ...basePayload,
+      reference: booking.reference || null,
+      selected_seats: Array.isArray(booking.selected_seats) ? booking.selected_seats : [],
+      travelers: Array.isArray(booking.travelers) ? booking.travelers : [],
+    };
+
+    const { error } = await supabase.from("bookings").upsert(fullPayload);
     if (error) {
+      // If error is caused by missing column (before SQL migration is run), retry with basePayload
+      if (error.code === "PGRST204" || error.message?.includes("column")) {
+        const fallbackRes = await supabase.from("bookings").upsert(basePayload);
+        if (fallbackRes.error) {
+          console.warn("[Supabase Postgres] Booking upsert fallback warning:", fallbackRes.error.message);
+          return false;
+        }
+        return true;
+      }
       console.warn("[Supabase Postgres] Booking upsert warning:", error.message);
       return false;
     }
@@ -374,7 +401,7 @@ export async function syncPaymentToSupabase(payment: DbPayment): Promise<boolean
 export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null> {
   const supabase = getSupabaseAdminClient();
   try {
-    const [destsRes, toursRes, offersRes, testsRes, blogsRes, blocksRes, staffRes, custsRes, bookingsRes] = await Promise.all([
+    const [destsRes, toursRes, offersRes, testsRes, blogsRes, blocksRes, staffRes, custsRes, bookingsRes, actsRes] = await Promise.all([
       supabase.from("destinations").select("*").order("name"),
       supabase.from("tours").select("*").order("title"),
       supabase.from("offers").select("*"),
@@ -384,6 +411,7 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       supabase.from("staff_users").select("*"),
       supabase.from("customers").select("*"),
       supabase.from("bookings").select("*").order("created_at", { ascending: false }),
+      supabase.from("customer_activities").select("*").order("created_at", { ascending: false }),
     ]);
 
     if (destsRes.error && toursRes.error) {
@@ -530,6 +558,22 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
           },
         ];
 
+    const activitiesByCustomer = new Map<string, DbCustomerActivity[]>();
+    for (const act of (actsRes.data || [])) {
+      if (!act.customer_id) continue;
+      const list = activitiesByCustomer.get(act.customer_id) || [];
+      list.push({
+        id: act.id,
+        customer_id: act.customer_id,
+        type: act.type,
+        title: act.title,
+        description: act.description,
+        metadata: typeof act.metadata === "object" && act.metadata !== null ? act.metadata : {},
+        created_at: act.created_at || new Date().toISOString(),
+      });
+      activitiesByCustomer.set(act.customer_id, list);
+    }
+
     const mappedCustomers: DbCustomerUser[] = (custsRes.data || []).map((c: any) => ({
       id: c.id,
       phone_number: c.phone_number,
@@ -538,37 +582,99 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       created_at: c.created_at || new Date().toISOString(),
       updated_at: c.updated_at || new Date().toISOString(),
       last_login_at: c.last_login_at || undefined,
-      activities: [],
+      activities: activitiesByCustomer.get(c.id) || [],
     }));
 
-    const mappedBookings: DbBooking[] = (bookingsRes.data || []).map((b: any) => ({
-      id: b.id,
-      reference: b.reference || `AT-${b.id.slice(-6)}`,
-      tour_id: b.tour_id,
-      tour_title: b.tour_title,
-      tour_slug: b.tour_slug,
-      destination_slug: b.destination_slug || b.tour_slug || "bangladesh",
-      departure_date: b.departure_date,
-      traveler_count: Number(b.traveler_count || 1),
-      unit_price: String(b.unit_price || Math.round(Number(b.total_price || 0) / Math.max(1, Number(b.traveler_count || 1)))),
-      total_price: String(b.total_price || 0),
-      final_price: String(b.total_price || 0),
-      payment_plan: Number(b.due_on_tour_day || 0) > 0 ? "partial" : "full",
-      advance_required_percent: "40",
-      advance_amount: String(b.advance_amount || 0),
-      amount_paid: String(b.amount_paid || 0),
-      amount_due: String(b.due_on_tour_day || 0),
-      due_date: b.departure_date || new Date().toISOString().slice(0, 10),
-      status: b.status || "pending_payment",
-      customer_id: b.customer_id || undefined,
-      customer_full_name: b.customer_name,
-      customer_phone_number: b.customer_phone,
-      customer_email: b.customer_email || "",
-      special_requests: b.special_requests || "",
-      travelers: [{ id: `trav-${b.id}-1`, full_name: b.customer_name, is_lead_traveler: true }],
-      created_at: b.created_at || new Date().toISOString(),
-      updated_at: b.updated_at || new Date().toISOString(),
-    }));
+    const mappedBookings: DbBooking[] = (bookingsRes.data || []).map((b: any) => {
+      let selected_seats: string[] = [];
+      if (Array.isArray(b.selected_seats) && b.selected_seats.length > 0) {
+        selected_seats = b.selected_seats.map((s: any) => String(s).trim().toUpperCase()).filter(Boolean);
+      } else if (typeof b.selected_seats === "string" && b.selected_seats.trim()) {
+        try {
+          const parsed = JSON.parse(b.selected_seats);
+          if (Array.isArray(parsed)) {
+            selected_seats = parsed.map((s: any) => String(s).trim().toUpperCase()).filter(Boolean);
+          }
+        } catch {
+          const cleaned = b.selected_seats.replace(/^\{|\}$/g, "");
+          selected_seats = cleaned.split(",").map((s: string) => s.trim().toUpperCase()).filter(Boolean);
+        }
+      } else if (b.pickup_point && typeof b.pickup_point === "string" && b.pickup_point.includes("Seats: ")) {
+        const match = b.pickup_point.match(/Seats:\s*([A-Za-z0-9,\s]+)/);
+        if (match) {
+          selected_seats = match[1].split(",").map((s: string) => s.trim().toUpperCase()).filter(Boolean);
+        }
+      } else if (b.special_requests && typeof b.special_requests === "string" && b.special_requests.includes("[Seats: ")) {
+        const match = b.special_requests.match(/\[Seats:\s*([A-Za-z0-9,\s]+)\]/);
+        if (match) {
+          selected_seats = match[1].split(",").map((s: string) => s.trim().toUpperCase()).filter(Boolean);
+        }
+      }
+
+      const travelers = (Array.isArray(b.travelers) && b.travelers.length > 0)
+        ? b.travelers
+        : (selected_seats.length > 0
+          ? selected_seats.map((seat, idx) => ({
+              id: `trav-${b.id}-${idx + 1}`,
+              full_name: idx === 0 ? b.customer_name : `Traveler ${idx + 1}`,
+              seat_number: seat,
+              is_lead_traveler: idx === 0,
+            }))
+          : [{ id: `trav-${b.id}-1`, full_name: b.customer_name, is_lead_traveler: true }]);
+
+      return {
+        id: b.id,
+        reference: b.reference || (b.id ? `AT-${b.id.slice(-6).toUpperCase()}` : `AT-${Date.now().toString().slice(-6)}`),
+        tour_id: b.tour_id,
+        tour_title: b.tour_title,
+        tour_slug: b.tour_slug,
+        destination_slug: b.destination_slug || b.tour_slug || "bangladesh",
+        departure_date: b.departure_date,
+        traveler_count: Number(b.traveler_count || (selected_seats.length > 0 ? selected_seats.length : 1)),
+        selected_seats,
+        unit_price: String(b.unit_price || Math.round(Number(b.total_price || 0) / Math.max(1, Number(b.traveler_count || 1)))),
+        total_price: String(b.total_price || 0),
+        final_price: String(b.total_price || 0),
+        payment_plan: Number(b.due_on_tour_day || 0) > 0 ? "partial" : "full",
+        advance_required_percent: "40",
+        advance_amount: String(b.advance_amount || 0),
+        amount_paid: String(b.amount_paid || 0),
+        amount_due: String(b.due_on_tour_day || 0),
+        due_date: b.departure_date || new Date().toISOString().slice(0, 10),
+        status: b.status || "pending_payment",
+        customer_id: b.customer_id || undefined,
+        customer_full_name: b.customer_name,
+        customer_phone_number: b.customer_phone,
+        customer_email: b.customer_email || "",
+        special_requests: b.special_requests || "",
+        travelers,
+        created_at: b.created_at || new Date().toISOString(),
+        updated_at: b.updated_at || new Date().toISOString(),
+      };
+    });
+
+    // Hydrate any rich CMS blocks (e.g. block-home-page, block-about-page, block-journal-page)
+    // from the storage snapshot mirror where CMS configurations are safely persisted
+    let storageBlocks: DbHomepageBlock[] = [];
+    try {
+      const { data: storageData, error: storageErr } = await supabase.storage.from(BUCKET_NAME).download(DB_OBJECT_PATH);
+      if (!storageErr && storageData) {
+        const text = await storageData.text();
+        const parsed = JSON.parse(text) as Partial<DatabaseSchema>;
+        if (Array.isArray(parsed.homepageBlocks)) {
+          storageBlocks = parsed.homepageBlocks;
+        }
+      }
+    } catch {}
+
+    const tableBlocks: DbHomepageBlock[] = blocksRes.data || [];
+    const tableBlockIds = new Set(tableBlocks.map((b) => b.id));
+    const mergedHomepageBlocks = [...tableBlocks];
+    for (const sb of storageBlocks) {
+      if (!tableBlockIds.has(sb.id)) {
+        mergedHomepageBlocks.push(sb);
+      }
+    }
 
     const result: DatabaseSchema = {
       destinations: mappedDestinations,
@@ -576,7 +682,7 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       offers: mappedOffers,
       testimonials: mappedTestimonials,
       blogPosts: mappedBlogs,
-      homepageBlocks: blocksRes.data || [],
+      homepageBlocks: mergedHomepageBlocks,
       staffUsers: mappedStaff,
       customers: mappedCustomers,
       bookings: mappedBookings,
