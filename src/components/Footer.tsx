@@ -41,21 +41,17 @@ export function Footer() {
         <div className="glass glass-sweep rounded-3xl sm:rounded-[2rem] p-6 sm:p-10 lg:p-12">
           <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
             <div className="sm:col-span-2 lg:col-span-1">
-              <div className="flex items-center gap-3.5">
-                <img
-                  src="/images/logo-badge.png"
-                  alt="Savar Tour Lover"
-                  className="h-12 sm:h-14 w-auto object-contain shrink-0 drop-shadow-xs"
+              <Link href="/" className="inline-block group mb-3 relative">
+                <div
+                  className="absolute -inset-2 rounded-2xl bg-gradient-to-r from-emerald-400/15 via-teal-300/20 to-emerald-500/15 blur-lg opacity-50 transition-opacity duration-300 group-hover:opacity-90 pointer-events-none"
+                  aria-hidden="true"
                 />
-                <div>
-                  <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink block">
-                    {siteName}
-                  </span>
-                  <span className="text-xs font-semibold text-emerald-700">
-                    {siteTaglineBn}
-                  </span>
-                </div>
-              </div>
+                <img
+                  src="/images/logo-horizontal.png"
+                  alt="Savar Tour Lover"
+                  className="relative h-12 sm:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105 select-none"
+                />
+              </Link>
               <p className="mt-3.5 max-w-sm text-sm leading-relaxed text-ink-soft">
                 {isBn
                   ? "সাভার ট্যুর লাভার — আপনার স্বপ্ন উড়তে দিন। নির্ভরযোগ্য লোকাল হোস্ট, স্পষ্ট মূল্য এবং শতভাগ স্বচ্ছতায় সহজ বুকিং সুবিধা।"

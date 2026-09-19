@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { siteName, siteNameBn } from "@/data/site";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
@@ -47,21 +46,24 @@ export function Navbar() {
           scrolled ? "shadow-glass-lg" : "shadow-glass"
         }`}
       >
-        <Link href="/" className="group flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <Link href="/" className="group relative flex items-center shrink-0 -my-1 sm:-my-1.5">
+          {/* Luminous emerald-teal gradient aura */}
+          <div
+            className="absolute -inset-x-3 -inset-y-1.5 rounded-full bg-gradient-to-r from-emerald-400/20 via-teal-300/25 to-emerald-500/20 blur-lg opacity-60 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
+            aria-hidden="true"
+          />
           <motion.div
-            whileHover={{ scale: 1.06 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 18 }}
-            className="shrink-0 flex items-center justify-center"
+            className="relative shrink-0 flex items-center justify-center py-0.5"
           >
             <img
-              src="/images/logo-badge.png"
+              src="/images/logo-horizontal.png"
               alt="Savar Tour Lover"
-              className="h-9 sm:h-11 w-auto object-contain drop-shadow-xs"
+              className="h-12 xs:h-[50px] sm:h-[58px] md:h-[60px] lg:h-[65px] w-auto object-contain transition-all duration-300 select-none"
             />
           </motion.div>
-          <span className="font-display text-base sm:text-lg font-bold tracking-tight text-ink group-hover:text-emerald-deep transition leading-none">
-            {siteName}
-          </span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
