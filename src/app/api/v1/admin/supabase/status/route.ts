@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkSupabaseHealth, syncDatabaseToSupabase } from "@/server/supabase";
-import { getRawDb } from "@/server/db";
+import { checkSupabaseHealth, invokeCloudSnapshotSync } from "@/server/supabase";
 
 export async function GET() {
   const health = await checkSupabaseHealth();
@@ -8,8 +7,8 @@ export async function GET() {
 }
 
 export async function POST() {
-  const rawDb = getRawDb();
-  const ok = await syncDatabaseToSupabase(rawDb);
+  const syncResult = await invokeCloudSnapshotSync();
   const health = await checkSupabaseHealth();
-  return NextResponse.json({ ok, ...health });
+  return NextResponse.json({ ok: syncResult.success, syncResult, ...health });
 }
+

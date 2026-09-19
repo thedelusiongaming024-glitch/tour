@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Reveal } from "@/components/Reveal";
-import { siteName, siteNameBn, siteTagline } from "@/data/site";
+import { siteName, siteNameBn, siteTagline, siteTaglineBn, siteAddressEn, siteAddressBn, sitePhones } from "@/data/site";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
@@ -35,41 +35,59 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative mt-auto px-4 pb-8 pt-16 sm:px-6">
+    <footer className="relative mt-auto px-3 pb-6 pt-12 sm:px-6 sm:pb-8 sm:pt-16">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-        <div className="glass glass-sweep rounded-[2rem] p-8 sm:p-12">
-          <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald to-emerald-deep text-[13px] font-bold text-white">
-                  {siteName.charAt(0)}
-                </span>
-                <span className="font-display text-xl font-semibold text-ink">
-                  {siteName}
-                </span>
+        <div className="glass glass-sweep rounded-3xl sm:rounded-[2rem] p-6 sm:p-10 lg:p-12">
+          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-3.5">
+                <img
+                  src="/images/logo-badge.png"
+                  alt="Savar Tour Lover"
+                  className="h-12 sm:h-14 w-auto object-contain shrink-0 drop-shadow-xs"
+                />
+                <div>
+                  <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink block">
+                    {siteName}
+                  </span>
+                  <span className="text-xs font-semibold text-emerald-700">
+                    {siteTaglineBn}
+                  </span>
+                </div>
               </div>
-              <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
+              <p className="mt-3.5 max-w-sm text-sm leading-relaxed text-ink-soft">
                 {isBn
-                  ? "বাংলাদেশ জুড়ে নির্বাচিত ট্যুর — নির্ভরযোগ্য লোকাল হোস্ট, স্পষ্ট মূল্য এবং সহজ কিউআর পেমেন্ট সুবিধা।"
-                  : `${siteTagline}. Curated domestic tours across Bangladesh — trusted local hosts, transparent pricing, and seamless QR payment clearance.`}
+                  ? "সাভার ট্যুর লাভার — আপনার স্বপ্ন উড়তে দিন। নির্ভরযোগ্য লোকাল হোস্ট, স্পষ্ট মূল্য এবং শতভাগ স্বচ্ছতায় সহজ বুকিং সুবিধা।"
+                  : `${siteName} — Let your dreams fly. Curated domestic tours across Bangladesh with trusted local hosts, transparent pricing, and seamless booking confirmation.`}
               </p>
-              <p className="mt-3 text-xs font-medium text-ink-faint">
-                {siteNameBn} {t("footer.brandSpirit")}
-              </p>
+              <div className="mt-4 space-y-2 text-xs text-ink-soft border-t border-emerald/15 pt-3">
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald font-semibold shrink-0">📍</span>
+                  <span className="leading-snug">{isBn ? siteAddressBn : siteAddressEn}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald font-semibold shrink-0">📞</span>
+                  <div className="flex flex-wrap items-center gap-2 font-medium text-ink">
+                    <a href={`tel:${sitePhones[0]}`} className="hover:text-emerald hover:underline transition">{sitePhones[0]}</a>
+                    <span>•</span>
+                    <a href={`tel:${sitePhones[1]}`} className="hover:text-emerald hover:underline transition">{sitePhones[1]}</a>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {Object.entries(footerNav).map(([title, links]) => (
               <div key={title}>
-                <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink">
+                <h3 className="font-display text-xs sm:text-sm font-semibold uppercase tracking-wider text-ink">
                   {title}
                 </h3>
-                <ul className="mt-4 space-y-2.5">
+                <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-2.5">
                   {links.map((link) => (
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        className="inline-block text-sm text-ink-soft transition-all duration-200 hover:translate-x-1 hover:text-emerald"
+                        className="inline-block text-sm text-ink-soft transition-all duration-200 hover:translate-x-1 hover:text-emerald py-0.5"
                       >
                         {link.label}
                       </Link>
@@ -80,13 +98,13 @@ export function Footer() {
             ))}
           </div>
 
-          <div className="hairline my-8" />
+          <div className="hairline my-6 sm:my-8" />
 
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <p className="text-xs text-ink-faint">
               © {new Date().getFullYear()} {siteName}. {t("footer.allRightsReserved")}
             </p>
-            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-ink-faint">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-ink-faint">
               <span>{t("footer.paymentsAccepted")}</span>
               <span className="hidden h-3 w-px bg-ink-faint/40 sm:block" />
               <span>{t("footer.location")}</span>

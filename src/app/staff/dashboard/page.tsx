@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearStaffSession, getStaffUser, staffFetch, type StaffUser } from "@/lib/staffAuth";
+import { normalizeImageUrl, normalizeVideoUrl } from "@/lib/media";
 import type {
   DbTour,
   DbDestination,
@@ -18,6 +19,7 @@ import type {
   AboutValueItem,
   AboutTeamMember,
   HomePageCmsContent,
+  HeroSlideItem,
   WhyUsItem,
   ServiceItem,
 } from "@/server/types";
@@ -51,6 +53,8 @@ interface Alert {
   created_at: string;
 }
 
+import { TourReportManager } from "@/components/TourReportManager";
+
 type ActiveTab =
   | "overview"
   | "tours"
@@ -62,6 +66,7 @@ type ActiveTab =
   | "offers"
   | "reviews"
   | "bookings"
+  | "reports"
   | "inquiries";
 
 const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
@@ -108,7 +113,7 @@ const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
   booking_eyebrow: "How booking works",
   booking_title: "Zero-friction, start to finish",
   booking_description:
-    "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity.",
+    "From your first search to your final confirmed payment, every step is designed to remove friction and ambiguity.",
   team_eyebrow: "The team",
   team_title: "A few of the people who'll host you",
   team: [
@@ -127,19 +132,19 @@ const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
     {
       name: "Mehedi Hasan",
       role: "Head of Finance",
-      bio: "Built the payment and QR clearance system so every advance and balance is tracked without ambiguity.",
+      bio: "Built the secure payment and booking system so every advance and balance is tracked without ambiguity.",
       scene: "coxsbazar",
     },
   ],
-  payment_badge: "Payment & QR clearance",
+  payment_badge: "Payment & Confirmation",
   payment_title: "How your money is handled, end to end",
   payment_description:
-    "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself. The moment it clears, both you and our team get a WhatsApp and email confirmation, so there's a clean record of what was paid, when, on both sides.",
+    "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either online or in cash directly with your host. The moment it clears, both you and our team get a WhatsApp and email confirmation, so there's a clean record of what was paid, when, on both sides.",
   payment_cta_label: "Talk to us",
   payment_cta_href: "/contact",
   cta_title: "Ready to plan your own story?",
   cta_description:
-    "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.",
+    "Tell us where you want to go — we'll take it from there, right through to your final confirmed payment.",
   cta_label: "Plan My Trip",
   cta_href: "/contact",
 };
@@ -155,7 +160,43 @@ const DEFAULT_JOURNAL_PAGE_CMS: JournalPageCmsContent = {
     "Stories, packing guides, and field notes will appear here once written and published from the Super Admin Panel.",
 };
 
+const DEFAULT_HERO_SLIDES: HeroSlideItem[] = [
+  {
+    id: "slide-coxsbazar",
+    title: "Cox's Bazar",
+    subtitle: "World's Longest Natural Sea Beach",
+    image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80",
+  },
+  {
+    id: "slide-sajek",
+    title: "Sajek Valley",
+    subtitle: "Valley of Clouds & Green Hills",
+    image_url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80",
+  },
+  {
+    id: "slide-sundarbans",
+    title: "Sundarbans",
+    subtitle: "World's Largest Mangrove Kingdom",
+    image_url: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80",
+  },
+  {
+    id: "slide-sylhet",
+    title: "Sylhet & Sreemangal",
+    subtitle: "Lush Rolling Tea Gardens & Waterfalls",
+    image_url: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80",
+  },
+  {
+    id: "slide-stmartins",
+    title: "Saint Martin's Island",
+    subtitle: "Pristine Coral Island & Turquoise Sea",
+    image_url: "https://images.unsplash.com/photo-1519046904884-53103b34b271?auto=format&fit=crop&w=1920&q=80",
+  },
+];
+
 const DEFAULT_HOME_PAGE_CMS: HomePageCmsContent = {
+  hero_media_type: "slideshow",
+  hero_video_url: "",
+  hero_slides: DEFAULT_HERO_SLIDES,
   hero_eyebrow: "Domestic tours across Bangladesh",
   hero_headline: "Discover Bangladesh,",
   hero_highlight: "your way",
@@ -195,12 +236,12 @@ const DEFAULT_HOME_PAGE_CMS: HomePageCmsContent = {
     },
     {
       title: "Flexible payment",
-      description: "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
-      icon: "qr",
+      description: "Book with a 40% advance and clear the balance on tour day — online or directly with your host, with confirmation to both sides.",
+      icon: "receipt",
     },
     {
       title: "Zero-friction booking",
-      description: "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+      description: "From browsing to e-ticket in minutes. Your voucher, digital ticket, and reminders arrive automatically on WhatsApp and email.",
       icon: "ticket",
     },
     {
@@ -290,6 +331,73 @@ const SEVERITY_BADGES: Record<Alert["severity"], string> = {
   info: "bg-sky-50 text-sky-700 border-sky-200",
 };
 
+function ImageUrlInput({
+  label = "Cover Image URL",
+  name,
+  defaultValue = "",
+  placeholder = "Google Drive link or any custom image URL (https://...)",
+  helperText = "Supports Google Drive share links ('Anyone with link can view'), Dropbox, or any direct image URL.",
+  required = false,
+}: {
+  label?: string;
+  name: string;
+  defaultValue?: string;
+  placeholder?: string;
+  helperText?: string;
+  required?: boolean;
+}) {
+  const [val, setVal] = useState(defaultValue);
+  const [loadError, setLoadError] = useState(false);
+  const normalized = normalizeImageUrl(val);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+        <span>{label} {required && <span className="text-rose-500">*</span>}</span>
+        <input
+          name={name}
+          value={val}
+          required={required}
+          onChange={(e) => {
+            setVal(e.target.value);
+            setLoadError(false);
+          }}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+          placeholder={placeholder}
+        />
+      </label>
+      <div className="flex items-center justify-between text-[11px] text-slate-500">
+        <span>{helperText}</span>
+      </div>
+      {normalized && !loadError && (
+        <div className="mt-1 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={normalized}
+            alt="Preview"
+            onError={() => setLoadError(true)}
+            className="h-14 w-20 rounded-md object-cover border border-slate-300 shadow-xs shrink-0"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1.5">
+              <span>✓ Image preview ready</span>
+              {val.includes("drive.google.com") && (
+                <span className="rounded bg-emerald-100 px-1 text-[10px] text-emerald-800 font-medium">Google Drive link</span>
+              )}
+            </div>
+            <div className="truncate text-[11px] text-slate-500">{normalized}</div>
+          </div>
+        </div>
+      )}
+      {normalized && loadError && (
+        <div className="mt-1 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-800">
+          ⚠️ Could not load image preview. If using a Google Drive link, please ensure sharing is set to <strong>&ldquo;Anyone with the link can view&rdquo;</strong>.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StaffDashboardPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-slate-50 text-slate-600 flex items-center justify-center text-sm font-medium">Loading control center…</div>}>
@@ -308,6 +416,14 @@ function StaffDashboardContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const tabScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollTabs = (direction: "left" | "right") => {
+    if (tabScrollRef.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      tabScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // Overview data
   const [overview, setOverview] = useState<AgencyOverview | null>(null);
@@ -422,6 +538,12 @@ function StaffDashboardContent() {
         const heroBlock = blocks.find((b) => b.block_type === "hero");
         if (heroBlock && heroBlock.content) {
           setHeroCms((prev) => ({ ...prev, ...(heroBlock.content as Record<string, string>) }));
+          setHomeCms((prev) => ({
+            ...prev,
+            hero_media_type: (homeBlock?.content as any)?.hero_media_type ?? (heroBlock.content as any)?.hero_media_type ?? prev.hero_media_type,
+            hero_video_url: (homeBlock?.content as any)?.hero_video_url ?? (heroBlock.content as any)?.hero_video_url ?? prev.hero_video_url,
+            hero_slides: (homeBlock?.content as any)?.hero_slides ?? (heroBlock.content as any)?.hero_slides ?? prev.hero_slides,
+          }));
         }
         const aboutBlock = blocks.find((b) => b.block_type === "about_page" || b.id === "block-about-page");
         if (aboutBlock && aboutBlock.content) {
@@ -488,7 +610,7 @@ function StaffDashboardContent() {
       category: formData.get("category") as string,
       short_description: formData.get("short_description") as string,
       full_description: formData.get("full_description") as string,
-      hero_image: (formData.get("hero_image") as string) || null,
+      hero_image: normalizeImageUrl((formData.get("hero_image") as string)) || null,
       duration_days: Number(formData.get("duration_days")),
       duration_nights: Number(formData.get("duration_nights")),
       base_price: basePrice,
@@ -505,7 +627,7 @@ function StaffDashboardContent() {
       meals_notes: formData.get("meals_notes") as string,
       meeting_point: formData.get("meeting_point") as string,
       departure_schedule: formData.get("departure_schedule") as string,
-      total_seats: Number(formData.get("total_seats") || 14),
+      total_seats: Number(formData.get("total_seats") || 40),
       is_featured: formData.get("is_featured") === "on",
       status: formData.get("status") as "published" | "draft",
     };
@@ -524,7 +646,7 @@ function StaffDashboardContent() {
       setTourModal({ isOpen: false, tour: null });
       loadData();
     } else {
-      showNotification("error", "Failed to save tour package.");
+      showNotification("error", "Failed to save tour.");
     }
   }
 
@@ -532,10 +654,10 @@ function StaffDashboardContent() {
     if (!confirm("Are you sure you want to delete this tour package?")) return;
     const res = await staffFetch(`/admin/tours/${id}`, { method: "DELETE" });
     if (res.ok) {
-      showNotification("success", "Tour package deleted.");
+      showNotification("success", "Tour removed.");
       loadData();
     } else {
-      showNotification("error", "Failed to delete tour package.");
+      showNotification("error", "Failed to delete tour.");
     }
   }
 
@@ -569,7 +691,7 @@ function StaffDashboardContent() {
       popular_attractions: ((formData.get("popular_attractions") as string) || "").split(",").map((s) => s.trim()).filter(Boolean),
       recommended_accommodation: formData.get("recommended_accommodation") as string,
       travel_tips: formData.get("travel_tips") as string,
-      cover_image: (formData.get("cover_image") as string) || null,
+      cover_image: normalizeImageUrl((formData.get("cover_image") as string)) || null,
       cover_video_url: (formData.get("cover_video_url") as string) || "",
       is_featured: formData.get("is_featured") === "on",
       status: formData.get("status") as "published" | "draft",
@@ -612,7 +734,7 @@ function StaffDashboardContent() {
     const content = (formData.get("content") as string) || "";
     const catName = (formData.get("category") as string) || "Travel Guide";
     const author = (formData.get("author") as string) || "Atithi Editorial Team";
-    const heroImage = (formData.get("hero_image") as string) || null;
+    const heroImage = normalizeImageUrl((formData.get("hero_image") as string)) || null;
     const excerpt = (formData.get("excerpt") as string) || content.slice(0, 160);
     const isFeatured = formData.get("is_featured") === "on";
 
@@ -702,7 +824,7 @@ function StaffDashboardContent() {
       minimum_spend: (formData.get("minimum_spend") as string) || "0",
       valid_from: formData.get("valid_from") as string,
       valid_until: (formData.get("valid_until") as string) || new Date(Date.now() + 30 * 86400000).toISOString(),
-      banner_image: (formData.get("banner_image") as string) || null,
+      banner_image: normalizeImageUrl((formData.get("banner_image") as string)) || null,
       is_active: formData.get("is_active") === "on",
     };
 
@@ -734,7 +856,7 @@ function StaffDashboardContent() {
     const rev = reviewModal.review || {};
     const authorName = formData.get("author_name") as string;
     const tourTitle = (formData.get("trip_name") as string) || "Bangladesh Tour";
-    const photo = (formData.get("author_avatar") as string) || null;
+    const photo = normalizeImageUrl((formData.get("author_avatar") as string)) || null;
 
     const payload: Partial<DbTestimonial> = {
       id: rev.id,
@@ -782,6 +904,29 @@ function StaffDashboardContent() {
           content: homeCms,
         }),
       });
+
+      // Keep block-hero-1 directly in sync for any components that query block-hero-1
+      await staffFetch("/admin/cms", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "block-hero-1",
+          block_type: "hero",
+          content: {
+            eyebrow: homeCms.hero_eyebrow,
+            headline: homeCms.hero_headline,
+            highlight: homeCms.hero_highlight,
+            subheadline: homeCms.hero_subheadline,
+            primary_cta_label: homeCms.hero_primary_cta_label,
+            primary_cta_href: homeCms.hero_primary_cta_href,
+            secondary_cta_label: homeCms.hero_secondary_cta_label,
+            secondary_cta_href: homeCms.hero_secondary_cta_href,
+            hero_media_type: homeCms.hero_media_type,
+            hero_video_url: homeCms.hero_video_url,
+            hero_slides: homeCms.hero_slides,
+          },
+        }),
+      });
+
       if (res.ok) {
         showNotification("success", "Homepage configurations updated and published live!");
         loadData();
@@ -901,48 +1046,40 @@ function StaffDashboardContent() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col font-sans">
       {/* Top Professional Header */}
-      <header className="border-b border-slate-200 bg-white px-6 py-3.5 sticky top-0 z-30 shadow-xs">
-        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-700 text-white font-bold text-sm tracking-tight">
-              A
-            </div>
+      <header className="border-b border-slate-200 bg-white px-3.5 py-2.5 sm:px-6 sm:py-3.5 sticky top-0 z-30 shadow-xs">
+        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <img src="/images/logo-badge.png" alt="Savar Tour Lover" className="h-8 sm:h-9 w-auto object-contain shrink-0 drop-shadow-xs" />
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="font-semibold text-slate-900 text-base tracking-tight">Atithi Admin</h1>
-                <span className="rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-xs font-medium">
+              <div className="flex items-center gap-1.5 sm:gap-2.5">
+                <h1 className="font-semibold text-slate-900 text-sm sm:text-base tracking-tight">Savar Tour Lover</h1>
+                <span className="rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium">
                   {user.role === "super_admin" ? "Super Admin" : user.role}
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-xs font-medium">
+                <span className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-xs font-medium">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Supabase Cloud
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                Connected user: <span className="font-medium text-slate-700">{user.username}</span>
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate max-w-[160px] sm:max-w-none">
+                Connected: <span className="font-medium text-slate-700">{user.username}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5 text-xs sm:text-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 text-xs sm:text-sm">
             <a
               href="/"
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium flex items-center gap-1.5"
+              className="rounded-lg border border-slate-200 bg-white px-2 sm:px-3 py-1 sm:py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium flex items-center gap-1"
             >
-              <span>Public Website</span>
+              <span>Site</span>
               <span className="text-slate-400">↗</span>
-            </a>
-            <a
-              href="/staff/scan"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium"
-            >
-              QR Scanner
             </a>
             <button
               onClick={() => loadData()}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium"
+              className="rounded-lg border border-slate-200 bg-white px-2 sm:px-3 py-1 sm:py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium"
               title="Refresh datasets"
             >
               Refresh
@@ -952,7 +1089,7 @@ function StaffDashboardContent() {
                 clearStaffSession();
                 router.push("/staff/login");
               }}
-              className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5 hover:bg-rose-100 transition font-medium"
+              className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-rose-100 transition font-medium"
             >
               Sign Out
             </button>
@@ -976,50 +1113,90 @@ function StaffDashboardContent() {
         </div>
       )}
 
-      {/* Clean Tab Navigation */}
-      <div className="border-b border-slate-200 bg-white px-6">
-        <div className="mx-auto max-w-7xl flex gap-1 overflow-x-auto py-2 scrollbar-none">
-          {[
-            { id: "overview", label: "Overview", count: null },
-            ...(isSuperAdmin
-              ? [
-                  { id: "tours", label: "Tours", count: tours.length },
-                  { id: "destinations", label: "Destinations", count: destinations.length },
-                  { id: "users", label: "Users / Travelers", count: customers.length },
-                  { id: "bookings", label: "Bookings", count: bookings.length },
-                  { id: "cms", label: "Homepage CMS", count: null },
-                  { id: "about_cms", label: "About Page CMS", count: null },
-                  { id: "blog", label: "Travel Journal", count: blogPosts.length },
-                  { id: "offers", label: "Special Offers", count: offers.length },
-                  { id: "reviews", label: "Testimonials", count: testimonials.length },
-                  { id: "inquiries", label: "Inquiries", count: inquiries.length },
-                ]
-              : []),
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as ActiveTab)}
-              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs sm:text-sm font-medium whitespace-nowrap transition ${
-                activeTab === tab.id
-                  ? "bg-slate-100 text-slate-900 font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <span>{tab.label}</span>
-              {tab.count !== null && (
-                <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-semibold ${
-                  activeTab === tab.id ? "bg-white text-slate-800 border border-slate-200" : "bg-slate-100 text-slate-500"
-                }`}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+      {/* Tab Navigation with Ash Gradient & Visible Scroller */}
+      <div className="border-b border-slate-300/80 bg-gradient-to-r from-slate-200 via-slate-100 to-zinc-200 px-3 sm:px-6 shadow-xs">
+        <div className="mx-auto max-w-7xl flex items-center gap-1 sm:gap-2 py-1.5">
+          {/* Scroll Left Button */}
+          <button
+            type="button"
+            onClick={() => scrollTabs("left")}
+            aria-label="Scroll tabs left"
+            className="hidden sm:flex shrink-0 items-center justify-center h-8 w-8 rounded-lg bg-white/70 hover:bg-white text-slate-600 hover:text-slate-950 shadow-xs border border-slate-300/70 transition cursor-pointer"
+            title="Scroll left"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Scrollable Tabs Bar with Visible Scroller */}
+          <div
+            ref={tabScrollRef}
+            className="admin-tab-scroller flex-1 flex items-center gap-1.5 overflow-x-auto pb-2 pt-1 scroll-smooth"
+          >
+            {[
+              { id: "overview", label: "Overview", count: null },
+              ...(isSuperAdmin
+                ? [
+                    { id: "tours", label: "Tours", count: tours.length },
+                    { id: "destinations", label: "Destinations", count: destinations.length },
+                    { id: "users", label: "Users / Travelers", count: customers.length },
+                    { id: "bookings", label: "Bookings", count: bookings.length },
+                    { id: "reports", label: "Reports & Manifest", count: bookings.length },
+                    { id: "cms", label: "Homepage CMS", count: null },
+                    { id: "about_cms", label: "About Page CMS", count: null },
+                    { id: "blog", label: "Travel Journal", count: blogPosts.length },
+                    { id: "offers", label: "Special Offers", count: offers.length },
+                    { id: "reviews", label: "Testimonials", count: testimonials.length },
+                    { id: "inquiries", label: "Inquiries", count: inquiries.length },
+                  ]
+                : []),
+            ].map((tab) => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as ActiveTab)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "bg-gradient-to-r from-sky-400 via-sky-500 to-blue-500 text-white shadow-md shadow-sky-500/25 border border-sky-300/70 ring-1 ring-sky-400/40"
+                      : "text-slate-700 hover:text-slate-950 hover:bg-white/70 border border-transparent"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== null && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold transition-colors ${
+                        isSelected
+                          ? "bg-white/25 text-white border border-white/30 backdrop-blur-xs shadow-xs"
+                          : "bg-slate-300/70 text-slate-700 border border-slate-300/90"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Scroll Right Button */}
+          <button
+            type="button"
+            onClick={() => scrollTabs("right")}
+            aria-label="Scroll tabs right"
+            className="hidden sm:flex shrink-0 items-center justify-center h-8 w-8 rounded-lg bg-white/70 hover:bg-white text-slate-600 hover:text-slate-950 shadow-xs border border-slate-300/70 transition cursor-pointer"
+            title="Scroll right"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 mx-auto max-w-7xl w-full p-6 sm:p-8">
+      <main className="flex-1 mx-auto max-w-7xl w-full p-3 sm:p-6 md:p-8">
         {loading && (
           <div className="mb-4 flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span className="inline-block h-2 w-2 animate-spin rounded-full border border-slate-500 border-t-transparent" />
@@ -1029,49 +1206,55 @@ function StaffDashboardContent() {
 
         {/* ================= OVERVIEW TAB ================= */}
         {activeTab === "overview" && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Quick Actions Card */}
             {isSuperAdmin && (
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                   <div>
                     <h2 className="text-sm font-semibold text-slate-900">Quick Actions</h2>
                     <p className="text-xs text-slate-500">Fast shortcuts to add new packages or update homepage configuration</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => setTourModal({ isOpen: true, tour: null })}
-                      className="rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
+                      className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs text-center justify-center flex items-center"
                     >
-                      + Add Tour Package
+                      + Add Tour
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("reports")}
+                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition shadow-xs text-center justify-center flex items-center"
+                    >
+                      📊 Reports
                     </button>
                     <button
                       onClick={() => setDestModal({ isOpen: true, destination: null })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      + Add Destination
+                      + Add Dest
                     </button>
                     <button
                       onClick={() => setActiveTab("cms")}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      Configure Homepage
+                      Edit Home
                     </button>
                     <button
                       onClick={() => setActiveTab("about_cms")}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      Configure About Us Page
+                      Edit About
                     </button>
                     <button
                       onClick={() => setBlogModal({ isOpen: true, post: null })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      + New Journal Post
+                      + New Post
                     </button>
                     <button
                       onClick={() => setOfferModal({ isOpen: true, offer: null })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="col-span-2 sm:col-span-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
                       + New Promo Code
                     </button>
@@ -1081,28 +1264,28 @@ function StaffDashboardContent() {
             )}
 
             {/* Supabase Cloud Database Status Banner */}
-            <div className="rounded-xl border border-emerald-100 bg-white p-4 shadow-xs">
+            <div className="rounded-xl border border-emerald-100 bg-white p-3.5 sm:p-4 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-xs">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-xs shrink-0">
                     DB
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Online Database: Supabase Connected</h3>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.2 text-[11px] font-medium text-emerald-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.2 text-[10px] sm:text-[11px] font-medium text-emerald-700">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Active Cloud Sync
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Cloud Host: <span className="font-mono text-slate-700 font-medium">tcituxdzdqjgslhctncu.supabase.co</span> • Bucket: <span className="font-mono text-slate-700 font-medium">atithi-data</span> • PostgreSQL schema ready
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 break-all sm:break-normal">
+                      Host: <span className="font-mono text-slate-700 font-medium">tcituxdzdqjgslhctncu.supabase.co</span> • Bucket: <span className="font-mono text-slate-700 font-medium">atithi-data</span>
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                    Dual-Layer Persistence (Instant Local + Cloud Backup)
+                  <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium bg-slate-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-slate-200">
+                    Dual-Layer Persistence
                   </span>
                 </div>
               </div>
@@ -1110,32 +1293,32 @@ function StaffDashboardContent() {
 
             {/* Profit Dashboard Section */}
             <div>
-              <div className="mb-3">
+              <div className="mb-2.5 sm:mb-3">
                 <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-500">Financial Summary</h2>
-                <p className="text-sm font-medium text-slate-800">Operational revenue, costs, and current margins</p>
+                <p className="text-xs sm:text-sm font-medium text-slate-800">Operational revenue, costs, and current margins</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Revenue</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.total_revenue ?? 0)}</p>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Revenue</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.total_revenue ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Direct Costs</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.total_direct_cost ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Direct Costs</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.total_direct_cost ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Gross Margin</p>
-                  <p className={`mt-2 text-2xl font-bold ${Number(overview?.gross_profit) >= 0 ? "text-emerald-700" : "text-slate-900"}`}>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Gross Margin</p>
+                  <p className={`mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold ${Number(overview?.gross_profit) >= 0 ? "text-emerald-700" : "text-slate-900"}`}>
                     {formatBDT(overview?.gross_profit ?? 0)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Operating Expenses</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.total_operational_expense ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Operating Exp.</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.total_operational_expense ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Net Profit</p>
-                  <p className={`mt-2 text-2xl font-bold ${Number(overview?.net_profit) >= 0 ? "text-emerald-700" : "text-rose-600"}`}>
+                <div className="col-span-2 sm:col-span-1 rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Net Profit</p>
+                  <p className={`mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold ${Number(overview?.net_profit) >= 0 ? "text-emerald-700" : "text-rose-600"}`}>
                     {formatBDT(overview?.net_profit ?? 0)}
                   </p>
                 </div>
@@ -1144,26 +1327,26 @@ function StaffDashboardContent() {
 
             {/* Receivables & Inventory */}
             <div>
-              <div className="mb-3">
+              <div className="mb-2.5 sm:mb-3">
                 <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-500">Receivables & Operational Capacity</h2>
-                <p className="text-sm font-medium text-slate-800">Booking counts, pending advances, and balance due on tour day</p>
+                <p className="text-xs sm:text-sm font-medium text-slate-800">Booking counts, pending advances, and balance due on tour day</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("bookings")}>
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Total Bookings</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{overview?.bookings_count ?? bookings.length}</p>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("bookings")}>
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Total Bookings</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{overview?.bookings_count ?? bookings.length}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("tours")}>
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Published Tours</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{overview?.active_tours_count ?? tours.length}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("tours")}>
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Published Tours</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{overview?.active_tours_count ?? tours.length}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Pending Advances</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.pending_advances ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Pending Advances</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.pending_advances ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Due On Tour Day</p>
-                  <p className="mt-2 text-2xl font-bold text-amber-700">{formatBDT(overview?.due_on_tour_day ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Due On Tour Day</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-amber-700">{formatBDT(overview?.due_on_tour_day ?? 0)}</p>
                 </div>
               </div>
             </div>
@@ -1491,7 +1674,218 @@ function StaffDashboardContent() {
 
             {/* 1. HERO SECTION */}
             <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">1. Hero Section (Top Banner)</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">1. Hero Section (Top Banner)</h3>
+              </div>
+
+              {/* Background Media Mode Selector */}
+              <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                <span className="text-xs font-semibold text-slate-700 block">Hero Background Media Type</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setHomeCms({ ...homeCms, hero_media_type: "slideshow" })}
+                    className={`flex items-start gap-3 rounded-lg border p-3 text-left transition ${
+                      (homeCms.hero_media_type ?? "slideshow") === "slideshow"
+                        ? "border-emerald-600 bg-white ring-2 ring-emerald-600/20 shadow-xs"
+                        : "border-slate-200 bg-white/70 hover:bg-white text-slate-600"
+                    }`}
+                  >
+                    <span className="text-xl">🌄</span>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-900">Atmospheric Slideshow</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Rotating scenic Bangladeshi backdrops (Cox's Bazar, Sajek, Sundarbans, etc.)</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setHomeCms({ ...homeCms, hero_media_type: "video" })}
+                    className={`flex items-start gap-3 rounded-lg border p-3 text-left transition ${
+                      homeCms.hero_media_type === "video"
+                        ? "border-emerald-600 bg-white ring-2 ring-emerald-600/20 shadow-xs"
+                        : "border-slate-200 bg-white/70 hover:bg-white text-slate-600"
+                    }`}
+                  >
+                    <span className="text-xl">🎬</span>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-900">Custom Video Background</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Auto-looping video from YouTube, Shorts, Google Drive, Vimeo, or direct MP4</div>
+                    </div>
+                  </button>
+                </div>
+
+                {(homeCms.hero_media_type ?? "slideshow") === "slideshow" && (
+                  <div className="mt-3 pt-3 border-t border-slate-200/80 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-semibold text-slate-800 block">Slideshow Photo Collection</span>
+                        <p className="text-[11px] text-slate-500">
+                          Add, edit, or customize hero background photos (Google Drive share links, custom image URLs, or standard media links).
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentSlides = homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES;
+                          const newSlide: HeroSlideItem = {
+                            id: `slide-${Date.now()}`,
+                            title: "New Destination",
+                            subtitle: "Scenic Bangladesh",
+                            image_url: "",
+                          };
+                          setHomeCms({ ...homeCms, hero_slides: [...currentSlides, newSlide] });
+                        }}
+                        className="rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition"
+                      >
+                        + Add Slide Image
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {(homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES).map((slide, idx) => (
+                        <div key={slide.id || idx} className="rounded-lg border border-slate-200 bg-white p-3.5 space-y-3 shadow-2xs">
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <span className="text-xs font-bold text-slate-800">Slide #{idx + 1}: {slide.title || "Untitled"}</span>
+                            {(homeCms.hero_slides && homeCms.hero_slides.length > 1 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES).length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const currentSlides = homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES;
+                                  const filtered = currentSlides.filter((_, i) => i !== idx);
+                                  setHomeCms({ ...homeCms, hero_slides: filtered });
+                                }}
+                                className="text-xs text-rose-600 hover:text-rose-700 font-medium"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-700">
+                              Destination / Slide Title
+                              <input
+                                value={slide.title}
+                                onChange={(e) => {
+                                  const currentSlides = [...(homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES)];
+                                  currentSlides[idx] = { ...currentSlides[idx], title: e.target.value };
+                                  setHomeCms({ ...homeCms, hero_slides: currentSlides });
+                                }}
+                                placeholder="e.g. Cox's Bazar"
+                                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-600"
+                              />
+                            </label>
+
+                            <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-700">
+                              Subtitle / Motif
+                              <input
+                                value={slide.subtitle ?? ""}
+                                onChange={(e) => {
+                                  const currentSlides = [...(homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES)];
+                                  currentSlides[idx] = { ...currentSlides[idx], subtitle: e.target.value };
+                                  setHomeCms({ ...homeCms, hero_slides: currentSlides });
+                                }}
+                                placeholder="e.g. World's Longest Natural Sea Beach"
+                                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-600"
+                              />
+                            </label>
+                          </div>
+
+                          {/* Image URL Input with Google Drive & Live Preview */}
+                          <div className="space-y-1.5">
+                            <label className="flex flex-col gap-1 text-[11px] font-medium text-slate-700">
+                              Slide Image URL (Supports Google Drive share links, custom web URLs, Unsplash, etc.)
+                              <input
+                                value={slide.image_url}
+                                onChange={(e) => {
+                                  const currentSlides = [...(homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : DEFAULT_HERO_SLIDES)];
+                                  currentSlides[idx] = { ...currentSlides[idx], image_url: e.target.value };
+                                  setHomeCms({ ...homeCms, hero_slides: currentSlides });
+                                }}
+                                placeholder="Paste Google Drive share link or direct image URL"
+                                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-600"
+                              />
+                            </label>
+
+                            {/* Slide image preview */}
+                            {slide.image_url && slide.image_url.trim() && (
+                              <div className="relative mt-2 h-24 w-40 rounded-md overflow-hidden border border-slate-200 bg-slate-100">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={normalizeImageUrl(slide.image_url)}
+                                  alt={slide.title}
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-0.5 text-[10px] text-white truncate">
+                                  {slide.title}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {homeCms.hero_media_type === "video" && (
+                  <div className="mt-3 pt-3 border-t border-slate-200/80 space-y-3">
+                    <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                      Background Video URL
+                      <input
+                        value={homeCms.hero_video_url ?? ""}
+                        onChange={(e) => setHomeCms({ ...homeCms, hero_video_url: e.target.value })}
+                        className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                        placeholder="Paste any YouTube, YouTube Shorts, Google Drive, Vimeo, Dropbox, or direct .mp4 link"
+                      />
+                      <span className="text-[11px] text-slate-500">
+                        Supports: <strong>YouTube</strong> (full or shorts), <strong>Google Drive</strong> (share link), <strong>Vimeo</strong>, <strong>Dropbox</strong> (raw stream), or direct <strong>.mp4 / .webm</strong>.
+                        The video automatically auto-resizes to fit any screen without letterboxing, loops continuously, and plays muted.
+                      </span>
+                    </label>
+
+                    {/* Live Preview */}
+                    {Boolean(homeCms.hero_video_url && homeCms.hero_video_url.trim()) && (
+                      <div className="rounded-lg border border-slate-200 bg-slate-900 p-3 text-white overflow-hidden">
+                        <div className="flex items-center justify-between pb-2 text-xs text-slate-400 font-medium">
+                          <span>Live Video Preview</span>
+                          <span className="text-[10px] text-emerald-400 font-mono">Auto-fit & cover active</span>
+                        </div>
+                        <div className="relative aspect-video w-full rounded-md overflow-hidden bg-black flex items-center justify-center">
+                          {(() => {
+                            const normalized = normalizeVideoUrl(homeCms.hero_video_url || "");
+                            if (!normalized.url) {
+                              return <div className="text-xs text-slate-400">Invalid or unsupported video link</div>;
+                            }
+                            if (normalized.isIframe) {
+                              return (
+                                <iframe
+                                  src={normalized.url}
+                                  title="Video Preview"
+                                  className="w-full h-full border-0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                />
+                              );
+                            }
+                            return (
+                              <video
+                                src={normalized.url}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                controls
+                                className="w-full h-full object-cover"
+                              />
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
@@ -1784,8 +2178,7 @@ function StaffDashboardContent() {
                         className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none"
                       >
                         <option value="users">Icon: Users (Local hosts)</option>
-                        <option value="receipt">Icon: Receipt (Transparent pricing)</option>
-                        <option value="qr">Icon: QR Code (Flexible payment)</option>
+                        <option value="receipt">Icon: Receipt (Flexible payment)</option>
                         <option value="ticket">Icon: Ticket (Zero-friction booking)</option>
                         <option value="support">Icon: Support (24/7 human support)</option>
                         <option value="shield">Icon: Shield (Money security)</option>
@@ -2475,16 +2868,31 @@ function StaffDashboardContent() {
                         placeholder="Role / Title"
                         className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 outline-none focus:border-emerald-600"
                       />
-                      <input
-                        value={member.image_url || ""}
-                        onChange={(e) => {
-                          const updated = [...(aboutCms.team || [])];
-                          updated[idx] = { ...updated[idx], image_url: e.target.value };
-                          setAboutCms({ ...aboutCms, team: updated });
-                        }}
-                        placeholder="Custom Image URL (optional)"
-                        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] text-slate-600 outline-none focus:border-emerald-600"
-                      />
+                      <div className="space-y-1">
+                        <input
+                          value={member.image_url || ""}
+                          onChange={(e) => {
+                            const updated = [...(aboutCms.team || [])];
+                            updated[idx] = { ...updated[idx], image_url: e.target.value };
+                            setAboutCms({ ...aboutCms, team: updated });
+                          }}
+                          placeholder="Google Drive link or any image URL"
+                          className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] text-slate-600 outline-none focus:border-emerald-600"
+                        />
+                        {member.image_url && (
+                          <div className="flex items-center gap-2 rounded bg-slate-100 p-1">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={normalizeImageUrl(member.image_url)}
+                              alt="Preview"
+                              className="h-7 w-7 rounded-full object-cover border border-slate-300 shrink-0"
+                            />
+                            <span className="text-[10px] text-slate-500 truncate">
+                              {member.image_url.includes("drive.google.com") ? "Google Drive ✓" : "Direct URL ✓"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       <textarea
                         rows={3}
                         value={member.bio}
@@ -2502,11 +2910,11 @@ function StaffDashboardContent() {
               </div>
             </div>
 
-            {/* 4. Payment & QR Clearance Explainer */}
+            {/* 4. Payment & Settlement Explainer */}
             <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
               <div className="border-b border-slate-100 pb-2">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">4. Payment & QR Clearance Section</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Explains the transparent partial advance and on-tour QR settlement</p>
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">4. Payment & Settlement Section</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Explains the transparent partial advance and on-tour balance settlement</p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -2932,7 +3340,7 @@ function StaffDashboardContent() {
                     <th className="px-4 py-3">Tour Details</th>
                     <th className="px-4 py-3">Paid / Total / Due</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Clearance QR</th>
+                    <th className="px-4 py-3 text-right">Booking Pass</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -2956,6 +3364,11 @@ function StaffDashboardContent() {
                           <div className="text-xs text-slate-500">
                             {b.traveler_count} traveler(s) · {b.departure_date ? b.departure_date.slice(0, 10) : "Open"}
                           </div>
+                          {b.selected_seats && b.selected_seats.length > 0 && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
+                              Seats: {b.selected_seats.join(", ")}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-semibold text-emerald-800">{formatBDT(b.amount_paid)} paid</div>
@@ -2996,6 +3409,17 @@ function StaffDashboardContent() {
               </table>
             </div>
           </div>
+        )}
+
+        {/* ================= REPORTS & MANIFEST TAB ================= */}
+        {activeTab === "reports" && (
+          <TourReportManager
+            bookings={bookings}
+            tours={tours}
+            destinations={destinations}
+            customers={customers}
+            currentUser={user}
+          />
         )}
 
         {/* ================= USERS / TRAVELERS TAB ================= */}
@@ -3183,52 +3607,52 @@ function StaffDashboardContent() {
 
             {/* Whole Details Modal / Drawer */}
             {selectedCustomer && (
-              <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+                <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full my-4 sm:my-8 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl">
                   {/* Modal Header */}
-                  <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-start justify-between gap-4 z-10">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white font-bold text-2xl shadow-sm">
+                  <div className="sticky top-0 bg-white border-b border-slate-100 p-3.5 sm:p-6 flex items-start justify-between gap-3 sm:gap-4 z-10">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white font-bold text-lg sm:text-2xl shadow-sm shrink-0">
                         {selectedCustomer.full_name?.charAt(0).toUpperCase() || "T"}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold text-slate-900">{selectedCustomer.full_name}</h3>
-                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <h3 className="text-base sm:text-lg font-bold text-slate-900">{selectedCustomer.full_name}</h3>
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold">
                             Verified Traveler
                           </span>
                         </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 sm:gap-x-3 text-[11px] sm:text-xs text-slate-500">
                           <span className="font-mono font-medium text-slate-700">{selectedCustomer.phone_number}</span>
                           <span>•</span>
-                          <span>{selectedCustomer.email || "No email on record"}</span>
-                          <span>•</span>
-                          <span>Joined: {new Date(selectedCustomer.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                          <span className="truncate max-w-[140px] sm:max-w-none">{selectedCustomer.email || "No email on record"}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="hidden sm:inline">Joined: {new Date(selectedCustomer.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                         </div>
                       </div>
                     </div>
                     <button
                       onClick={() => setSelectedCustomer(null)}
-                      className="rounded-lg p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition text-base font-bold"
+                      className="rounded-lg p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition text-base font-bold shrink-0"
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="p-6 space-y-6">
+                  <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-6">
                     {/* Financial Summary Card */}
-                    <div className="grid grid-cols-3 gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
                       <div>
-                        <p className="text-xs text-slate-500">Total Bookings</p>
-                        <p className="text-lg font-bold text-slate-900">{selectedCustomer.bookings_count || 0}</p>
+                        <p className="text-[11px] sm:text-xs text-slate-500">Total Bookings</p>
+                        <p className="text-base sm:text-lg font-bold text-slate-900">{selectedCustomer.bookings_count || 0}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Total Amount Paid</p>
-                        <p className="text-lg font-bold text-emerald-700">{formatBDT(selectedCustomer.total_spent || 0)}</p>
+                        <p className="text-[11px] sm:text-xs text-slate-500">Total Amount Paid</p>
+                        <p className="text-base sm:text-lg font-bold text-emerald-700">{formatBDT(selectedCustomer.total_spent || 0)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Pending Amount Due</p>
-                        <p className="text-lg font-bold text-amber-700">{formatBDT(selectedCustomer.total_due || 0)}</p>
+                        <p className="text-[11px] sm:text-xs text-slate-500">Pending Amount Due</p>
+                        <p className="text-base sm:text-lg font-bold text-amber-700">{formatBDT(selectedCustomer.total_due || 0)}</p>
                       </div>
                     </div>
 
@@ -3274,7 +3698,14 @@ function StaffDashboardContent() {
                                 </div>
                                 <div>
                                   <span className="text-slate-400 block">Travelers:</span>
-                                  <span className="font-medium text-slate-800">{b.traveler_count} person(s)</span>
+                                  <span className="font-medium text-slate-800">
+                                    {b.traveler_count} person(s)
+                                    {b.selected_seats && b.selected_seats.length > 0 && (
+                                      <span className="block text-[11px] text-emerald-700 font-semibold">
+                                        Seats: {b.selected_seats.join(", ")}
+                                      </span>
+                                    )}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-slate-400 block">Paid:</span>
@@ -3317,6 +3748,11 @@ function StaffDashboardContent() {
                                   </span>
                                 </div>
                                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">{act.description}</p>
+                                {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
+                                  <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
+                                    Seats: {(act.metadata.selected_seats as string[]).join(", ")}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -3544,7 +3980,7 @@ function StaffDashboardContent() {
                   <input
                     type="number"
                     name="total_seats"
-                    defaultValue={tourModal.tour?.total_seats || 14}
+                    defaultValue={tourModal.tour?.total_seats || 40}
                     className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>
@@ -3569,15 +4005,13 @@ function StaffDashboardContent() {
                 </label>
               </div>
 
-              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
-                Cover Photo URL
-                <input
-                  name="hero_image"
-                  defaultValue={tourModal.tour?.hero_image || ""}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                  placeholder="https://images.unsplash.com/..."
-                />
-              </label>
+              <ImageUrlInput
+                label="Cover Photo URL"
+                name="hero_image"
+                defaultValue={tourModal.tour?.hero_image || ""}
+                placeholder="Google Drive link or any custom image URL (https://...)"
+                helperText="Supports Google Drive share links ('Anyone with the link can view'), Dropbox, or any direct image URL."
+              />
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                 Short Description
@@ -3741,25 +4175,22 @@ function StaffDashboardContent() {
                 />
               </label>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
-                  Cover Photo URL
-                  <input
-                    name="cover_image"
-                    defaultValue={destModal.destination?.cover_image || ""}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                    placeholder="https://..."
-                  />
-                </label>
-                <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
-                  Recommended Lodging
-                  <input
-                    name="recommended_accommodation"
-                    defaultValue={destModal.destination?.recommended_accommodation || "Eco Beach Resort"}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                  />
-                </label>
-              </div>
+              <ImageUrlInput
+                label="Cover Photo URL"
+                name="cover_image"
+                defaultValue={destModal.destination?.cover_image || ""}
+                placeholder="Google Drive link or any custom image URL (https://...)"
+                helperText="Supports Google Drive share links ('Anyone with the link can view'), Dropbox, or any direct image URL."
+              />
+
+              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                Recommended Lodging
+                <input
+                  name="recommended_accommodation"
+                  defaultValue={destModal.destination?.recommended_accommodation || "Eco Beach Resort"}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                 Travel Guidelines & Tips
@@ -3868,25 +4299,23 @@ function StaffDashboardContent() {
                 </label>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
-                  Cover Image URL
-                  <input
-                    name="hero_image"
-                    defaultValue={blogModal.post?.cover_image || blogModal.post?.hero_image || ""}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                  />
-                </label>
-                <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
-                  Estimated Read Time (minutes)
-                  <input
-                    type="number"
-                    name="read_time_minutes"
-                    defaultValue={blogModal.post?.read_time_minutes || 5}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                  />
-                </label>
-              </div>
+              <ImageUrlInput
+                label="Cover Image URL"
+                name="hero_image"
+                defaultValue={blogModal.post?.cover_image || blogModal.post?.hero_image || ""}
+                placeholder="Google Drive link or any custom image URL (https://...)"
+                helperText="Supports Google Drive share links ('Anyone with the link can view'), Dropbox, or any direct image URL."
+              />
+
+              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                Estimated Read Time (minutes)
+                <input
+                  type="number"
+                  name="read_time_minutes"
+                  defaultValue={blogModal.post?.read_time_minutes || 5}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                />
+              </label>
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                 Article Excerpt / Preview Summary
@@ -4036,6 +4465,14 @@ function StaffDashboardContent() {
                 />
               </label>
 
+              <ImageUrlInput
+                label="Banner Image URL (optional)"
+                name="banner_image"
+                defaultValue={offerModal.offer?.banner_image || ""}
+                placeholder="Google Drive link or any custom image URL (https://...)"
+                helperText="Displayed at the top of the special offer card across the website."
+              />
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                   Valid From
@@ -4140,6 +4577,14 @@ function StaffDashboardContent() {
                   className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                 />
               </label>
+
+              <ImageUrlInput
+                label="Customer Photo / Avatar URL (optional)"
+                name="author_avatar"
+                defaultValue={reviewModal.review?.author_avatar || reviewModal.review?.customer_photo || ""}
+                placeholder="Google Drive link or any custom image URL (https://...)"
+                helperText="Shown next to traveler review across the website."
+              />
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                 Customer Testimonial Quote *

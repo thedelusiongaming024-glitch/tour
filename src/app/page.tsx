@@ -98,6 +98,9 @@ export default async function Home() {
     <>
       {/* ============ HERO ============ */}
       <HomeHero
+        mediaType={homeCms.hero_media_type ?? (heroContent.hero_media_type as "slideshow" | "video") ?? (heroContent.media_type as "slideshow" | "video") ?? "slideshow"}
+        videoUrl={homeCms.hero_video_url || str(heroContent, "hero_video_url") || str(heroContent, "video_url")}
+        slides={homeCms.hero_slides && homeCms.hero_slides.length > 0 ? homeCms.hero_slides : (Array.isArray(heroContent.slides) ? (heroContent.slides as any) : undefined)}
         eyebrow={homeCms.hero_eyebrow || str(heroContent, "eyebrow")}
         headline={homeCms.hero_headline || str(heroContent, "headline")}
         highlight={homeCms.hero_highlight || str(heroContent, "highlight")}

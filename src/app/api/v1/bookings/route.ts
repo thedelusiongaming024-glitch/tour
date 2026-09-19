@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       customer_phone_number,
       customer_email,
       special_requests,
+      selected_seats,
     } = body;
 
     if (!tour_id) {
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ customer_phone_number: ["Phone number is required."] }, { status: 400 });
     }
 
-    const { booking, customer } = createBooking({
+    const { booking, customer } = await createBooking({
       tour_id,
       departure_id,
       traveler_count: Math.max(1, Number(traveler_count) || 1),
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       customer_phone_number,
       customer_email,
       special_requests,
+      selected_seats: Array.isArray(selected_seats) ? selected_seats : undefined,
     });
 
     const customer_token = generateCustomerToken(customer);

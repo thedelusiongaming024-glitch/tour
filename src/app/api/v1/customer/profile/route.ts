@@ -70,7 +70,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { full_name, email } = body;
 
-    const updated = updateCustomer(customer.id, {
+    const updated = await updateCustomer(customer.id, {
       full_name: typeof full_name === "string" ? full_name.trim() : undefined,
       email: typeof email === "string" ? email.trim() : undefined,
     });

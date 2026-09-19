@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const post = saveBlogPost(body);
+    const post = await saveBlogPost(body);
     return NextResponse.json(post, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to save blog post.";

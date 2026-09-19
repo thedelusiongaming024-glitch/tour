@@ -24,6 +24,8 @@ export interface DbDeparture {
   id: string;
   departure_date: string;
   seats_remaining: number;
+  total_seats?: number;
+  booked_seats?: string[];
   is_active: boolean;
 }
 
@@ -153,7 +155,7 @@ export interface AboutPageCmsContent {
   team_title?: string;
   team?: AboutTeamMember[];
   
-  // Payment & QR Clearance
+  // Payment & Settlement
   payment_badge?: string;
   payment_title?: string;
   payment_description?: string;
@@ -180,8 +182,18 @@ export interface ServiceItem {
   href?: string;
 }
 
+export interface HeroSlideItem {
+  id: string;
+  image_url: string;
+  title: string;
+  subtitle?: string;
+}
+
 export interface HomePageCmsContent {
   // 1. Hero
+  hero_media_type?: "slideshow" | "video";
+  hero_video_url?: string;
+  hero_slides?: HeroSlideItem[];
   hero_eyebrow?: string;
   hero_headline?: string;
   hero_highlight?: string;
@@ -308,6 +320,7 @@ export interface DbTraveler {
   full_name: string;
   age?: number;
   nid_or_birth_cert?: string;
+  seat_number?: string;
   is_lead_traveler: boolean;
 }
 
@@ -321,6 +334,7 @@ export interface DbBooking {
   departure_id?: string;
   departure_date?: string;
   traveler_count: number;
+  selected_seats?: string[];
   unit_price: string;
   total_price: string;
   final_price: string;
@@ -335,6 +349,7 @@ export interface DbBooking {
   customer_full_name: string;
   customer_phone_number: string;
   customer_email: string;
+  pickup_point?: string;
   special_requests?: string;
   travelers: DbTraveler[];
   created_at: string;
@@ -364,7 +379,7 @@ export interface DbClearanceTicket {
   is_cleared: boolean;
   cleared_at?: string;
   cleared_by_staff_id?: string;
-  clearance_method?: "host_qr_scan" | "customer_self_pay" | "host_cash" | "verification_only";
+  clearance_method?: "host_verification" | "host_qr_scan" | "customer_self_pay" | "host_cash" | "verification_only";
   created_at: string;
 }
 

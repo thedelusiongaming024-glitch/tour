@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "id and block_type are required." }, { status: 400 });
     }
 
-    const updated = saveHomepageBlock(id, block_type, content || {});
+    const updated = await saveHomepageBlock(id, block_type, content || {});
     return NextResponse.json(updated);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to save CMS block.";

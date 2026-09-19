@@ -58,7 +58,13 @@ export default async function ToursPage({
   // mismatch between the live API and this static chip list, not
   // something a filtering fix alone can resolve without deciding on and
   // aligning a single canonical category list across both.
-  const tours = activeCategory === "All" ? allTours : allTours.filter((t) => t.category === activeCategory);
+  const tours = activeCategory === "All"
+    ? allTours
+    : allTours.filter((t) => {
+        const catA = (t.category || "").toLowerCase();
+        const catB = activeCategory.toLowerCase();
+        return catA === catB || catA.includes(catB) || catB.includes(catA);
+      });
 
   return (
     <>

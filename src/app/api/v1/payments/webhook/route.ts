@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     if (status === "VALID" || status === "SUCCESS") {
-      const result = confirmPaymentSuccess(tran_id, val_id, card_type);
+      const result = await confirmPaymentSuccess(tran_id, val_id, card_type);
       return NextResponse.json({
         status: "success",
         message: "Payment confirmed successfully.",

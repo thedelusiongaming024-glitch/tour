@@ -39,7 +39,7 @@ export async function POST(
     }
 
     if (method === "host_cash") {
-      const result = clearTicketOnTourDay(bookingId, "host_cash");
+      const result = await clearTicketOnTourDay(bookingId, "host_cash");
       return NextResponse.json({
         status: "cleared",
         message: "Payment cleared via on-site cash collection.",
@@ -54,15 +54,37 @@ export async function POST(
     }
 
     // Initiate final balance payment session
-    const payment = createPayment({
+    const payment = await createPayment({
       booking_id: booking.id,
       amount: booking.amount_due,
       payment_type: "final",
-      payment_method: method === "host_qr_scan" ? "host_pos" : "customer_self_pay",
+      payment_method: method === "host_verification" || method === "host_qr_scan" ? "host_pos" : "customer_self_pay",
     });
 
     const origin = new URL(request.url).origin;
-    const redirect_url = `${origin}/payments/simulator?tran_id=${payment.tran_id}&amount=${payment.amount}&reference=${booking.reference}&title=${encodeURIComponent(booking.tour_title + " (Balance Due)")}`;
+    let redirect_url: string;
+
+    const { initiateSSLCommerzPayment, isSSLCommerzConfigured } = await import("@/lib/sslcommerz");
+
+    if (isSSLCommerzConfigured() && method === "customer_self_pay") {
+      const sslRes = await initiateSSLCommerzPayment({
+        tran_id: payment.tran_id,
+        amount: payment.amount,
+        cus_name: booking.customer_full_name,
+        cus_phone: booking.customer_phone_number,
+        cus_email: booking.customer_email,
+        tour_title: `${booking.tour_title} (Balance)`,
+        origin,
+      });
+
+      if (sslRes.success && sslRes.gatewayUrl) {
+        redirect_url = sslRes.gatewayUrl;
+      } else {
+        redirect_url = `${origin}/payments/simulator?tran_id=${payment.tran_id}&amount=${payment.amount}&reference=${booking.reference}&title=${encodeURIComponent(booking.tour_title + " (Balance Due)")}`;
+      }
+    } else {
+      redirect_url = `${origin}/payments/simulator?tran_id=${payment.tran_id}&amount=${payment.amount}&reference=${booking.reference}&title=${encodeURIComponent(booking.tour_title + " (Balance Due)")}`;
+    }
 
     return NextResponse.json(
       {

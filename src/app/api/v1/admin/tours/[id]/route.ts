@@ -14,7 +14,7 @@ export async function PUT(
   try {
     const { id } = await props.params;
     const body = await request.json();
-    const tour = saveTour({ ...body, id });
+    const tour = await saveTour({ ...body, id });
     return NextResponse.json(tour);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update tour.";
@@ -32,7 +32,7 @@ export async function DELETE(
   }
 
   const { id } = await props.params;
-  const ok = deleteTour(id);
+  const ok = await deleteTour(id);
   if (!ok) {
     return NextResponse.json({ detail: "Tour not found." }, { status: 404 });
   }

@@ -127,7 +127,7 @@ export default async function TourPage({ params }: PageProps) {
                   Book this tour
                 </Link>
                 <p className="mt-3 text-center text-xs text-ink-faint">
-                  Balance settled by QR scan or online on tour day
+                  Balance settled online or in cash on tour day
                 </p>
               </div>
             </div>
@@ -284,7 +284,7 @@ export default async function TourPage({ params }: PageProps) {
               <div className="relative z-10 flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
                 <div className="flex items-start gap-4">
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-                    <Icon name="qr" className="h-6 w-6" />
+                    <Icon name="ticket" className="h-6 w-6" />
                   </span>
                   <div>
                     <h2 className="font-display text-xl font-semibold">
@@ -292,9 +292,9 @@ export default async function TourPage({ params }: PageProps) {
                     </h2>
                     <p className="mt-1 max-w-xl text-sm leading-relaxed text-emerald-50/90">
                       Book with a {tour.advancePercent}% advance ({formatBDT(advance)})
-                      via bKash, Nagad, or card. Your e-ticket and personal QR
-                      code arrive instantly on WhatsApp and email. On tour day,
-                      clear the remaining balance by QR scan or online — with
+                      via bKash, Nagad, or card. Your digital e-ticket and booking voucher
+                      arrive instantly on WhatsApp and email. On tour day,
+                      clear the remaining balance online or in cash with your host — with
                       confirmation sent to both you and our team.
                     </p>
                   </div>

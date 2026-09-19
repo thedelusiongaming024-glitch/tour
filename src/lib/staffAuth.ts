@@ -120,11 +120,16 @@ async function refreshStaffAccessToken(): Promise<string | null> {
  * check fires cleanly instead of leaving a half-valid session around.
  */
 export async function staffFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  // Normalize trailing slash to match Next.js App Router route conventions without 308 redirects
+  const cleanPath = path.includes("?")
+    ? path.replace(/\/+\?/, "?")
+    : path.replace(/\/+$/, "");
+
   const doFetch = (token: string | null) => {
     const headers = new Headers(init.headers);
     if (token) headers.set("Authorization", `Bearer ${token}`);
     if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-    return fetch(`${API_BASE}${path}`, { ...init, headers });
+    return fetch(`${API_BASE}${cleanPath}`, { ...init, headers });
   };
 
   const token = getStaffToken();

@@ -4,11 +4,11 @@
       "id": "dest_bandarban",
       "name": "Bandarban",
       "slug": "bandarban",
-      "division": "Chattogram",
-      "tagline": "Land of the Clouds",
+      "division": "chattogram",
+      "tagline": "",
       "description": "Bandarban is a hill district famous for its misty peaks, tribal culture, and lush valleys, offering some of the most scenic trekking routes in Bangladesh.",
       "best_time_to_visit": "October to March",
-      "weather_notes": "Cool and dry in winter; heavy monsoon rain June-September",
+      "weather_notes": "Pleasant and breezy",
       "popular_attractions": [
         "Nilgiri",
         "Nilachal",
@@ -18,205 +18,11 @@
       ],
       "recommended_accommodation": "Hill resorts and cottages in Nilgiri/Milanchari area",
       "travel_tips": "Carry warm clothing for early morning hill viewpoints; roads can be steep and winding",
-      "permits_required": "Special permit required for Thanchi, Ruma and deep hill-tract routes",
-      "cover_image": "https://example-cdn.atithi.com/destinations/bandarban-cover.jpg",
+      "permits_required": "None",
+      "cover_image": "https://cdn.pixabay.com/photo/2019/02/08/11/44/landscape-3983105_1280.jpg",
       "cover_video_url": null,
-      "seo_title": null,
+      "seo_title": "Bandarban Travel Guide | Atithi",
       "seo_description": null,
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "dest_coxsbazar",
-      "name": "Cox's Bazar",
-      "slug": "coxs-bazar",
-      "division": "Chattogram",
-      "tagline": "World's Longest Sea Beach",
-      "description": "Cox's Bazar offers an unbroken 120km sandy beach along with island getaways like Saint Martin and Inani.",
-      "best_time_to_visit": "November to February",
-      "weather_notes": "Warm and dry in winter; rough seas and monsoon rains June-September",
-      "popular_attractions": [
-        "Laboni Beach",
-        "Himchari",
-        "Inani Beach",
-        "Saint Martin Island",
-        "Marine Drive"
-      ],
-      "recommended_accommodation": "Beachfront hotels along Marine Drive and Kolatoli",
-      "travel_tips": "Sunrise at Sugandha Point and sunset at Laboni Point are must-sees",
-      "permits_required": "None for the mainland beach; NOC required for Saint Martin during restricted seasons",
-      "cover_image": "https://example-cdn.atithi.com/destinations/coxs-bazar-cover.jpg",
-      "cover_video_url": null,
-      "seo_title": null,
-      "seo_description": null,
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "dest_rangamati",
-      "name": "Rangamati",
-      "slug": "rangamati",
-      "division": "Chattogram",
-      "tagline": "Lake District of the Hills",
-      "description": "Rangamati sits on the shores of Kaptai Lake, offering boat rides, hanging bridges, and indigenous Chakma culture.",
-      "best_time_to_visit": "November to February",
-      "weather_notes": "Warm days, cool evenings in winter; heavy rainfall in monsoon",
-      "popular_attractions": [
-        "Kaptai Lake",
-        "Hanging Bridge",
-        "Shuvolong Waterfall",
-        "Rajban Vihara",
-        "Peda Ting Ting"
-      ],
-      "recommended_accommodation": "Lake-view resorts and floating cottages near the hanging bridge",
-      "travel_tips": "Book a boat early for a full-day Kaptai Lake and Shuvolong tour",
-      "permits_required": "ID verification required for some restricted zones",
-      "cover_image": "https://example-cdn.atithi.com/destinations/rangamati-cover.jpg",
-      "cover_video_url": null,
-      "seo_title": null,
-      "seo_description": null,
-      "gallery": [],
-      "is_featured": false,
-      "status": "published"
-    },
-    {
-      "id": "dest_sajek",
-      "name": "Sajek Valley",
-      "slug": "sajek",
-      "division": "Chattogram",
-      "tagline": "The Kingdom of Clouds",
-      "description": "Sajek Valley is situated in the north of Chittagong Hill Tracts, surrounded by lush green mountains and drifting clouds with breathtaking panoramic viewpoints.",
-      "best_time_to_visit": "September to February",
-      "weather_notes": "Crisp and misty in morning; sea of clouds visible throughout monsoon and autumn",
-      "popular_attractions": [
-        "Konglak Peak",
-        "Ruilui Para",
-        "Helipad Sunset Point",
-        "Stone Garden",
-        "Lusai Village"
-      ],
-      "recommended_accommodation": "Eco-cottages and wooden mountain resorts along Ruilui Ridge",
-      "travelTips": [
-        "Reach Dighinala military convoy point before 10 AM or 3 PM",
-        "Bring power bank as electricity can be intermittent"
-      ],
-      "permits_required": "Convoy escort mandatory from Dighinala to Sajek",
-      "cover_image": "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=1200&q=80",
-      "cover_video_url": null,
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "dest_sylhet",
-      "name": "Sylhet",
-      "slug": "sylhet",
-      "division": "Sylhet",
-      "tagline": "Land of Two Leaves and a Bud",
-      "description": "Sylhet is home to rolling green tea gardens, crystalline freshwater springs like Jaflong, and the mystical Ratargul freshwater swamp forest.",
-      "best_time_to_visit": "June to October for waterfalls and swamps; November to March for tea gardens",
-      "weather_notes": "Highest rainfall in Bangladesh during monsoon; cool and pleasant in winter",
-      "popular_attractions": [
-        "Ratargul Swamp Forest",
-        "Jaflong Zero Point",
-        "Bisnakandi",
-        "Bholaganj Sada Pathor",
-        "Hazrat Shah Jalal Mazar"
-      ],
-      "recommended_accommodation": "Luxury eco-resorts in Sylhet outskirts or boutique hotels in city center",
-      "travelTips": [
-        "Rent private country boats with lifejackets for Ratargul swamp",
-        "Water shoes recommended for rocky stream beds"
-      ],
-      "permits_required": "None for domestic travelers; border zone caution near Jaflong and Bisnakandi",
-      "cover_image": "https://images.unsplash.com/photo-1608958435020-e8a7109ba809?w=1200&q=80",
-      "cover_video_url": null,
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "dest_sreemangal",
-      "name": "Sreemangal",
-      "slug": "sreemangal",
-      "division": "Sylhet",
-      "tagline": "Tea Capital of Bangladesh",
-      "description": "Endless hills carpeted with emerald tea bushes, rubber plantations, and the primate-rich canopy of Lawachara National Park.",
-      "best_time_to_visit": "October to March",
-      "weather_notes": "Morning fog in winter; vibrant greenery year-round",
-      "popular_attractions": [
-        "Lawachara National Park",
-        "Madhobpur Lake",
-        "Baikka Beel Bird Sanctuary",
-        "Finlay Tea Estate",
-        "Nilkantha 7-Layer Tea"
-      ],
-      "recommended_accommodation": "Tea estate heritage bungalows and forest cottages",
-      "travelTips": [
-        "Cycle through tea gardens in the early morning",
-        "Hire certified forest guard for Lawachara trekking"
-      ],
-      "permits_required": "Park entry ticket for Lawachara and Baikka Beel sanctuary",
-      "cover_image": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&q=80",
-      "cover_video_url": null,
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "dest_sundarbans",
-      "name": "Sundarbans",
-      "slug": "sundarbans",
-      "division": "Khulna",
-      "tagline": "The World's Largest Mangrove Forest",
-      "description": "A UNESCO World Heritage sanctuary where tidal waterways wind through dense mangrove forests, home to the Royal Bengal tiger, spotted deer, and saltwater crocodiles.",
-      "best_time_to_visit": "November to February",
-      "weather_notes": "Pleasant river breeze in winter; calm sea and safe canal cruising",
-      "popular_attractions": [
-        "Kotka Wildlife Sanctuary",
-        "Kachikhali Wildlife Zone",
-        "Harbaria Eco-Tourism Centre",
-        "Karamjal Crocodile Breeding Station",
-        "Hiron Point"
-      ],
-      "recommended_accommodation": "Cabin accommodation aboard specialized river cruise vessels",
-      "travelTips": [
-        "Always follow armed forest guards on jungle walking trails",
-        "Carry binoculars for birdwatching and wildlife spotting"
-      ],
-      "permits_required": "Forest Department entry permit and armed forest guard mandatory",
-      "cover_image": "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200&q=80",
-      "cover_video_url": null,
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "dest_saintmartin",
-      "name": "Saint Martin Island",
-      "slug": "saint-martin",
-      "division": "Chattogram",
-      "tagline": "Coral Paradise of Bangladesh",
-      "description": "A serene tropical island situated in the southernmost part of Bangladesh, surrounded by turquoise waters, coral reefs, and coconut groves.",
-      "best_time_to_visit": "November to February",
-      "weather_notes": "Sunny and breezy in winter; ferry services operate during these months only",
-      "popular_attractions": [
-        "Chera Dwip",
-        "West Beach Sunset",
-        "Coral Reef Snorkeling",
-        "Marine Turtle Breeding",
-        "Coconut Groves"
-      ],
-      "recommended_accommodation": "Beachfront eco-resorts and thatched seaside cottages",
-      "travelTips": [
-        "Pre-book sea truck tickets from Teknaf / Cox's Bazar",
-        "Respect coral ecosystem and refrain from walking on living coral"
-      ],
-      "permits_required": "Standard ship ticket with passenger travel registration",
-      "cover_image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
-      "cover_video_url": null,
       "gallery": [],
       "is_featured": true,
       "status": "published"
@@ -229,7 +35,7 @@
       "slug": "bandarban-hill-cloud-package",
       "destination_slug": "bandarban",
       "destination_name": "Bandarban",
-      "category": "package_tour",
+      "category": "group_tour",
       "short_description": "A 3-day escape through Nilgiri, Nilachal and Chimbuk with a resort stay and jeep tour included.",
       "full_description": "A 3-day escape through Nilgiri, Nilachal and Chimbuk with a resort stay and jeep tour included.",
       "hero_image": "https://example-cdn.atithi.com/tours/bandarban-hero.jpg",
@@ -237,11 +43,11 @@
       "duration_nights": 2,
       "base_price": "6500",
       "discount_type": "flat",
-      "discount_value": "500",
-      "final_price": "6000",
+      "discount_value": "1000",
+      "final_price": "5500",
       "allow_partial_payment": true,
       "advance_payment_percent": "40",
-      "advance_amount": "2600",
+      "advance_amount": "2200",
       "inclusions": [
         "AC bus ticket",
         "2 nights hotel",
@@ -259,435 +65,40 @@
       "meeting_point": "Dhaka Sayedabad / Fakirapool",
       "departure_schedule": "Every Friday 7:00 AM",
       "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Arrival & Nilachal Sunset",
-          "details": "Check-in, evening at Nilachal viewpoint"
-        },
-        {
-          "day": 2,
-          "title": "Nilgiri & Chimbuk Hill Jeep Tour",
-          "details": "Full-day jeep tour to Nilgiri and Chimbuk"
-        },
-        {
-          "day": 3,
-          "title": "Golden Temple & Departure",
-          "details": "Visit Buddha Dhatu Jadi, return journey"
-        }
-      ],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "tour_car_rental_dhaka",
-      "title": "Chander Gari / Jeep Rental Service",
-      "slug": "jeep-chander-gari-rental",
-      "destination_slug": "bandarban",
-      "destination_name": "Bandarban",
-      "category": "car_rental",
-      "short_description": "Full-day private jeep rental for hill-tract sightseeing routes.",
-      "full_description": "Full-day private jeep rental for hill-tract sightseeing routes.",
-      "hero_image": "https://example-cdn.atithi.com/tours/jeep-rental-hero.jpg",
-      "duration_days": 1,
-      "duration_nights": 0,
-      "base_price": "3500",
-      "discount_type": "none",
-      "discount_value": "0",
-      "final_price": "3500",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "50",
-      "advance_amount": "1750",
-      "inclusions": [
-        "Private jeep",
-        "Driver",
-        "Fuel"
-      ],
-      "exclusions": [
-        "Entry tickets",
-        "Meals"
-      ],
-      "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC Bus / Private Jeep",
-      "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka Sayedabad / Fakirapool",
-      "departure_schedule": "Every Friday 7:00 AM",
-      "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Full Day Jeep Tour",
-          "details": "Pickup, sightseeing, drop-off"
-        }
-      ],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": false,
-      "status": "published"
-    },
-    {
-      "id": "tour_coxsbazar_3d2n",
-      "title": "Cox's Bazar Beach & Sunset Package",
-      "slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar",
-      "destination_name": "Coxs-bazar",
-      "category": "package_tour",
-      "short_description": "A relaxing 3-day beach holiday covering Himchari, Inani Beach and Marine Drive.",
-      "full_description": "A relaxing 3-day beach holiday covering Himchari, Inani Beach and Marine Drive.",
-      "hero_image": "https://example-cdn.atithi.com/tours/coxsbazar-hero.jpg",
-      "duration_days": 3,
-      "duration_nights": 2,
-      "base_price": "7500",
-      "discount_type": "flat",
-      "discount_value": "1000",
-      "final_price": "6500",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "40",
-      "advance_amount": "3000",
-      "inclusions": [
-        "AC bus ticket",
-        "2 nights hotel",
-        "Marine Drive car rental",
-        "Breakfast x2"
-      ],
-      "exclusions": [
-        "Lunch and dinner",
-        "Entry tickets",
-        "Water activities"
-      ],
-      "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC Bus / Private Jeep",
-      "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka Sayedabad / Fakirapool",
-      "departure_schedule": "Every Friday 7:00 AM",
-      "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Arrival & Laboni Beach",
-          "details": "Check-in, evening at Laboni Point"
-        },
-        {
-          "day": 2,
-          "title": "Himchari & Inani Beach",
-          "details": "Marine Drive tour to Himchari waterfall and Inani Beach"
-        },
-        {
-          "day": 3,
-          "title": "Sugandha Point Sunrise & Departure",
-          "details": "Sunrise viewing, return journey"
-        }
-      ],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "tour_rangamati_2d1n",
-      "title": "Rangamati Kaptai Lake Tour",
-      "slug": "rangamati-kaptai-lake-tour",
-      "destination_slug": "rangamati",
-      "destination_name": "Rangamati",
-      "category": "package_tour",
-      "short_description": "Explore Kaptai Lake, the Hanging Bridge, and Shuvolong Waterfall on a scenic boat tour.",
-      "full_description": "Explore Kaptai Lake, the Hanging Bridge, and Shuvolong Waterfall on a scenic boat tour.",
-      "hero_image": "https://example-cdn.atithi.com/tours/rangamati-hero.jpg",
-      "duration_days": 2,
-      "duration_nights": 1,
-      "base_price": "4200",
-      "discount_type": "flat",
-      "discount_value": "200",
-      "final_price": "4000",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "40",
-      "advance_amount": "1600",
-      "inclusions": [
-        "AC bus ticket",
-        "1 night hotel",
-        "Full-day boat rental",
-        "Breakfast x1"
-      ],
-      "exclusions": [
-        "Lunch and dinner",
-        "Entry tickets"
-      ],
-      "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC Bus / Private Jeep",
-      "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka Sayedabad / Fakirapool",
-      "departure_schedule": "Every Friday 7:00 AM",
-      "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Hanging Bridge & Lake Cruise",
-          "details": "Check-in, evening lake cruise"
-        },
-        {
-          "day": 2,
-          "title": "Shuvolong Waterfall",
-          "details": "Full-day boat trip to Shuvolong, departure"
-        }
-      ],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": false,
-      "status": "published"
-    },
-    {
-      "id": "tour_sylhet_2d1n",
-      "title": "Sylhet Waterfall & Tea Garden Tour",
-      "slug": "sylhet-waterfall-tea-garden",
-      "destination_slug": "sylhet",
-      "destination_name": "Sylhet",
-      "category": "package_tour",
-      "short_description": "A quick 2-day trip covering Jaflong, Bisnakandi and Ratargul Swamp Forest.",
-      "full_description": "A quick 2-day trip covering Jaflong, Bisnakandi and Ratargul Swamp Forest.",
-      "hero_image": "https://example-cdn.atithi.com/tours/sylhet-hero.jpg",
-      "duration_days": 2,
-      "duration_nights": 1,
-      "base_price": "4500",
-      "discount_type": "none",
-      "discount_value": "0",
-      "final_price": "4500",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "40",
-      "advance_amount": "1800",
-      "inclusions": [
-        "AC bus ticket",
-        "1 night hotel",
-        "Boat rides",
-        "Breakfast x1"
-      ],
-      "exclusions": [
-        "Lunch and dinner",
-        "Entry tickets"
-      ],
-      "accommodation_notes": "Standard hotel / resort",
-      "transportation_notes": "AC Bus / Private Jeep",
-      "meals_notes": "Breakfast included",
-      "meeting_point": "Dhaka Sayedabad / Fakirapool",
-      "departure_schedule": "Every Friday 7:00 AM",
-      "total_seats": 14,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Jaflong & Bisnakandi",
-          "details": "Boat ride and riverside sightseeing"
-        },
-        {
-          "day": 2,
-          "title": "Ratargul & Lalakhal",
-          "details": "Swamp forest boat tour, departure"
-        }
-      ],
-      "departures": [],
-      "faqs": [],
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "tour_sajek_3d2n",
-      "title": "Sajek Valley Cloud Kingdom Tour",
-      "slug": "sajek-valley-cloud-kingdom",
-      "destination_slug": "sajek",
-      "category": "group_tour",
-      "short_description": "Witness drifting clouds right outside your balcony, climb Konglak peak, and explore tribal mountain culture.",
-      "full_description": "Experience the magic of Sajek Valley with private 4x4 Chander Gari transport from Khagrachhari, cottage stay on the Ruilui ridge, bonfire dinners, and sunrise views above the cloud line.",
-      "hero_image": "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=1200&q=80",
-      "duration_days": 3,
-      "duration_nights": 2,
-      "base_price": "9500",
-      "discount_type": "flat",
-      "discount_value": "1000",
-      "final_price": "8500",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "40",
-      "advance_amount": "3400",
-      "inclusions": [
-        "AC Bus tickets Dhaka-Khagrachhari-Dhaka",
-        "Reserved Chander Gari for 3 days",
-        "Ridge Resort Cottage stay",
-        "All meals (authentic tribal & traditional)",
-        "Army convoy clearance assistance"
-      ],
-      "exclusions": [
-        "Personal shopping and tips",
-        "Anything not mentioned in inclusions"
-      ],
-      "accommodation_notes": "Premium hilltop resort with private cloud-view balcony",
-      "transportation_notes": "AC highway sleeper bus + 4WD Mahindra Chander Gari",
-      "meals_notes": "Bamboo chicken, mountain vegetables, and traditional breakfast included",
-      "meeting_point": "Sayedabad / Fakirapool, Dhaka",
-      "departure_schedule": "Every Thursday night 10:00 PM",
-      "total_seats": 12,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Journey to Khagrachhari & Convoy into Sajek",
-          "description": "Arrive at Khagrachhari, fresh up and breakfast. Board Chander Gari and join the morning army convoy into Sajek. Check into resort and enjoy evening clouds from Helipad."
-        },
-        {
-          "day": 2,
-          "title": "Sunrise at Konglak Peak & Tribal Village Walk",
-          "description": "Early morning hike to Konglak Peak above the cloud sea. Afternoon visit to Lusai village and Stone Garden. Evening BBQ dinner and bonfire."
-        },
-        {
-          "day": 3,
-          "title": "Alutila Cave & Return Journey",
-          "description": "Morning breakfast, departure convoy to Khagrachhari. Visit mystical Alutila Cave with fire torches and Risang Waterfall. Evening bus back to Dhaka."
-        }
-      ],
+      "itinerary": [],
       "departures": [
         {
-          "id": "dep-sajek-1",
+          "id": "dep-2026-09-25-1",
+          "is_active": true,
           "departure_date": "2026-09-25",
-          "seats_remaining": 8,
-          "is_active": true
+          "seats_remaining": 8
         },
         {
-          "id": "dep-sajek-2",
+          "id": "dep-2026-10-02-2",
+          "is_active": true,
           "departure_date": "2026-10-02",
-          "seats_remaining": 10,
-          "is_active": true
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Is electricity available in Sajek?",
-          "answer": "Resorts operate on solar power and generator backup during night hours."
-        }
-      ],
-      "gallery": [],
-      "is_featured": true,
-      "status": "published"
-    },
-    {
-      "id": "tour_sundarbans_3d2n",
-      "title": "Sundarbans Mangrove Safari Cruise",
-      "slug": "sundarbans-mangrove-safari-cruise",
-      "destination_slug": "sundarbans",
-      "category": "adventure",
-      "short_description": "A 3-day deep forest river cruise through Kotka, Kochikhali, and Harbaria with certified naturalists.",
-      "full_description": "Explore the wild waterways of the world's largest mangrove forest aboard an AC cabin cruise ship. Spot deer herds, estuarine crocodiles, kingfishers, and tiger pugmarks accompanied by armed forest rangers.",
-      "hero_image": "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200&q=80",
-      "duration_days": 3,
-      "duration_nights": 2,
-      "base_price": "16500",
-      "discount_type": "flat",
-      "discount_value": "1500",
-      "final_price": "15000",
-      "allow_partial_payment": true,
-      "advance_payment_percent": "40",
-      "advance_amount": "6000",
-      "inclusions": [
-        "Cabin accommodation on cruise ship",
-        "All meals, tea, snacks, and mineral water",
-        "Forest revenue fees and armed guard charges",
-        "Small country boat silent canal cruising",
-        "Experienced naturalist guide"
-      ],
-      "exclusions": [
-        "Video camera special fees",
-        "Personal expenses"
-      ],
-      "accommodation_notes": "Twin-share air-conditioned cabin aboard luxury river cruise vessel",
-      "transportation_notes": "Dedicated cruise ship with viewing deck",
-      "meals_notes": "Fresh seafood, coastal curries, and buffet service on board",
-      "meeting_point": "Mongla Port ghat",
-      "departure_schedule": "Every Friday morning",
-      "total_seats": 18,
-      "itinerary": [
-        {
-          "day": 1,
-          "title": "Mongla Departure & Harbaria Canal Cruise",
-          "description": "Board ship at Mongla Port by 7 AM. Cruise down the Pasur River into the Sundarbans. Afternoon stop and trail walk at Harbaria Eco-Tourism Centre."
+          "seats_remaining": 6
         },
         {
-          "day": 2,
-          "title": "Kotka Wildlife Sanctuary & Jamtola Sea Beach",
-          "description": "Early morning silent canal boat ride to observe birds and wildlife. Trek through Kotka grasslands and Jamtola virgin sea beach."
+          "id": "dep-2026-10-09-3",
+          "is_active": true,
+          "departure_date": "2026-10-09",
+          "seats_remaining": 12
         },
         {
-          "day": 3,
-          "title": "Karamjal Crocodile Breeding & Return",
-          "description": "Visit Karamjal breeding center and deer farm. Afternoon cruise back to Mongla Port by 5 PM."
+          "id": "dep-2026-10-16-4",
+          "is_active": true,
+          "departure_date": "2026-10-16",
+          "seats_remaining": 6
         }
       ],
-      "departures": [
-        {
-          "id": "dep-sb-1",
-          "departure_date": "2026-09-25",
-          "seats_remaining": 12,
-          "is_active": true
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Is network available inside Sundarbans?",
-          "answer": "Mobile coverage is limited once inside the deep reserve forest, providing a peaceful digital detox."
-        }
-      ],
+      "faqs": [],
       "gallery": [],
       "is_featured": true,
       "status": "published"
     }
   ],
-  "offers": [
-    {
-      "id": "offer_winter25",
-      "title": "Winter Getaway Discount",
-      "code": "WINTER25",
-      "slug": "winter25",
-      "description": "Book your hill or beach trip before winter ends",
-      "discount_type": "percent",
-      "discount_value": "15",
-      "minimum_spend": "3000",
-      "valid_from": "2026-11-01",
-      "valid_until": "2027-02-28",
-      "banner_image": "https://example-cdn.atithi.com/offers/winter-getaway.jpg",
-      "tour_slug": null,
-      "is_active": true
-    },
-    {
-      "id": "offer_earlybird",
-      "title": "Early Bird Booking",
-      "code": "EARLY500",
-      "slug": "early500",
-      "description": "Book 30 days in advance and save",
-      "discount_type": "flat",
-      "discount_value": "500",
-      "minimum_spend": "4000",
-      "valid_from": "2026-09-01",
-      "valid_until": "2026-12-31",
-      "banner_image": "https://example-cdn.atithi.com/offers/early-bird.jpg",
-      "tour_slug": null,
-      "is_active": true
-    },
-    {
-      "id": "offer-1789442059647",
-      "title": "web dev",
-      "code": "PROMO",
-      "slug": "web-dev",
-      "description": "",
-      "discount_type": "flat",
-      "discount_value": "0",
-      "minimum_spend": "0",
-      "valid_from": "2026-09-16",
-      "valid_until": "2026-10-04",
-      "banner_image": null,
-      "tour_slug": null,
-      "is_active": true
-    }
-  ],
+  "offers": [],
   "testimonials": [
     {
       "id": "test_001",
@@ -729,74 +140,7 @@
       "is_featured": true
     }
   ],
-  "blogPosts": [
-    {
-      "id": "blog_sajek_guide",
-      "title": "The Ultimate Guide to Sajek Valley: Watching Clouds from Konglak Peak",
-      "slug": "sajek-valley-travel-guide",
-      "excerpt": "Everything you need to know about traveling to the Kingdom of Clouds — from convoy schedules to best eco-cottages on the ridge.",
-      "content": "Sajek Valley is unlike any other destination in Bangladesh. Perched high on the Mizoram border hills, it offers travelers an ethereal spectacle: waking up above a sea of rolling white clouds that lap against mountain ridges like an ocean tide.\n\n### Getting There: The Convoy System\nTravel to Sajek begins at Khagrachhari or Dighinala. Due to border geography, all civilian vehicles travel in an organized security convoy twice daily — once at 10:00 AM and again at 3:00 PM. Riding in an open-hood Mahindra 4x4 Chander Gari along the winding hill road is an adventure in itself.\n\n### Where to Stay\nThe main settlement of Ruilui Para stretches along a narrow mountain ridge. Choose cottages facing east for glorious sunrises over the cloud sea, or west for golden mountain sunsets. Wooden and bamboo cottages provide an authentic, eco-conscious aesthetic with cozy mountain hospitality.\n\n### Must-Do Experiences\n1. **Konglak Peak Hike**: A 20-minute steep walk leads to the highest accessible peak in Sajek, offering 360-degree vistas across both Bangladesh and Indian hill ranges.\n2. **Tribal Bamboo Chicken**: Sample mountain chicken marinated in forest herbs and slow-cooked inside hollow bamboo stems over charcoal.\n3. **Helipad Stargazing**: On clear nights, the Sajek sky transforms into a dazzling celestial canvas free from city light pollution.",
-      "author": "Tanvir Hasan",
-      "author_name": "Tanvir Hasan",
-      "hero_image": "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=1200&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=1200&q=80",
-      "read_time_minutes": 5,
-      "tags": [
-        "Sajek",
-        "Hill Tracts",
-        "Travel Guide",
-        "Clouds"
-      ],
-      "is_published": true,
-      "status": "published",
-      "created_at": "2026-09-16T14:19:12.468Z",
-      "published_at": "2026-09-16T14:19:12.469Z"
-    },
-    {
-      "id": "blog_sundarbans_field_notes",
-      "title": "Into the Mangroves: Field Notes from a 3-Day Sundarbans Cruise",
-      "slug": "sundarbans-mangrove-field-notes",
-      "excerpt": "Navigating the silent tidal creeks of Kotka and Kachikhali aboard a wooden expedition boat.",
-      "content": "The engine cuts out. The only sound left is the rhythmic dip of wooden oars and the distant, haunting cry of an osprey circling the canopy. Welcome to the silent channels of the Sundarbans.\n\n### The World of Sundari and Kewra\nThe Sundarbans delta is shaped by the twice-daily ebb and flow of high and low tides. Mudskippers scurry across exposed mangrove roots (pneumatophores) that point upward toward the sky like wooden needles. As our silent dinghy glided into a narrow side canal at dawn, three spotted deer paused at the water's edge, watching us with quiet curiosity.\n\n### The Kotka Trail and Jamtola Beach\nLanding at Kotka, we followed our armed forest guard along the forest watchtower trail. A clearing in the dense Sundari trees revealed fresh, unmistakable pugmarks pressed into the wet clay — a Bengal tiger had crossed this very clearing less than an hour before us.\n\nContinuing south, the forest abruptly gives way to Jamtola Beach: miles of wild, completely undeveloped coastline where crashing waves meet ancient mangrove driftwood. It is raw, solitary, and magnificent.",
-      "author": "Raisa Chowdhury",
-      "author_name": "Raisa Chowdhury",
-      "hero_image": "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200&q=80",
-      "read_time_minutes": 6,
-      "tags": [
-        "Sundarbans",
-        "Wildlife",
-        "Eco Tourism",
-        "Field Guide"
-      ],
-      "is_published": true,
-      "status": "published",
-      "created_at": "2026-09-16T14:19:12.469Z",
-      "published_at": "2026-09-16T14:19:12.469Z"
-    },
-    {
-      "id": "blog_sylhet_water_trail",
-      "title": "Chasing Clear Waters in Sylhet: Ratargul, Sada Pathor & Jaflong",
-      "slug": "sylhet-waterfalls-and-swamp-trail",
-      "excerpt": "Why monsoon in Sylhet turns northeastern Bangladesh into a water wonderland of crystalline streams and flooded forests.",
-      "content": "While many travelers avoid traveling during the rainy season, seasoned explorers in Bangladesh know the secret: Sylhet is best experienced during the monsoons.\n\n### Ratargul Freshwater Swamp\nOne of only a few freshwater swamp forests in South Asia, Ratargul spends four months of the year submerged under 15 to 20 feet of green water. Gliding on a wooden canoe beneath the flooded canopy of Millettia and snake-wood trees feels like stepping into an ancient rainforest from another era.\n\n### Sada Pathor (Bholaganj)\nAt the northern edge of Sylhet where the Dholai River emerges from the Meghalaya hills, thousands of smooth white limestone boulders lie submerged in crystal-clear mountain water. It has quickly become one of Bangladesh's most sought-after swimming destinations.\n\n### Tips for Traveling Sylhet\n- Wear water-friendly sandals with good grip\n- Bring waterproof pouches for smartphones and cameras\n- Combine Sreemangal and Sylhet into a 4-day combined itinerary for the ultimate nature escape.",
-      "author": "Mehedi Hasan",
-      "author_name": "Mehedi Hasan",
-      "hero_image": "https://images.unsplash.com/photo-1608958435020-e8a7109ba809?w=1200&q=80",
-      "cover_image": "https://images.unsplash.com/photo-1608958435020-e8a7109ba809?w=1200&q=80",
-      "read_time_minutes": 4,
-      "tags": [
-        "Sylhet",
-        "Swamp Forest",
-        "Waterfalls",
-        "Nature"
-      ],
-      "is_published": true,
-      "status": "published",
-      "created_at": "2026-09-16T14:19:12.469Z",
-      "published_at": "2026-09-16T14:19:12.469Z"
-    }
-  ],
+  "blogPosts": [],
   "homepageBlocks": [
     {
       "id": "block_hero",
@@ -883,6 +227,237 @@
         "hidden": false
       },
       "updated_at": "2026-09-15T03:12:25.351+00:00"
+    },
+    {
+      "id": "block-home-page",
+      "block_type": "home_page",
+      "display_order": 8,
+      "content": {
+        "hero_media_type": "video",
+        "hero_video_url": "https://www.youtube.com/watch?v=BSO023-1OYI&list=RDBSO023-1OYI&start_radio=1",
+        "hero_slides": [
+          {
+            "id": "slide-coxsbazar",
+            "title": "Cox's Bazar",
+            "subtitle": "World's Longest Natural Sea Beach",
+            "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-sajek",
+            "title": "Sajek Valley",
+            "subtitle": "Valley of Clouds & Green Hills",
+            "image_url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-sundarbans",
+            "title": "Sundarbans",
+            "subtitle": "World's Largest Mangrove Kingdom",
+            "image_url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-sylhet",
+            "title": "Sylhet & Sreemangal",
+            "subtitle": "Lush Rolling Tea Gardens & Waterfalls",
+            "image_url": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1920&q=80"
+          },
+          {
+            "id": "slide-stmartins",
+            "title": "Saint Martin's Island",
+            "subtitle": "Pristine Coral Island & Turquoise Sea",
+            "image_url": "https://images.unsplash.com/photo-1519046904884-53103b34b271?auto=format&fit=crop&w=1920&q=80"
+          }
+        ],
+        "hero_eyebrow": "Domestic tours across Bangladesh",
+        "hero_headline": "Discover Bangladesh,",
+        "hero_highlight": "your way",
+        "hero_subheadline": "Curated domestic tours. Trusted local hosts. Book with an advance and clear the balance on tour day.",
+        "hero_primary_cta_label": "Explore Tours",
+        "hero_primary_cta_href": "/tours",
+        "hero_secondary_cta_label": "Plan My Trip",
+        "hero_secondary_cta_href": "/contact",
+        "destinations_eyebrow": "Destinations",
+        "destinations_title": "Popular destinations across Bangladesh",
+        "destinations_description": "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest.",
+        "destinations_cta_label": "All destinations",
+        "destinations_cta_href": "/destinations",
+        "destinations_hidden": false,
+        "tours_eyebrow": "Tour Packages",
+        "tours_title": "Popular tour packages",
+        "tours_description": "Small groups, local hosts, and everything included. Filter by place, duration, or price to find your trip in seconds.",
+        "tours_cta_label": "Browse all tours",
+        "tours_cta_href": "/tours",
+        "tours_hidden": false,
+        "why_us_eyebrow": "Why ATITHI",
+        "why_us_title": "Travel with people who call Bangladesh home",
+        "why_us_description": "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides.",
+        "why_us_items": [
+          {
+            "title": "Trusted local hosts",
+            "description": "Every tour is led by a verified Bangladeshi host who knows their district like family — not a scripted guide.",
+            "icon": "users"
+          },
+          {
+            "title": "Transparent pricing",
+            "description": "The price you see is the price you pay. No hidden fees, no last-minute 'fuel surcharges', no surprises.",
+            "icon": "receipt"
+          },
+          {
+            "title": "Flexible payment",
+            "description": "Book with a 40% advance and clear the balance on tour day — online or directly with your host, with confirmation to both sides.",
+            "icon": "receipt"
+          },
+          {
+            "title": "Zero-friction booking",
+            "description": "From browsing to e-ticket in minutes. Your voucher, digital ticket, and reminders arrive automatically on WhatsApp and email.",
+            "icon": "ticket"
+          },
+          {
+            "title": "Real 24/7 support",
+            "description": "A human answers on WhatsApp throughout your trip — not a chatbot that loops you in circles.",
+            "icon": "support"
+          },
+          {
+            "title": "Money, fully accounted",
+            "description": "Every payment is tracked end-to-end and confirmed to you and our team, so there's never a dispute about what was paid.",
+            "icon": "shield"
+          }
+        ],
+        "why_us_hidden": false,
+        "services_eyebrow": "Services",
+        "services_title": "Every kind of trip, handled",
+        "services_description": "Group or private, family or honeymoon, weekend or expedition — if it's in Bangladesh, we'll host it.",
+        "services_items": [
+          {
+            "title": "Group Tours",
+            "description": "Curated group departures to every corner of Bangladesh, led by a local host and priced all-inclusive.",
+            "icon": "users"
+          },
+          {
+            "title": "Private & Custom Trips",
+            "description": "Your dates, your pace, your budget. We design a private itinerary around exactly what you want to do.",
+            "icon": "route"
+          },
+          {
+            "title": "Honeymoon Packages",
+            "description": "Ocean-view suites, candlelit dinners, and private moments — built for two, from arrival flowers to departure.",
+            "icon": "heart"
+          },
+          {
+            "title": "Family Holidays",
+            "description": "Kids-first pacing, safe transport, and hosts who handle the logistics so parents actually relax.",
+            "icon": "home"
+          },
+          {
+            "title": "Corporate Retreats",
+            "description": "Team trips to the hills or the coast with planning, logistics, and bonding activities handled end to end.",
+            "icon": "briefcase"
+          },
+          {
+            "title": "Adventure & Trekking",
+            "description": "Hill-tract treks, forest cruises, and off-the-map experiences with certified local guides and permits arranged.",
+            "icon": "mountain"
+          }
+        ],
+        "services_hidden": false,
+        "offers_eyebrow": "Special Offers",
+        "offers_title": "A little reason to book today",
+        "offers_description": "Seasonal savings and group perks — applied automatically at checkout with the right code.",
+        "offers_hidden": false,
+        "reviews_eyebrow": "Customer Reviews",
+        "reviews_title": "Loved by travelers across Bangladesh",
+        "reviews_description": "Real words from guests who booked, travelled, and settled their balances — all in one seamless flow.",
+        "reviews_hidden": false,
+        "journal_eyebrow": "Travel Journal",
+        "journal_title": "Stories from the road",
+        "journal_description": "Field guides, food trails, and honest travel writing from our hosts and guests.",
+        "journal_cta_label": "All stories",
+        "journal_cta_href": "/journal",
+        "journal_hidden": false,
+        "cta_eyebrow": "Atithi — the guest is God",
+        "cta_title": "Plan your next journey across Bangladesh",
+        "cta_description": "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
+        "cta_primary_label": "Plan My Trip",
+        "cta_primary_href": "/contact",
+        "cta_secondary_label": "Browse Tours",
+        "cta_secondary_href": "/tours",
+        "cta_hidden": false
+      }
+    },
+    {
+      "id": "block-about-page",
+      "block_type": "about_page",
+      "display_order": 9,
+      "content": {
+        "hero_eyebrow": "About Atithi",
+        "hero_title": "Thoughtful journeys across Bangladesh",
+        "hero_subtitle": "Built by local travelers who believe the best trips happen when you're hosted like family, not processed like a transaction.",
+        "story_badge": "Our Story",
+        "story_title": "Born out of a simple conviction",
+        "story_paragraphs": [
+          "Most domestic travel in Bangladesh was broken in two ways: either you were on your own navigating erratic transport, unverified hotels, and hidden costs — or you were packed into a thirty-person bus tour with fixed buffets and thirty-minute photo stops.",
+          "We wanted something different: trips designed the way an experienced friend would show you their hometown. Small groups, handpicked local hosts, honest pricing, and genuine hospitality.",
+          "Today, Atithi runs curated journeys to twelve destinations across Bangladesh — from the tea valleys of Sreemangal to the coral reefs of Saint Martin. Every trip is led by someone who actually lives there."
+        ],
+        "mission_title": "Our Mission",
+        "mission_text": "To make domestic travel across Bangladesh seamless, transparent, and genuinely memorable — while ensuring tourism directly benefits the local communities and guides who make these places special.",
+        "values": [
+          {
+            "icon": "shield",
+            "title": "Radical transparency",
+            "description": "No hidden resort fees, surprise fuel charges, or mandatory tips. Every BDT is accounted for upfront."
+          },
+          {
+            "icon": "users",
+            "title": "Local, always",
+            "description": "No outsourced guides, no foreign templates. Every host is Bangladeshi, and every itinerary is built around real local knowledge."
+          },
+          {
+            "icon": "heart",
+            "title": "Hospitality first",
+            "description": "Atithi — \"guest\" — is central to Bengali culture. We host you the way we'd host family, not process you like a booking number."
+          },
+          {
+            "icon": "sparkle",
+            "title": "Considered detail",
+            "description": "From the ridge walk only locals know to the candlelit dinner arranged without being asked — the small things are the trip."
+          }
+        ],
+        "booking_eyebrow": "How booking works",
+        "booking_title": "Zero-friction, start to finish",
+        "booking_description": "From your first search to your final QR-cleared payment, every step is designed to remove friction and ambiguity.",
+        "team_eyebrow": "The team",
+        "team_title": "A few of the people who'll host you",
+        "team": [
+          {
+            "name": "Prince Chowdhury",
+            "role": "Founder & Head of Experience",
+            "bio": "Ten years guiding across the Chittagong Hill Tracts before building Atithi's tour design team.",
+            "scene": "sajek",
+            "image_url": "https://drive.google.com/file/d/1xOBIQDNWFlHiu0jDCaABEKWHXMZ2UZi-/view?usp=sharing"
+          },
+          {
+            "name": "Tanvir Hasan",
+            "role": "Co-founder & Head of Operations",
+            "bio": "Runs the host network and on-ground logistics across all twelve destinations.",
+            "scene": "sundarbans"
+          },
+          {
+            "name": "Mehedi Hasan",
+            "role": "Head of Finance",
+            "bio": "Built the payment and QR clearance system so every advance and balance is tracked without ambiguity.",
+            "scene": "coxsbazar"
+          }
+        ],
+        "payment_badge": "Payment & QR clearance",
+        "payment_title": "How your money is handled, end to end",
+        "payment_description": "Pay in full or pay a small advance through bKash, Nagad, Rocket, or card at booking. If you paid partially, the remaining balance is settled on the day of the tour — either your host scans your personal QR code, or you log in and pay it yourself. The moment it clears, both you and our team get a WhatsApp and email confirmation, so there's a clean record of what was paid, when, on both sides.",
+        "payment_cta_label": "Talk to us",
+        "payment_cta_href": "/contact",
+        "cta_title": "Ready to plan your own story?",
+        "cta_description": "Tell us where you want to go — we'll take it from there, right through to the final QR-cleared payment.",
+        "cta_label": "Plan My Trip",
+        "cta_href": "/contact"
+      }
     }
   ],
   "staffUsers": [
@@ -898,512 +473,11 @@
       "last_name": "Admin"
     }
   ],
-  "customers": [
-    {
-      "id": "cust-1789565575837-491",
-      "phone_number": "+8801826483915",
-      "full_name": "arko hassan",
-      "email": "thedelusiongaming024@gmail.com",
-      "created_at": "2026-09-16T13:32:55.837+00:00",
-      "updated_at": "2026-09-16T13:32:55.837+00:00",
-      "last_login_at": "2026-09-16T13:32:55.837+00:00",
-      "activities": []
-    },
-    {
-      "id": "cust-1789565201178-459",
-      "phone_number": "+88017888858",
-      "full_name": "Tanvir Ahmed (VIP)",
-      "email": "tanvir.888858@example.com",
-      "created_at": "2026-09-16T13:26:41.178+00:00",
-      "updated_at": "2026-09-16T13:26:41.315+00:00",
-      "last_login_at": "2026-09-16T13:26:41.246+00:00",
-      "activities": []
-    },
-    {
-      "id": "cust-1789565185233-227",
-      "phone_number": "+88017734495",
-      "full_name": "Tanvir Ahmed (VIP)",
-      "email": "tanvir.734495@example.com",
-      "created_at": "2026-09-16T13:26:25.233+00:00",
-      "updated_at": "2026-09-16T13:26:25.359+00:00",
-      "last_login_at": "2026-09-16T13:26:25.268+00:00",
-      "activities": []
-    },
-    {
-      "id": "cust-1789565130868-142",
-      "phone_number": "+8801755998877",
-      "full_name": "Tanvir Ahmed (VIP)",
-      "email": "tanvir.ahmed@example.com",
-      "created_at": "2026-09-16T13:25:30.868+00:00",
-      "updated_at": "2026-09-16T13:26:09.358+00:00",
-      "last_login_at": "2026-09-16T13:25:31.22+00:00",
-      "activities": []
-    }
-  ],
-  "bookings": [
-    {
-      "id": "book-1789458839783-560",
-      "reference": "AT-83-560",
-      "tour_id": "tour_bandarban_3d2n",
-      "tour_title": "Bandarban Hill & Cloud Package Tour",
-      "tour_slug": "bandarban-hill-cloud-package",
-      "destination_slug": "bandarban-hill-cloud-package",
-      "departure_date": "2026-09-16",
-      "traveler_count": 85,
-      "unit_price": "6000",
-      "total_price": "510000",
-      "final_price": "510000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "204000",
-      "amount_paid": "204000",
-      "amount_due": "306000",
-      "due_date": "2026-09-16",
-      "status": "confirmed_advance_paid",
-      "customer_full_name": "Md Rakib Mia",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789458839783-560-1",
-          "full_name": "Md Rakib Mia",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.800616+00:00",
-      "updated_at": "2026-09-16T14:19:16.466+00:00"
-    },
-    {
-      "id": "book-1789565130869-510",
-      "reference": "AT-69-510",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+8801755998877",
-      "customer_email": "tanvir.ahmed@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565130869-510-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.666306+00:00",
-      "updated_at": "2026-09-16T14:19:16.33+00:00"
-    },
-    {
-      "id": "book-1789565169358-167",
-      "reference": "AT-58-167",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+8801755998877",
-      "customer_email": "tanvir.ahmed@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565169358-167-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.531365+00:00",
-      "updated_at": "2026-09-16T14:19:16.195+00:00"
-    },
-    {
-      "id": "book-1789565185234-284",
-      "reference": "AT-34-284",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+88017734495",
-      "customer_email": "tanvir.734495@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565185234-284-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.394644+00:00",
-      "updated_at": "2026-09-16T14:19:16.06+00:00"
-    },
-    {
-      "id": "book-1789565201179-387",
-      "reference": "AT-79-387",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "5200",
-      "amount_paid": "0",
-      "amount_due": "13000",
-      "due_date": "2026-09-16",
-      "status": "pending_payment",
-      "customer_full_name": "Tanvir Ahmed",
-      "customer_phone_number": "+88017888858",
-      "customer_email": "tanvir.888858@example.com",
-      "special_requests": "Window seat if possible",
-      "travelers": [
-        {
-          "id": "trav-book-1789565201179-387-1",
-          "full_name": "Tanvir Ahmed",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.252365+00:00",
-      "updated_at": "2026-09-16T14:19:15.927+00:00"
-    },
-    {
-      "id": "book-1789565214498-560",
-      "reference": "AT-98-560",
-      "tour_id": "tour_bandarban_3d2n",
-      "tour_title": "Bandarban Hill & Cloud Package Tour",
-      "tour_slug": "bandarban-hill-cloud-package",
-      "destination_slug": "bandarban-hill-cloud-package",
-      "departure_date": "2026-09-18",
-      "traveler_count": 2,
-      "unit_price": "6000",
-      "total_price": "12000",
-      "final_price": "12000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "4800",
-      "amount_paid": "4800",
-      "amount_due": "7200",
-      "due_date": "2026-09-18",
-      "status": "confirmed_advance_paid",
-      "customer_full_name": "Md Rakib",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789565214498-560-1",
-          "full_name": "Md Rakib",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:51.117606+00:00",
-      "updated_at": "2026-09-16T14:19:15.785+00:00"
-    },
-    {
-      "id": "book-1789565575838-839",
-      "reference": "AT-38-839",
-      "tour_id": "tour_coxsbazar_3d2n",
-      "tour_title": "Cox's Bazar Beach & Sunset Package",
-      "tour_slug": "coxs-bazar-beach-sunset",
-      "destination_slug": "coxs-bazar-beach-sunset",
-      "departure_date": "2026-09-16",
-      "traveler_count": 2,
-      "unit_price": "6500",
-      "total_price": "13000",
-      "final_price": "13000",
-      "payment_plan": "full",
-      "advance_required_percent": "40",
-      "advance_amount": "13000",
-      "amount_paid": "13000",
-      "amount_due": "0",
-      "due_date": "2026-09-16",
-      "status": "confirmed_fully_paid",
-      "customer_full_name": "arko hassan",
-      "customer_phone_number": "+8801826483915",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789565575838-839-1",
-          "full_name": "arko hassan",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-16T14:17:50.97878+00:00",
-      "updated_at": "2026-09-16T14:19:15.64+00:00"
-    },
-    {
-      "id": "book-1789442121939-292",
-      "reference": "AT-39-292",
-      "tour_id": "tour_rangamati_2d1n",
-      "tour_title": "Rangamati Kaptai Lake Tour",
-      "tour_slug": "rangamati-kaptai-lake-tour",
-      "destination_slug": "rangamati-kaptai-lake-tour",
-      "departure_date": "2026-09-15",
-      "traveler_count": 1,
-      "unit_price": "4000",
-      "total_price": "4000",
-      "final_price": "4000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "4000",
-      "amount_paid": "0",
-      "amount_due": "4000",
-      "due_date": "2026-09-15",
-      "status": "pending_payment",
-      "customer_full_name": "The Delusion Gaming Yt",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789442121939-292-1",
-          "full_name": "The Delusion Gaming Yt",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-15T03:15:22.335086+00:00",
-      "updated_at": "2026-09-16T14:19:15.344+00:00"
-    },
-    {
-      "id": "book-1789442094716-212",
-      "reference": "AT-16-212",
-      "tour_id": "tour_rangamati_2d1n",
-      "tour_title": "Rangamati Kaptai Lake Tour",
-      "tour_slug": "rangamati-kaptai-lake-tour",
-      "destination_slug": "rangamati-kaptai-lake-tour",
-      "departure_date": "2026-09-15",
-      "traveler_count": 4,
-      "unit_price": "4000",
-      "total_price": "16000",
-      "final_price": "16000",
-      "payment_plan": "partial",
-      "advance_required_percent": "40",
-      "advance_amount": "16000",
-      "amount_paid": "0",
-      "amount_due": "16000",
-      "due_date": "2026-09-15",
-      "status": "pending_payment",
-      "customer_full_name": "Md Rakib Mia",
-      "customer_phone_number": "+8801410207483",
-      "customer_email": "thedelusiongaming024@gmail.com",
-      "special_requests": "",
-      "travelers": [
-        {
-          "id": "trav-book-1789442094716-212-1",
-          "full_name": "Md Rakib Mia",
-          "is_lead_traveler": true
-        }
-      ],
-      "created_at": "2026-09-15T03:14:55.094892+00:00",
-      "updated_at": "2026-09-16T14:19:15.494+00:00"
-    }
-  ],
-  "payments": [
-    {
-      "id": "pay-1789565575891",
-      "booking_id": "book-1789565575838-839",
-      "amount": "13000.00",
-      "payment_type": "full",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789565575891-696",
-      "created_at": "2026-09-16T13:32:55.891Z",
-      "val_id": "SIM-1789565578871",
-      "card_type": "NAGAD",
-      "paid_at": "2026-09-16T13:32:58.883Z"
-    },
-    {
-      "id": "pay-1789565214701",
-      "booking_id": "book-1789565214498-560",
-      "amount": "4800.00",
-      "payment_type": "advance",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789565214701-667",
-      "created_at": "2026-09-16T13:26:54.701Z",
-      "val_id": "SIM-1789565222492",
-      "card_type": "NAGAD",
-      "paid_at": "2026-09-16T13:27:02.670Z"
-    },
-    {
-      "id": "pay-1789458840023",
-      "booking_id": "book-1789458839783-560",
-      "amount": "204000.00",
-      "payment_type": "advance",
-      "payment_method": "sslcommerz",
-      "status": "success",
-      "tran_id": "TRAN-1789458840023-357",
-      "created_at": "2026-09-15T07:54:00.023Z",
-      "val_id": "SIM-1789458846147",
-      "card_type": "BKASH",
-      "paid_at": "2026-09-15T07:54:06.346Z"
-    }
-  ],
-  "clearanceTickets": [
-    {
-      "id": "ticket-book-1789565575838-839",
-      "booking_id": "book-1789565575838-839",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1NTc1ODM4LTgzOSIsImNyZWF0ZWRfYXQiOjE3ODk1NjU1Nzh9.asHrPgod5P47c3EeEyObmmgLHKnbBV2P2mAc6JDoMt0",
-      "token_expires_at": "2026-09-23T13:32:58.883Z",
-      "is_cleared": true,
-      "created_at": "2026-09-16T13:32:58.883Z"
-    },
-    {
-      "id": "ticket-book-1789565214498-560",
-      "booking_id": "book-1789565214498-560",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1MjE0NDk4LTU2MCIsImNyZWF0ZWRfYXQiOjE3ODk1NjUyMjJ9.j6CNmPkcqHMpitvdrYTJjrR9EjPSbgyM5yV_ZhdAxyI",
-      "token_expires_at": "2026-09-25T00:00:00.000Z",
-      "is_cleared": false,
-      "created_at": "2026-09-16T13:27:02.670Z"
-    },
-    {
-      "id": "ticket-book-1789565201179-387",
-      "booking_id": "book-1789565201179-387",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1MjAxMTc5LTM4NyIsImNyZWF0ZWRfYXQiOjE3ODk1NjUyMDF9.DXgKHx7qzVtntuH1KrEB0cjzkmn7vo5bmMbKXcGH1wE",
-      "token_expires_at": "2026-09-30T13:26:41.359Z",
-      "is_cleared": false,
-      "created_at": "2026-09-16T13:26:41.359Z"
-    },
-    {
-      "id": "ticket-book-1789565185234-284",
-      "booking_id": "book-1789565185234-284",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NTY1MTg1MjM0LTI4NCIsImNyZWF0ZWRfYXQiOjE3ODk1NjUxODV9.09C14P3cBxucSV7WAuP76ZeAEs_4VhZUMz3NciRvY8o",
-      "token_expires_at": "2026-09-30T13:26:25.385Z",
-      "is_cleared": false,
-      "created_at": "2026-09-16T13:26:25.385Z"
-    },
-    {
-      "id": "ticket-book-1789458839783-560",
-      "booking_id": "book-1789458839783-560",
-      "token": "eyJib29raW5nX2lkIjoiYm9vay0xNzg5NDU4ODM5NzgzLTU2MCIsImNyZWF0ZWRfYXQiOjE3ODk0NTg4NDZ9.6xrGRhT9wOJBLeBQH7Zlg55K7X-aJUHzLlooM0kqJFY",
-      "token_expires_at": "2026-09-22T07:54:06.347Z",
-      "is_cleared": false,
-      "created_at": "2026-09-15T07:54:06.347Z"
-    }
-  ],
-  "alerts": [
-    {
-      "id": "alt-pay-1789565578883",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳13,000 received for booking AT-2026-00007 (arko hassan).",
-      "is_acknowledged": true,
-      "created_at": "2026-09-16T13:32:58.883Z"
-    },
-    {
-      "id": "alt-book-1789565575838",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00007 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:32:55.838Z"
-    },
-    {
-      "id": "alt-pay-1789565222670",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳4,800 received for booking AT-2026-00006 (Md Rakib).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:27:02.670Z"
-    },
-    {
-      "id": "alt-book-1789565214498",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00006 created for Bandarban Hill & Cloud Package Tour (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:54.498Z"
-    },
-    {
-      "id": "alt-book-1789565201179",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00005 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:41.179Z"
-    },
-    {
-      "id": "alt-book-1789565185234",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00004 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:25.234Z"
-    },
-    {
-      "id": "alt-book-1789565169358",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00003 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:26:09.358Z"
-    },
-    {
-      "id": "alt-book-1789565130869",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00002 created for Cox's Bazar Beach & Sunset Package (2 travelers).",
-      "is_acknowledged": false,
-      "created_at": "2026-09-16T13:25:30.869Z"
-    },
-    {
-      "id": "alt-pay-1789458846347",
-      "alert_type": "payment_confirmed",
-      "severity": "info",
-      "message": "Payment of ৳204,000 received for booking AT-2026-00001 (Md Rakib Mia).",
-      "is_acknowledged": true,
-      "created_at": "2026-09-15T07:54:06.347Z"
-    },
-    {
-      "id": "alt-book-1789458839783",
-      "alert_type": "new_booking",
-      "severity": "info",
-      "message": "New booking AT-2026-00001 created for Bandarban Hill & Cloud Package Tour (85 travelers).",
-      "is_acknowledged": true,
-      "created_at": "2026-09-15T07:53:59.783Z"
-    }
-  ],
+  "customers": [],
+  "bookings": [],
+  "payments": [],
+  "clearanceTickets": [],
+  "alerts": [],
   "expenses": [],
   "suppliers": [],
   "contactInquiries": []

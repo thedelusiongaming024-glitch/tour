@@ -1,10 +1,17 @@
 import type { Review, Service, Offer } from "@/lib/types";
 
-export const siteName = "ATITHI";
-export const siteNameBn = "অতিথি";
-export const siteTagline = "Discover Bangladesh, your way";
+export const siteName = "Savar Tour Lover";
+export const siteNameBn = "সাভার ট্যুর লাভার";
+export const siteTagline = "আপনার স্বপ্ন উড়তে দিন — Let Your Dreams Fly";
+export const siteTaglineBn = "আপনার স্বপ্ন উড়তে দিন";
 export const siteDescription =
-  "Curated domestic tours across Bangladesh. Trusted local hosts, transparent pricing, and complete financial clarity from booking to on-site payment clearance.";
+  "সাভার ট্যুর লাভার (Savar Tour Lover) — আপনার স্বপ্ন উড়তে দিন। Curated domestic tours across Bangladesh with trusted local hosts, transparent pricing, and seamless booking.";
+
+export const sitePhones = ["01620592884", "01646325350"];
+export const sitePhonesFormatted = ["+880 1620-592884", "+880 1646-325350"];
+export const siteAddressEn = "Savar Pollibidut, Kobarsthan Road, Savar, Dhaka, 1340, Bangladesh";
+export const siteAddressBn = "সাভার পল্লীবিদ্যুৎ, কবরস্থান রোড, সাভার, ঢাকা, ১৩৪০, বাংলাদেশ";
+export const siteEmail = "savartourlover@gmail.com";
 
 export const heroStats: { value: string; label: string }[] = [];
 
@@ -24,13 +31,13 @@ export const whyUs: { title: string; description: string; icon: string }[] = [
   {
     title: "Flexible payment",
     description:
-      "Book with a 40% advance and clear the balance on tour day — by QR scan or online, with confirmation to both sides.",
-    icon: "qr",
+      "Book with a 40% advance and clear the balance on tour day — online or directly with your host, with confirmation to both sides.",
+    icon: "receipt",
   },
   {
     title: "Zero-friction booking",
     description:
-      "From browsing to e-ticket in minutes. Your voucher, QR ticket, and reminders arrive automatically on WhatsApp and email.",
+      "From browsing to e-ticket in minutes. Your voucher, digital ticket, and reminders arrive automatically on WhatsApp and email.",
     icon: "ticket",
   },
   {

@@ -108,14 +108,21 @@ export function PopularToursExplorer({
     [tours]
   );
   const placeOptions = useMemo(() => {
-    const slugs = Array.from(new Set(tours.map((t) => t.destinationSlug)));
-    const named = slugs
-      .map((slug) => destinations.find((d) => d.slug === slug))
-      .filter((d): d is Destination => Boolean(d))
-      .map((d) => ({
-        value: d.slug,
-        label: isBn && d.bn ? d.bn : d.name,
-      }));
+    const slugs = Array.from(new Set(tours.map((t) => t.destinationSlug).filter(Boolean)));
+    const named = slugs.map((slug) => {
+      const found = destinations.find((d) => d.slug === slug);
+      if (found) {
+        return {
+          value: found.slug,
+          label: isBn && found.bn ? found.bn : found.name,
+        };
+      }
+      const cleanName = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+      return {
+        value: slug,
+        label: cleanName,
+      };
+    });
     return [
       { value: "all", label: isBn ? "সকল গন্তব্য" : "All destinations" },
       ...named,

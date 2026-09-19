@@ -12,7 +12,7 @@ import { staffLogin } from "@/lib/staffAuth";
 // of real internal destinations closes that off entirely rather than
 // trying to pattern-match "looks like a relative path" (which is easy to
 // get wrong, e.g. protocol-relative "//evil.example").
-const ALLOWED_NEXT_PATHS = new Set(["/staff/dashboard", "/staff/scan", "/staff/admin"]);
+const ALLOWED_NEXT_PATHS = new Set(["/staff/dashboard", "/staff/admin"]);
 const DEFAULT_NEXT_PATH = "/staff/dashboard";
 
 function resolveNextPath(raw: string | null): string {
@@ -50,11 +50,12 @@ function StaffLoginForm() {
         className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
       >
         <div className="text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-lg mb-3">
-            A
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white border border-emerald-200 p-1 shadow-xs mb-3">
+            <img src="/images/logo-badge.png" alt="Savar Tour Lover" className="h-full w-full object-contain" />
           </div>
-          <h1 className="text-lg font-semibold text-slate-900">Atithi Staff Portal</h1>
-          <p className="mt-1 text-sm text-slate-500">Back-office and management access</p>
+          <h1 className="text-lg font-bold text-slate-900">Savar Tour Lover</h1>
+          <p className="text-xs font-semibold text-emerald-700">আপনার স্বপ্ন উড়তে দিন</p>
+          <p className="mt-1 text-xs text-slate-500">Back-office and management access</p>
         </div>
 
         <label className="mt-6 flex flex-col gap-1.5 text-sm font-medium text-slate-700">
