@@ -1229,6 +1229,12 @@ function StaffDashboardContent() {
                       📊 Reports
                     </button>
                     <button
+                      onClick={() => setActiveTab("reports")}
+                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition shadow-xs"
+                    >
+                      📊 Tour & Customer Reports
+                    </button>
+                    <button
                       onClick={() => setDestModal({ isOpen: true, destination: null })}
                       className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
