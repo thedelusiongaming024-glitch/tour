@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       customer_full_name,
       customer_phone_number,
       customer_email,
+      pickup_point,
       special_requests,
       selected_seats,
     } = body;
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       customer_full_name,
       customer_phone_number,
       customer_email,
+      pickup_point: typeof pickup_point === "string" ? pickup_point.trim() : undefined,
       special_requests,
       selected_seats: Array.isArray(selected_seats) ? selected_seats : undefined,
     });

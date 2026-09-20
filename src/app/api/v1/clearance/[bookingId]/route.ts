@@ -44,6 +44,7 @@ export async function GET(
       departure_date: booking.departure_date,
       traveler_count: booking.traveler_count,
       selected_seats: booking.selected_seats || [],
+      pickup_point: booking.pickup_point || null,
     };
 
     if (isCleared) {

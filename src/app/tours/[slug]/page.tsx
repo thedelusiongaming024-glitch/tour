@@ -262,9 +262,22 @@ export default async function TourPage({ params }: PageProps) {
               <div className="glass glass-sweep rounded-3xl p-6">
                 <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
                   <Icon name="mapPin" className="h-5 w-5 text-gold" />
-                  Meeting point
+                  Meeting & Boarding Points
                 </h2>
                 <p className="mt-3 text-sm text-ink-soft">{tour.meetingPoint}</p>
+                {tour.pickupPoints && tour.pickupPoints.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-ink/5">
+                    <span className="text-xs font-semibold text-slate-700 block mb-1.5">Available Pick-up Spots:</span>
+                    <ul className="space-y-1 text-xs text-ink-soft">
+                      {tour.pickupPoints.map((pt) => (
+                        <li key={pt} className="flex items-center gap-1.5">
+                          <span className="text-emerald-700">📍</span>
+                          <span>{pt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <h2 className="mt-5 flex items-center gap-2 font-display text-lg font-semibold text-ink">
                   <Icon name="sparkle" className="h-5 w-5 text-gold" />
                   Meals

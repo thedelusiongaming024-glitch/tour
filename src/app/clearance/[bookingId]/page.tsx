@@ -15,6 +15,7 @@ interface ClearanceBooking {
   departure_date?: string;
   traveler_count?: number;
   selected_seats?: string[];
+  pickup_point?: string;
 }
 
 interface ResolveResponse {
@@ -157,6 +158,12 @@ export default function ClearancePage() {
                   💺 Assigned Seats: {state.data.booking.selected_seats.join(", ")}
                 </div>
               )}
+              {state.data.booking.pickup_point && (
+                <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-slate-700 font-medium">
+                  <span>📍 Pick-up Point:</span>
+                  <span className="font-semibold text-slate-900">{state.data.booking.pickup_point}</span>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -177,6 +184,12 @@ export default function ClearancePage() {
               {state.data.booking.selected_seats && state.data.booking.selected_seats.length > 0 && (
                 <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
                   💺 Assigned Seats: {state.data.booking.selected_seats.join(", ")}
+                </div>
+              )}
+              {state.data.booking.pickup_point && (
+                <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-slate-700 font-medium">
+                  <span>📍 Pick-up Point:</span>
+                  <span className="font-semibold text-slate-900">{state.data.booking.pickup_point}</span>
                 </div>
               )}
             </div>

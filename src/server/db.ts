@@ -1091,6 +1091,7 @@ export async function createBooking(input: {
   customer_full_name: string;
   customer_phone_number: string;
   customer_email?: string;
+  pickup_point?: string;
   special_requests?: string;
   selected_seats?: string[];
 }): Promise<{ booking: DbBooking; customer: DbCustomerUser }> {
@@ -1152,6 +1153,11 @@ export async function createBooking(input: {
     email: input.customer_email,
   });
 
+  const chosenPickupPoint = input.pickup_point?.trim() || tour.meeting_point || undefined;
+  if (chosenPickupPoint) {
+    customer.preferred_pickup_point = chosenPickupPoint;
+  }
+
   const unitPrice = parseFloat(tour.final_price);
   const totalPrice = unitPrice * effectiveTravelerCount;
   const advancePercent = input.payment_plan === "full" ? 100 : parseFloat(tour.advance_payment_percent);
@@ -1173,6 +1179,7 @@ export async function createBooking(input: {
     departure_date: departure?.departure_date,
     traveler_count: effectiveTravelerCount,
     selected_seats: selectedSeats,
+    pickup_point: chosenPickupPoint,
     unit_price: unitPrice.toFixed(2),
     total_price: totalPrice.toFixed(2),
     final_price: totalPrice.toFixed(2),
@@ -1214,7 +1221,7 @@ export async function createBooking(input: {
     id: `alt-book-${Date.now()}`,
     alert_type: "new_booking",
     severity: "info",
-    message: `New booking ${ref} created for ${tour.title} (${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}).`,
+    message: `New booking ${ref} created for ${tour.title} (${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}${chosenPickupPoint ? ` · Pick-up: ${chosenPickupPoint}` : ""}).`,
     is_acknowledged: false,
     created_at: new Date().toISOString(),
   });
@@ -1223,7 +1230,7 @@ export async function createBooking(input: {
   await addCustomerActivity(customer.id, {
     type: "booking_created",
     title: `Booked ${tour.title}`,
-    description: `Booking reference ${ref} created for ${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}. Total: ৳${totalPrice.toLocaleString()}.`,
+    description: `Booking reference ${ref} created for ${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}${chosenPickupPoint ? ` · Pick-up: ${chosenPickupPoint}` : ""}. Total: ৳${totalPrice.toLocaleString()}.`,
     metadata: {
       booking_id: bookingId,
       reference: ref,
@@ -1231,6 +1238,7 @@ export async function createBooking(input: {
       traveler_count: effectiveTravelerCount,
       selected_seats: selectedSeats,
       departure_date: departure?.departure_date,
+      pickup_point: chosenPickupPoint,
     },
   });
 
@@ -1598,6 +1606,15 @@ export async function saveTour(tourData: Partial<DbTour>): Promise<DbTour> {
     transportation_notes: tourData.transportation_notes || "",
     meals_notes: tourData.meals_notes || "",
     meeting_point: tourData.meeting_point || "Dhaka",
+    pickup_points: Array.isArray(tourData.pickup_points)
+      ? tourData.pickup_points
+      : typeof (tourData as any).pickup_points === "string"
+      ? String((tourData as any).pickup_points)
+          .split("\n")
+          .flatMap((s) => s.split(","))
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
     departure_schedule: tourData.departure_schedule || "Every Friday",
     total_seats: tourData.total_seats || 20,
     departures: tourData.departures && tourData.departures.length > 0 ? tourData.departures : generateInitialDepartures(),

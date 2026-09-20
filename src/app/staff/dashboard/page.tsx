@@ -626,6 +626,11 @@ function StaffDashboardContent() {
       transportation_notes: formData.get("transportation_notes") as string,
       meals_notes: formData.get("meals_notes") as string,
       meeting_point: formData.get("meeting_point") as string,
+      pickup_points: ((formData.get("pickup_points") as string) || "")
+        .split("\n")
+        .flatMap((s) => s.split(","))
+        .map((s) => s.trim())
+        .filter(Boolean),
       departure_schedule: formData.get("departure_schedule") as string,
       total_seats: Number(formData.get("total_seats") || 40),
       is_featured: formData.get("is_featured") === "on",
@@ -3369,6 +3374,12 @@ function StaffDashboardContent() {
                               Seats: {b.selected_seats.join(", ")}
                             </div>
                           )}
+                          {b.pickup_point && (
+                            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                              <span>📍 Pick-up:</span>
+                              <span className="font-semibold text-slate-800">{b.pickup_point}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-semibold text-emerald-800">{formatBDT(b.amount_paid)} paid</div>
@@ -3629,6 +3640,12 @@ function StaffDashboardContent() {
                           <span className="hidden sm:inline">•</span>
                           <span className="hidden sm:inline">Joined: {new Date(selectedCustomer.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                         </div>
+                        {selectedCustomer.preferred_pickup_point && (
+                          <div className="mt-1 flex items-center gap-1.5 text-xs text-emerald-800 font-medium">
+                            <span>📍 Preferred Pick-up:</span>
+                            <span className="font-semibold text-slate-900">{selectedCustomer.preferred_pickup_point}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <button
@@ -3705,6 +3722,11 @@ function StaffDashboardContent() {
                                         Seats: {b.selected_seats.join(", ")}
                                       </span>
                                     )}
+                                    {b.pickup_point && (
+                                      <span className="block text-[11px] text-slate-600 font-medium">
+                                        📍 Pick-up: {b.pickup_point}
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                                 <div>
@@ -3748,11 +3770,18 @@ function StaffDashboardContent() {
                                   </span>
                                 </div>
                                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">{act.description}</p>
-                                {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
-                                  <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
-                                    Seats: {(act.metadata.selected_seats as string[]).join(", ")}
-                                  </div>
-                                )}
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                  {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
+                                    <div className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
+                                      Seats: {(act.metadata.selected_seats as string[]).join(", ")}
+                                    </div>
+                                  )}
+                                  {typeof act.metadata?.pickup_point === "string" && (
+                                    <div className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 border border-slate-200">
+                                      📍 Pick-up: {act.metadata.pickup_point}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -4004,6 +4033,24 @@ function StaffDashboardContent() {
                   />
                 </label>
               </div>
+
+              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                Pick-up Points (one per line or comma-separated for traveler selection during booking)
+                <textarea
+                  name="pickup_points"
+                  rows={3}
+                  defaultValue={
+                    tourModal.tour?.pickup_points && tourModal.tour.pickup_points.length > 0
+                      ? tourModal.tour.pickup_points.join("\n")
+                      : ""
+                  }
+                  placeholder={"Savar Thana Stand (09:00 PM)\nSavar Pollibidut (09:15 PM)\nGabtoli Bus Terminal (09:45 PM)\nKallyanpur Bus Stand (10:15 PM)\nSayedabad Janapath (11:00 PM)"}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs font-mono text-xs"
+                />
+                <span className="text-[11px] text-slate-400">
+                  Leave blank to use default Savar / Dhaka boarding points. Travelers will select from these points during booking.
+                </span>
+              </label>
 
               <ImageUrlInput
                 label="Cover Photo URL"

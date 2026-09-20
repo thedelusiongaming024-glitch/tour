@@ -318,6 +318,13 @@ export default function CustomerProfilePage() {
                           {formatDate(customer.created_at, isBn)}
                         </span>
                       </div>
+                      {customer.preferred_pickup_point && (
+                        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-800 font-medium">
+                          
+                          <span>{isBn ? "পছন্দের বোর্ডিং পয়েন্ট: " : "Preferred Pick-up: "}</span>
+                          <span className="font-semibold text-ink">{customer.preferred_pickup_point}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -640,6 +647,17 @@ export default function CustomerProfilePage() {
                                   </span>
                                 </>
                               )}
+                              {b.pickup_point && (
+                                <>
+                                  <span>•</span>
+                                  <span>
+                                    📍 <strong>{isBn ? "পিক-আপ: " : "Pick-up: "}</strong>
+                                    <span className="font-semibold text-ink">
+                                      {b.pickup_point}
+                                    </span>
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
 
@@ -747,6 +765,11 @@ export default function CustomerProfilePage() {
                             {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
                               <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
                                 💺 {isBn ? "সিট নম্বর: " : "Seats: "} {(act.metadata.selected_seats as string[]).join(", ")}
+                              </div>
+                            )}
+                            {typeof act.metadata?.pickup_point === "string" && (
+                              <div className="mt-2 ml-1.5 inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200">
+                                📍 {isBn ? "পিক-আপ: " : "Pick-up: "} {act.metadata.pickup_point}
                               </div>
                             )}
                           </div>

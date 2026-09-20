@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Tour } from "@/lib/types";
+import { DEFAULT_PICKUP_POINTS } from "@/lib/pickupPoints";
 import { BusSeatSelector } from "@/components/BusSeatSelector";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
@@ -19,12 +20,20 @@ function formatBDT(amount: number): string {
 }
 
 export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProps) {
+  const availablePickupPoints =
+    Array.isArray(tour.pickupPoints) && tour.pickupPoints.length > 0
+      ? tour.pickupPoints
+      : DEFAULT_PICKUP_POINTS;
+
   const [step, setStep] = useState<Step>(tour.id ? "form" : "offline");
   const [error, setError] = useState<string>("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [departureId, setDepartureId] = useState(tour.departures?.[0]?.id ?? "");
+  const [pickupPoint, setPickupPoint] = useState<string>(availablePickupPoints[0] || "");
+  const [isCustomPickup, setIsCustomPickup] = useState<boolean>(false);
+  const [customPickupText, setCustomPickupText] = useState<string>("");
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [paymentPlan, setPaymentPlan] = useState<"full" | "partial">(
     tour.allowPartialPayment === false ? "full" : "partial"
@@ -60,6 +69,12 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
       return;
     }
 
+    const finalPickupPoint = isCustomPickup ? customPickupText.trim() : pickupPoint;
+    if (isCustomPickup && !finalPickupPoint) {
+      setError("Please specify your desired pick-up location.");
+      return;
+    }
+
     setStep("submitting");
     setError("");
 
@@ -75,6 +90,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
           customer_full_name: name,
           customer_phone_number: phone,
           customer_email: email,
+          pickup_point: finalPickupPoint,
           selected_seats: selectedSeats,
         }),
       });
@@ -196,6 +212,48 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
           </select>
         </label>
       )}
+
+      {/* Boarding Pick-up Point Selection */}
+      <div className="flex flex-col gap-1.5 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-ink-soft font-medium flex items-center gap-1.5">
+            Pick-up Point (বোর্ডিং পয়েন্ট)
+          </span>
+          <span className="text-[11px] text-emerald-700 font-medium">
+            Pick Your Location.
+          </span>
+        </div>
+        <select
+          value={isCustomPickup ? "__custom__" : pickupPoint}
+          onChange={(e) => {
+            if (e.target.value === "__custom__") {
+              setIsCustomPickup(true);
+            } else {
+              setIsCustomPickup(false);
+              setPickupPoint(e.target.value);
+            }
+          }}
+          className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 outline-none focus:border-emerald-deep text-slate-800 text-sm font-medium"
+        >
+          {availablePickupPoints.map((pt) => (
+            <option key={pt} value={pt}>
+              📍 {pt}
+            </option>
+          ))}
+          <option value="__custom__">➕ Other Location (Custom Pick-up Spot)</option>
+        </select>
+
+        {isCustomPickup && (
+          <input
+            type="text"
+            required
+            value={customPickupText}
+            onChange={(e) => setCustomPickupText(e.target.value)}
+            placeholder="e.g. Nabinagar Bypass, Hemayetpur, or specify your location"
+            className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 outline-none focus:border-emerald-deep text-slate-800 text-sm"
+          />
+        )}
+      </div>
 
       {/* Interactive Bus Seat Selection */}
       <div className="rounded-xl border border-white/70 bg-white/70 p-3 sm:p-4 backdrop-blur-xs">

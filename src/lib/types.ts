@@ -98,6 +98,7 @@ export interface Tour {
   departure: string;
   departures?: TourDeparture[];
   meetingPoint: string;
+  pickupPoints?: string[];
   faqs: Faq[];
   featured?: boolean;
 }

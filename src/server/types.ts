@@ -54,6 +54,7 @@ export interface DbTour {
   transportation_notes: string;
   meals_notes: string;
   meeting_point: string;
+  pickup_points?: string[];
   departure_schedule: string;
   total_seats: number;
   departures: DbDeparture[];
@@ -437,6 +438,7 @@ export interface DbCustomerUser {
   phone_number: string;
   full_name: string;
   email?: string;
+  preferred_pickup_point?: string;
   created_at: string;
   updated_at: string;
   last_login_at?: string;
