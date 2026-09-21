@@ -15,6 +15,8 @@ export interface SSLCommerzInitiateInput {
   cus_email?: string | null;
   tour_title: string;
   origin: string;
+  booking_id?: string;
+  booking_ref?: string;
 }
 
 export interface SSLCommerzInitiateResult {
@@ -122,6 +124,8 @@ export async function initiateSSLCommerzPayment(
     cus_city: "Dhaka",
     cus_country: "Bangladesh",
     cus_phone: safePhone,
+    value_a: input.booking_id || "",
+    value_b: input.booking_ref || "",
   };
 
   try {

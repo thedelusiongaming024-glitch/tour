@@ -55,7 +55,7 @@ function SimulatorContent() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
             SSLCommerz Sandbox Simulator
           </span>
-          <h1 className="mt-4 font-display text-2xl font-semibold text-white">Atithi Secure Checkout</h1>
+          <h1 className="mt-4 font-display text-2xl font-semibold text-white">Savar Tour Lover Secure Checkout</h1>
           <p className="mt-1 text-sm text-slate-400">{title}</p>
         </div>
 

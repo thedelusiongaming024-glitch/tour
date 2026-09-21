@@ -13,8 +13,10 @@ export async function POST(request: Request) {
       customer_full_name,
       customer_phone_number,
       customer_email,
+      pickup_point,
       special_requests,
       selected_seats,
+      promo_code,
     } = body;
 
     if (!tour_id) {
@@ -35,8 +37,10 @@ export async function POST(request: Request) {
       customer_full_name,
       customer_phone_number,
       customer_email,
+      pickup_point: typeof pickup_point === "string" ? pickup_point.trim() : undefined,
       special_requests,
       selected_seats: Array.isArray(selected_seats) ? selected_seats : undefined,
+      promo_code: typeof promo_code === "string" ? promo_code.trim() : undefined,
     });
 
     const customer_token = generateCustomerToken(customer);

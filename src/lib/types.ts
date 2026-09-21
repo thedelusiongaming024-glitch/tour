@@ -98,6 +98,7 @@ export interface Tour {
   departure: string;
   departures?: TourDeparture[];
   meetingPoint: string;
+  pickupPoints?: string[];
   faqs: Faq[];
   featured?: boolean;
 }
@@ -163,4 +164,7 @@ export interface Offer {
   expiry: string;
   /** SpecialOffer.banner_image, when the backend has one. */
   bannerUrl?: string;
+  tour_id?: string | null;
+  tour_slug?: string | null;
+  tour_title?: string | null;
 }

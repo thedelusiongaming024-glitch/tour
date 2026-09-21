@@ -44,20 +44,20 @@ export function HomeHero({
   const stats = statsOverride ?? heroStats;
 
   const defaultEyebrow = isBn
-    ? "বাংলাদেশ জুড়ে প্রিমিয়াম লোকাল ভ্রমণ অভিজ্ঞতা"
-    : (eyebrow ?? "Premium domestic tours across Bangladesh");
+    ? "সাভার ট্যুর লাভার — আপনার স্বপ্ন উড়তে দিন"
+    : (eyebrow ?? "Savar Tour Lover — Let Your Dreams Fly");
 
   const defaultHeadline = isBn
-    ? "বাংলাদেশ দেখুন,"
-    : (headline ?? "Discover Bangladesh,");
+    ? "আপনার স্বপ্ন"
+    : (headline ?? "Let Your Dreams");
 
   const defaultHighlight = isBn
-    ? "আপনার মতো করে"
-    : (highlight ?? "your way");
+    ? "উড়তে দিন"
+    : (highlight ?? "Fly With Us");
 
   const defaultSubheadline = isBn
-    ? "বাছাই করা দেশীয় ট্যুর প্যাকেজ। বিশ্বস্ত লোকাল হোস্ট। সামান্য অগ্রিমে বুকিং করুন এবং বাকি টাকা ভ্রমণের দিন পরিশোধ করুন — শতভাগ স্বচ্ছতায়।"
-    : (subheadline ?? "Curated domestic tours. Trusted local hosts. Book with a small advance and clear the balance on tour day — with complete transparency, every time.");
+    ? "সাভার ট্যুর লাভার-এর সাথে উপভোগ করুন বাংলাদেশের সেরা ভ্রমণ অভিজ্ঞতা। বিশ্বস্ত লোকাল হোস্ট, স্পষ্ট মূল্য ও শতভাগ স্বচ্ছতায় সহজ বুকিং সুবিধা।"
+    : (subheadline ?? "Curated domestic tours with Savar Tour Lover. Trusted local hosts, transparent pricing, and seamless booking confirmation across Bangladesh.");
 
   const defaultPrimaryCta = isBn
     ? "ট্যুরগুলো দেখুন"
@@ -80,7 +80,7 @@ export function HomeHero({
   });
 
   return (
-    <section className="relative overflow-hidden px-4 pb-24 pt-32 sm:px-6 sm:pt-40">
+    <section className="relative overflow-hidden px-3.5 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-40">
       {mediaType === "video" && videoUrl ? (
         <HeroVideoBackdrop videoUrl={videoUrl} fallbackSlides={slides ?? undefined} />
       ) : (
@@ -89,13 +89,13 @@ export function HomeHero({
       <div className="relative z-10 mx-auto max-w-6xl">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <Reveal>
-            <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-emerald-deep">
-              <Icon name="mapPin" className="h-4 w-4" />
-              {defaultEyebrow}
+            <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-emerald-deep">
+              <Icon name="mapPin" className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate max-w-[280px] sm:max-w-none">{defaultEyebrow}</span>
             </span>
           </Reveal>
           <Reveal delay={0.08}>
-            <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-6xl md:text-7xl">
+            <h1 className="mt-5 sm:mt-6 font-display text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.12] sm:leading-[1.05] tracking-tight text-ink">
               {defaultHeadline}
               <br />
               <span className="bg-gradient-to-r from-emerald via-emerald-deep to-gold bg-clip-text text-transparent">
@@ -104,16 +104,16 @@ export function HomeHero({
             </h1>
           </Reveal>
           <Reveal delay={0.16}>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
+            <p className="mt-4 sm:mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-ink-soft px-2 sm:px-0">
               {defaultSubheadline}
             </p>
           </Reveal>
           <Reveal delay={0.24}>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href={primaryCtaHref ?? "/tours"} className="btn btn-emerald">
+            <div className="mt-7 sm:mt-9 flex flex-col gap-3 w-full sm:w-auto sm:flex-row justify-center px-4 sm:px-0">
+              <Link href={primaryCtaHref ?? "/tours"} className="btn btn-emerald w-full sm:w-auto text-center !py-3 sm:!py-3.5">
                 {defaultPrimaryCta}
               </Link>
-              <Link href={secondaryCtaHref ?? "/contact"} className="btn btn-glass">
+              <Link href={secondaryCtaHref ?? "/contact"} className="btn btn-glass w-full sm:w-auto text-center !py-3 sm:!py-3.5">
                 {defaultSecondaryCta}
               </Link>
             </div>
@@ -122,17 +122,17 @@ export function HomeHero({
 
         {/* Stat panel */}
         {localizedStats.length > 0 && (
-          <Reveal delay={0.32} className="mx-auto mt-14 max-w-4xl">
+          <Reveal delay={0.32} className="mx-auto mt-10 sm:mt-14 max-w-4xl">
             <Stagger
-              className="glass glass-sweep grid grid-cols-2 gap-y-8 rounded-[2rem] p-6 sm:grid-cols-4 sm:p-8"
+              className="glass glass-sweep grid grid-cols-2 gap-3 sm:gap-y-8 rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 sm:grid-cols-4"
               stagger={0.08}
             >
               {localizedStats.map((stat) => (
-                <StaggerItem key={stat.label} className="text-center">
-                  <div className="font-display text-3xl font-semibold text-emerald-deep sm:text-4xl">
+                <StaggerItem key={stat.label} className="text-center p-2 rounded-xl bg-white/30 sm:bg-transparent">
+                  <div className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-emerald-deep">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-faint sm:text-sm">
+                  <div className="mt-1 text-[11px] font-medium uppercase tracking-wider text-ink-faint sm:text-sm">
                     {stat.label}
                   </div>
                 </StaggerItem>

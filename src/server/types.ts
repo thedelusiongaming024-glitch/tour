@@ -54,6 +54,7 @@ export interface DbTour {
   transportation_notes: string;
   meals_notes: string;
   meeting_point: string;
+  pickup_points?: string[];
   departure_schedule: string;
   total_seats: number;
   departures: DbDeparture[];
@@ -74,7 +75,9 @@ export interface DbOffer {
   discount_value?: string;
   minimum_spend?: string;
   valid_from?: string;
+  tour_id?: string | null;
   tour_slug?: string | null;
+  tour_title?: string | null;
   valid_until: string;
   banner_image: string | null;
   is_active: boolean;
@@ -351,6 +354,8 @@ export interface DbBooking {
   customer_email: string;
   pickup_point?: string;
   special_requests?: string;
+  promo_code?: string | null;
+  discount_amount?: string;
   travelers: DbTraveler[];
   created_at: string;
   updated_at: string;
@@ -437,6 +442,7 @@ export interface DbCustomerUser {
   phone_number: string;
   full_name: string;
   email?: string;
+  preferred_pickup_point?: string;
   created_at: string;
   updated_at: string;
   last_login_at?: string;

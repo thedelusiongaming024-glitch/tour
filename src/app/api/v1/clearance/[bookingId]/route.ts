@@ -44,12 +44,14 @@ export async function GET(
       departure_date: booking.departure_date,
       traveler_count: booking.traveler_count,
       selected_seats: booking.selected_seats || [],
+      pickup_point: booking.pickup_point || null,
     };
 
     if (isCleared) {
       return NextResponse.json({
         status: "verified",
         message: "Booking Confirmed — Fully Paid",
+        token: ticket.token,
         booking: bookingPayload,
       });
     }
@@ -58,6 +60,7 @@ export async function GET(
       status: "due_pending",
       message: "Remaining balance due — proceed to payment.",
       amount_due: booking.amount_due,
+      token: ticket.token,
       booking: bookingPayload,
       pay_endpoint: `/api/v1/clearance/${bookingId}/pay/`,
     });

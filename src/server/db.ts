@@ -24,6 +24,7 @@ import {
   invokeCloudSnapshotSync,
 } from "./supabase";
 import { normalizeImageUrl } from "@/lib/media";
+import { getSupabaseAdminClient } from "@/lib/supabase";
 import type {
   AboutPageCmsContent,
   DatabaseSchema,
@@ -63,6 +64,15 @@ function slugToId(slug: string): string {
   }
   const hex = Math.abs(hash).toString(16).padStart(8, "0");
   return `00000000-0000-4000-8000-${hex.repeat(2).slice(0, 12)}`;
+}
+
+export function extractPromoInfo(specialRequests?: string | null): { promoCode?: string; discountAmount?: string } {
+  if (!specialRequests) return {};
+  const match = specialRequests.match(/\[Promo:\s*([A-Za-z0-9_\-]+)\s*\(-৳?([0-9,.]+)\)\]/i);
+  if (!match) return {};
+  const code = match[1];
+  const discount = match[2].replace(/,/g, "");
+  return { promoCode: code, discountAmount: discount };
 }
 
 function generateInitialDepartures(): DbDeparture[] {
@@ -203,9 +213,17 @@ function triggerBackgroundSupabaseSync() {
     .then((cloudDb) => {
       if (!cloudDb) return;
       if (cloudDb.destinations.length > 0 || cloudDb.tours.length > 0) {
+        if (!memoryDb && fs.existsSync(DB_FILE)) {
+          try {
+            const raw = fs.readFileSync(DB_FILE, "utf-8");
+            memoryDb = JSON.parse(raw) as DatabaseSchema;
+          } catch {}
+        }
+
         if (memoryDb) {
-          // 1. Enrich existing cloud customers with local activities (NEVER re-add deleted customers)
+          // 1. Enrich existing cloud customers with local activities & preserve active/recent local customers
           const localCustMap = new Map((memoryDb.customers || []).map((c) => [c.id, c]));
+          const cloudCustIds = new Set((cloudDb.customers || []).map((c) => c.id));
           cloudDb.customers = (cloudDb.customers || []).map((cloudC) => {
             const localC = localCustMap.get(cloudC.id);
             if (!localC) return cloudC;
@@ -222,13 +240,33 @@ function triggerBackgroundSupabaseSync() {
             };
           });
 
-          // 2. Enrich existing cloud bookings with local selected_seats/travelers (NEVER re-add deleted bookings)
+          const nowMs = Date.now();
+          const recentCutoffMs = 24 * 60 * 60 * 1000;
+          // Preserve local customers created within the last 24 hours that are not yet in Supabase
+          for (const localC of memoryDb.customers || []) {
+            if (!cloudCustIds.has(localC.id)) {
+              const age = nowMs - new Date(localC.created_at || nowMs).getTime();
+              if (age < recentCutoffMs || isNaN(age)) {
+                cloudDb.customers.unshift(localC);
+                void syncCustomerToSupabase(localC);
+              }
+            }
+          }
+
+          // 2. Enrich existing cloud bookings with local promo_code/discount/seats/travelers & preserve active/pending/recent local bookings
           const localBookingMap = new Map((memoryDb.bookings || []).map((b) => [b.id, b]));
+          const cloudBookingIds = new Set((cloudDb.bookings || []).map((b) => b.id));
           cloudDb.bookings = (cloudDb.bookings || []).map((cloudB) => {
             const localB = localBookingMap.get(cloudB.id);
-            if (!localB) return cloudB;
+            const promoInfo = extractPromoInfo(cloudB.special_requests);
+            const promo_code = localB?.promo_code || cloudB.promo_code || promoInfo.promoCode || null;
+            const discount_amount = localB?.discount_amount || cloudB.discount_amount || promoInfo.discountAmount || undefined;
+
+            if (!localB) return { ...cloudB, promo_code, discount_amount };
             return {
               ...cloudB,
+              promo_code,
+              discount_amount,
               selected_seats:
                 cloudB.selected_seats && cloudB.selected_seats.length > 0
                   ? cloudB.selected_seats
@@ -240,10 +278,55 @@ function triggerBackgroundSupabaseSync() {
             };
           });
 
+          // Preserve any in-flight / pending booking or recent booking created in the last 24 hours
+          for (const localB of memoryDb.bookings || []) {
+            if (!cloudBookingIds.has(localB.id)) {
+              const age = nowMs - new Date(localB.created_at || nowMs).getTime();
+              const isPending = localB.status === "pending_payment";
+              if (isPending || age < recentCutoffMs || isNaN(age)) {
+                cloudDb.bookings.unshift(localB);
+                void syncBookingToSupabase(localB);
+              }
+            }
+          }
+
           if (memoryDb.payments?.length) cloudDb.payments = memoryDb.payments;
           if (memoryDb.clearanceTickets?.length) cloudDb.clearanceTickets = memoryDb.clearanceTickets;
           if (memoryDb.alerts?.length) cloudDb.alerts = memoryDb.alerts;
           if (memoryDb.contactInquiries?.length) cloudDb.contactInquiries = memoryDb.contactInquiries;
+
+          // Preserve and enrich offers so tour-specific promo codes are retained
+          const existingOffers = memoryDb?.offers?.length
+            ? memoryDb.offers
+            : (fs.existsSync(DB_FILE) ? (() => { try { return (JSON.parse(fs.readFileSync(DB_FILE, "utf-8")) as DatabaseSchema).offers || []; } catch { return []; } })() : []);
+
+          if (existingOffers.length) {
+            const cloudOfferMap = new Map((cloudDb.offers || []).map((o) => [o.id, o]));
+            const mergedOffers = [...(cloudDb.offers || [])];
+            for (const localO of existingOffers) {
+              if (!cloudOfferMap.has(localO.id)) {
+                mergedOffers.push(localO);
+              } else {
+                const idx = mergedOffers.findIndex((o) => o.id === localO.id);
+                if (idx !== -1) {
+                  mergedOffers[idx] = {
+                    ...mergedOffers[idx],
+                    tour_id: localO.tour_id ?? mergedOffers[idx].tour_id,
+                    tour_slug: localO.tour_slug ?? mergedOffers[idx].tour_slug,
+                    tour_title: localO.tour_title ?? mergedOffers[idx].tour_title,
+                    code: localO.code ?? mergedOffers[idx].code,
+                    is_active: localO.is_active !== undefined ? localO.is_active : mergedOffers[idx].is_active,
+                    discount_type: localO.discount_type ?? mergedOffers[idx].discount_type,
+                    discount_value: localO.discount_value ?? mergedOffers[idx].discount_value,
+                    minimum_spend: localO.minimum_spend ?? mergedOffers[idx].minimum_spend,
+                    valid_from: localO.valid_from ?? mergedOffers[idx].valid_from,
+                    valid_until: localO.valid_until ?? mergedOffers[idx].valid_until,
+                  };
+                }
+              }
+            }
+            cloudDb.offers = mergedOffers;
+          }
 
           // Preserve CMS homepage blocks so hero background media type and live customizations are never lost
           if (memoryDb.homepageBlocks && memoryDb.homepageBlocks.length > 0) {
@@ -283,8 +366,9 @@ export async function refreshFromSupabase(): Promise<DatabaseSchema> {
   const cloudDb = await fetchDatabaseFromSupabase();
   if (cloudDb && (cloudDb.destinations.length > 0 || cloudDb.tours.length > 0)) {
     if (memoryDb) {
-      // 1. Enrich existing cloud customers with local activities (NEVER re-add deleted customers)
+      // 1. Enrich existing cloud customers with local activities & preserve active/recent local customers
       const localCustMap = new Map((memoryDb.customers || []).map((c) => [c.id, c]));
+      const cloudCustIds = new Set((cloudDb.customers || []).map((c) => c.id));
       cloudDb.customers = (cloudDb.customers || []).map((cloudC) => {
         const localC = localCustMap.get(cloudC.id);
         if (!localC) return cloudC;
@@ -301,13 +385,33 @@ export async function refreshFromSupabase(): Promise<DatabaseSchema> {
         };
       });
 
-      // 2. Enrich existing cloud bookings with local selected_seats/travelers (NEVER re-add deleted bookings)
+      const nowMs = Date.now();
+      const recentCutoffMs = 24 * 60 * 60 * 1000;
+      // Preserve local customers created within the last 24 hours that are not yet in Supabase
+      for (const localC of memoryDb.customers || []) {
+        if (!cloudCustIds.has(localC.id)) {
+          const age = nowMs - new Date(localC.created_at || nowMs).getTime();
+          if (age < recentCutoffMs || isNaN(age)) {
+            cloudDb.customers.unshift(localC);
+            void syncCustomerToSupabase(localC);
+          }
+        }
+      }
+
+      // 2. Enrich existing cloud bookings with local promo_code/discount/seats/travelers & preserve active/pending/recent local bookings
       const localBookingMap = new Map((memoryDb.bookings || []).map((b) => [b.id, b]));
+      const cloudBookingIds = new Set((cloudDb.bookings || []).map((b) => b.id));
       cloudDb.bookings = (cloudDb.bookings || []).map((cloudB) => {
         const localB = localBookingMap.get(cloudB.id);
-        if (!localB) return cloudB;
+        const promoInfo = extractPromoInfo(cloudB.special_requests);
+        const promo_code = localB?.promo_code || cloudB.promo_code || promoInfo.promoCode || null;
+        const discount_amount = localB?.discount_amount || cloudB.discount_amount || promoInfo.discountAmount || undefined;
+
+        if (!localB) return { ...cloudB, promo_code, discount_amount };
         return {
           ...cloudB,
+          promo_code,
+          discount_amount,
           selected_seats:
             cloudB.selected_seats && cloudB.selected_seats.length > 0
               ? cloudB.selected_seats
@@ -319,10 +423,55 @@ export async function refreshFromSupabase(): Promise<DatabaseSchema> {
         };
       });
 
+      // Preserve any in-flight / pending booking or recent booking created in the last 24 hours
+      for (const localB of memoryDb.bookings || []) {
+        if (!cloudBookingIds.has(localB.id)) {
+          const age = nowMs - new Date(localB.created_at || nowMs).getTime();
+          const isPending = localB.status === "pending_payment";
+          if (isPending || age < recentCutoffMs || isNaN(age)) {
+            cloudDb.bookings.unshift(localB);
+            void syncBookingToSupabase(localB);
+          }
+        }
+      }
+
       if (memoryDb.payments?.length) cloudDb.payments = memoryDb.payments;
       if (memoryDb.clearanceTickets?.length) cloudDb.clearanceTickets = memoryDb.clearanceTickets;
       if (memoryDb.alerts?.length) cloudDb.alerts = memoryDb.alerts;
       if (memoryDb.contactInquiries?.length) cloudDb.contactInquiries = memoryDb.contactInquiries;
+
+      // Preserve and enrich offers so tour-specific promo codes are retained
+      const existingOffers = memoryDb?.offers?.length
+        ? memoryDb.offers
+        : (fs.existsSync(DB_FILE) ? (() => { try { return (JSON.parse(fs.readFileSync(DB_FILE, "utf-8")) as DatabaseSchema).offers || []; } catch { return []; } })() : []);
+
+      if (existingOffers.length) {
+        const cloudOfferMap = new Map((cloudDb.offers || []).map((o) => [o.id, o]));
+        const mergedOffers = [...(cloudDb.offers || [])];
+        for (const localO of existingOffers) {
+          if (!cloudOfferMap.has(localO.id)) {
+            mergedOffers.push(localO);
+          } else {
+            const idx = mergedOffers.findIndex((o) => o.id === localO.id);
+            if (idx !== -1) {
+              mergedOffers[idx] = {
+                ...mergedOffers[idx],
+                tour_id: localO.tour_id ?? mergedOffers[idx].tour_id,
+                tour_slug: localO.tour_slug ?? mergedOffers[idx].tour_slug,
+                tour_title: localO.tour_title ?? mergedOffers[idx].tour_title,
+                code: localO.code ?? mergedOffers[idx].code,
+                is_active: localO.is_active !== undefined ? localO.is_active : mergedOffers[idx].is_active,
+                discount_type: localO.discount_type ?? mergedOffers[idx].discount_type,
+                discount_value: localO.discount_value ?? mergedOffers[idx].discount_value,
+                minimum_spend: localO.minimum_spend ?? mergedOffers[idx].minimum_spend,
+                valid_from: localO.valid_from ?? mergedOffers[idx].valid_from,
+                valid_until: localO.valid_until ?? mergedOffers[idx].valid_until,
+              };
+            }
+          }
+        }
+        cloudDb.offers = mergedOffers;
+      }
 
       // Preserve CMS homepage blocks so hero background media type and live customizations are never lost
       if (memoryDb.homepageBlocks && memoryDb.homepageBlocks.length > 0) {
@@ -534,6 +683,111 @@ export function getOffers(): DbOffer[] {
   return db.offers.filter((o) => o.is_active !== false);
 }
 
+export interface PromoValidationResult {
+  valid: boolean;
+  code?: string;
+  title?: string;
+  discount_type?: "percent" | "flat";
+  discount_value?: string;
+  discount_amount?: number;
+  new_total?: number;
+  error?: string;
+  tour_id?: string | null;
+  tour_title?: string | null;
+}
+
+export function validatePromoCode(
+  code: string,
+  tourId: string,
+  tourSlug?: string,
+  totalAmount?: number
+): PromoValidationResult {
+  const db = loadDb();
+  if (!code || !code.trim()) {
+    return { valid: false, error: "Please enter a promo code." };
+  }
+
+  const cleanCode = code.trim().toUpperCase();
+  const offer = db.offers.find(
+    (o) => (o.code || o.slug).toUpperCase() === cleanCode && o.is_active !== false
+  );
+
+  if (!offer) {
+    return { valid: false, error: "Invalid promo code." };
+  }
+
+  const now = new Date();
+  if (offer.valid_until) {
+    const untilMs = offer.valid_until.length === 10
+      ? new Date(`${offer.valid_until}T23:59:59.999Z`).getTime()
+      : new Date(offer.valid_until).getTime();
+    if (untilMs < now.getTime() - 24 * 60 * 60 * 1000) {
+      return { valid: false, error: "This promo code has expired." };
+    }
+  }
+
+  if (offer.valid_from) {
+    const fromMs = offer.valid_from.length === 10
+      ? new Date(`${offer.valid_from}T00:00:00.000Z`).getTime()
+      : new Date(offer.valid_from).getTime();
+    // Allow for up to 14 hours timezone difference (e.g. Asia/Dhaka is UTC+6)
+    if (fromMs - 14 * 60 * 60 * 1000 > now.getTime()) {
+      return { valid: false, error: "This promo code is not active yet." };
+    }
+  }
+
+  // Check specific tour restriction
+  const isTourRestricted = Boolean(offer.tour_id || offer.tour_slug);
+  if (isTourRestricted) {
+    const matchesTour =
+      (offer.tour_id && (offer.tour_id === tourId || offer.tour_id === tourSlug)) ||
+      (offer.tour_slug && (offer.tour_slug === tourSlug || offer.tour_slug === tourId));
+
+    if (!matchesTour) {
+      const targetTour = offer.tour_title || offer.tour_slug || "another specific tour";
+      return {
+        valid: false,
+        error: `This promo code is only valid for "${targetTour}". It cannot be used for this tour.`,
+      };
+    }
+  }
+
+  const baseTotal = totalAmount || 0;
+  const minSpend = parseFloat(offer.minimum_spend || "0");
+  if (minSpend > 0 && baseTotal > 0 && baseTotal < minSpend) {
+    return {
+      valid: false,
+      error: `Minimum booking spend of ৳${minSpend.toLocaleString()} is required to use promo code ${cleanCode}.`,
+    };
+  }
+
+  let discountAmount = 0;
+  if (offer.discount_type === "percent") {
+    const pct = parseFloat(offer.discount_value || "0") || 0;
+    discountAmount = Math.round((baseTotal * pct) / 100);
+  } else {
+    discountAmount = Math.round(parseFloat(offer.discount_value || "0") || 0);
+  }
+
+  if (baseTotal > 0) {
+    discountAmount = Math.min(discountAmount, baseTotal);
+  }
+
+  const newTotal = Math.max(0, baseTotal - discountAmount);
+
+  return {
+    valid: true,
+    code: offer.code || offer.slug,
+    title: offer.title,
+    discount_type: offer.discount_type,
+    discount_value: offer.discount_value,
+    discount_amount: discountAmount,
+    new_total: newTotal,
+    tour_id: offer.tour_id || null,
+    tour_title: offer.tour_title || null,
+  };
+}
+
 export function getTestimonials(onlyFeatured: boolean = false): DbTestimonial[] {
   const db = loadDb();
   if (onlyFeatured) {
@@ -571,8 +825,8 @@ export const DEFAULT_ABOUT_CMS: AboutPageCmsContent = {
   hero_eyebrow: "Our story",
   hero_title: "Built by people who call Bangladesh home",
   hero_subtitle:
-    "Atithi (অতিথি) started with a simple frustration: booking a domestic trip meant middlemen, vague pricing, and cash changing hands with no record. We built the agency we wished existed — local hosts, honest pricing, and a payment system that leaves nothing to dispute.",
-  story_badge: "The Atithi Standard",
+    "Savar Tour Lover (সাভার ট্যুর লাভার) started with a simple belief: আপনার স্বপ্ন উড়তে দিন (Let your dreams fly). Booking a domestic trip shouldn't mean middlemen, vague pricing, and cash changing hands with no record. We built the agency we wished existed — local hosts, honest pricing, and transparent booking.",
+  story_badge: "The Savar Tour Lover Standard",
   story_title: "Why we started",
   story_paragraphs: [
     "Most domestic travel in Bangladesh is organized through word-of-mouth recommendations, social media groups, or informal fixers. Prices shift depending on who's asking, booking confirmations are a verbal promise, and if something goes wrong, there's no recourse.",
@@ -599,7 +853,7 @@ export const DEFAULT_ABOUT_CMS: AboutPageCmsContent = {
       icon: "heart",
       title: "Hospitality first",
       description:
-        'Atithi — "guest" — is central to Bengali culture. We host you the way we\'d host family, not process you like a booking number.',
+        "We host you the way we'd host family, not process you like a booking number. Your dream travel is our passion.",
     },
     {
       icon: "sparkle",
@@ -695,10 +949,10 @@ export const DEFAULT_HOME_CMS: HomePageCmsContent = {
   hero_media_type: "slideshow",
   hero_video_url: "",
   hero_slides: DEFAULT_HERO_SLIDES,
-  hero_eyebrow: "Domestic tours across Bangladesh",
+  hero_eyebrow: "Savar Tour Lover — আপনার স্বপ্ন উড়তে দিন",
   hero_headline: "Discover Bangladesh,",
-  hero_highlight: "your way",
-  hero_subheadline: "Curated domestic tours. Trusted local hosts. Book with an advance and clear the balance on tour day.",
+  hero_highlight: "Let Your Dreams Fly",
+  hero_subheadline: "Curated domestic tours with Savar Tour Lover. Trusted local hosts. Book with an advance and clear the balance on tour day.",
   hero_primary_cta_label: "Explore Tours",
   hero_primary_cta_href: "/tours",
   hero_secondary_cta_label: "Plan My Trip",
@@ -721,7 +975,7 @@ export const DEFAULT_HOME_CMS: HomePageCmsContent = {
   tours_hidden: false,
 
   // 4. Why Us
-  why_us_eyebrow: "Why ATITHI",
+  why_us_eyebrow: "Why Savar Tour Lover",
   why_us_title: "Travel with people who call Bangladesh home",
   why_us_description: "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides.",
   why_us_items: [
@@ -817,7 +1071,7 @@ export const DEFAULT_HOME_CMS: HomePageCmsContent = {
   journal_hidden: false,
 
   // 9. CTA Banner
-  cta_eyebrow: "Atithi — the guest is God",
+  cta_eyebrow: "Savar Tour Lover — আপনার স্বপ্ন উড়তে দিন",
   cta_title: "Plan your next journey across Bangladesh",
   cta_description: "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
   cta_primary_label: "Plan My Trip",
@@ -1091,8 +1345,10 @@ export async function createBooking(input: {
   customer_full_name: string;
   customer_phone_number: string;
   customer_email?: string;
+  pickup_point?: string;
   special_requests?: string;
   selected_seats?: string[];
+  promo_code?: string;
 }): Promise<{ booking: DbBooking; customer: DbCustomerUser }> {
   const db = loadDb();
   const tour = db.tours.find((t) => t.id === input.tour_id || t.slug === input.tour_id);
@@ -1152,10 +1408,35 @@ export async function createBooking(input: {
     email: input.customer_email,
   });
 
+  const chosenPickupPoint = input.pickup_point?.trim() || tour.meeting_point || undefined;
+  if (chosenPickupPoint) {
+    customer.preferred_pickup_point = chosenPickupPoint;
+  }
+
   const unitPrice = parseFloat(tour.final_price);
-  const totalPrice = unitPrice * effectiveTravelerCount;
-  const advancePercent = input.payment_plan === "full" ? 100 : parseFloat(tour.advance_payment_percent);
+  const rawTotalPrice = unitPrice * effectiveTravelerCount;
+
+  // Validate promo code and calculate discount if provided
+  let appliedDiscount = 0;
+  let validatedPromo: string | null = null;
+  if (input.promo_code && input.promo_code.trim()) {
+    const promoRes = validatePromoCode(input.promo_code, tour.id, tour.slug, rawTotalPrice);
+    if (!promoRes.valid) {
+      throw new Error(promoRes.error || "Invalid promo code for this tour.");
+    }
+    appliedDiscount = promoRes.discount_amount || 0;
+    validatedPromo = promoRes.code || input.promo_code.trim().toUpperCase();
+  }
+
+  const totalPrice = Math.max(0, rawTotalPrice - appliedDiscount);
+  const advancePercent = input.payment_plan === "full" ? 100 : (parseFloat(tour.advance_payment_percent) || 40);
   const advanceAmount = Math.round((totalPrice * advancePercent) / 100);
+
+  let specialReqs = input.special_requests || "";
+  if (validatedPromo && appliedDiscount > 0) {
+    const promoTag = `[Promo: ${validatedPromo} (-৳${appliedDiscount.toLocaleString()})]`;
+    specialReqs = specialReqs ? `${specialReqs} ${promoTag}` : promoTag;
+  }
 
   const count = db.bookings.length + 1;
   const year = new Date().getFullYear();
@@ -1173,6 +1454,7 @@ export async function createBooking(input: {
     departure_date: departure?.departure_date,
     traveler_count: effectiveTravelerCount,
     selected_seats: selectedSeats,
+    pickup_point: chosenPickupPoint,
     unit_price: unitPrice.toFixed(2),
     total_price: totalPrice.toFixed(2),
     final_price: totalPrice.toFixed(2),
@@ -1183,11 +1465,13 @@ export async function createBooking(input: {
     amount_due: totalPrice.toFixed(2),
     due_date: departure?.departure_date || new Date().toISOString().split("T")[0],
     status: "pending_payment",
+    promo_code: validatedPromo,
+    discount_amount: appliedDiscount.toFixed(2),
     customer_id: customer.id,
     customer_full_name: input.customer_full_name,
     customer_phone_number: normalizedPhone,
     customer_email: input.customer_email || "",
-    special_requests: input.special_requests || "",
+    special_requests: specialReqs,
     travelers:
       selectedSeats.length > 0
         ? selectedSeats.map((seat, idx) => ({
@@ -1214,7 +1498,7 @@ export async function createBooking(input: {
     id: `alt-book-${Date.now()}`,
     alert_type: "new_booking",
     severity: "info",
-    message: `New booking ${ref} created for ${tour.title} (${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}).`,
+    message: `New booking ${ref} created for ${tour.title} (${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}${chosenPickupPoint ? ` · Pick-up: ${chosenPickupPoint}` : ""}).`,
     is_acknowledged: false,
     created_at: new Date().toISOString(),
   });
@@ -1223,7 +1507,7 @@ export async function createBooking(input: {
   await addCustomerActivity(customer.id, {
     type: "booking_created",
     title: `Booked ${tour.title}`,
-    description: `Booking reference ${ref} created for ${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}. Total: ৳${totalPrice.toLocaleString()}.`,
+    description: `Booking reference ${ref} created for ${effectiveTravelerCount} traveler(s)${selectedSeats.length > 0 ? ` · Seats: ${selectedSeats.join(", ")}` : ""}${chosenPickupPoint ? ` · Pick-up: ${chosenPickupPoint}` : ""}. Total: ৳${totalPrice.toLocaleString()}.`,
     metadata: {
       booking_id: bookingId,
       reference: ref,
@@ -1231,12 +1515,13 @@ export async function createBooking(input: {
       traveler_count: effectiveTravelerCount,
       selected_seats: selectedSeats,
       departure_date: departure?.departure_date,
+      pickup_point: chosenPickupPoint,
     },
   });
 
   await saveDb(db);
-  await syncBookingToSupabase(newBooking);
   await syncCustomerToSupabase(customer);
+  await syncBookingToSupabase(newBooking);
   return { booking: newBooking, customer };
 }
 
@@ -1290,11 +1575,30 @@ export function getPaymentByTranId(tranId: string): DbPayment | null {
   return db.payments.find((p) => p.tran_id === tranId) || null;
 }
 
-export async function confirmPaymentSuccess(tranId: string, valId?: string, cardType?: string): Promise<{ payment: DbPayment; booking: DbBooking; ticket: DbClearanceTicket }> {
+export async function confirmPaymentSuccess(
+  tranId: string,
+  valId?: string,
+  cardType?: string,
+  extra?: { bookingId?: string; bookingRef?: string }
+): Promise<{ payment: DbPayment; booking: DbBooking; ticket: DbClearanceTicket }> {
   const db = loadDb();
-  const paymentIndex = db.payments.findIndex((p) => p.tran_id === tranId);
+  let paymentIndex = db.payments.findIndex((p) => p.tran_id === tranId);
+  if (paymentIndex === -1 && extra?.bookingId) {
+    paymentIndex = db.payments.findIndex((p) => p.booking_id === extra.bookingId);
+  }
   if (paymentIndex === -1) {
-    throw new Error("Payment transaction not found");
+    const fallbackPayment: DbPayment = {
+      id: `pay-${Date.now()}`,
+      booking_id: extra?.bookingId || `book-${Date.now()}`,
+      amount: "0.00",
+      payment_type: "advance",
+      payment_method: "sslcommerz",
+      status: "pending",
+      tran_id: tranId,
+      created_at: new Date().toISOString(),
+    };
+    db.payments.unshift(fallbackPayment);
+    paymentIndex = 0;
   }
 
   const payment = db.payments[paymentIndex];
@@ -1303,9 +1607,88 @@ export async function confirmPaymentSuccess(tranId: string, valId?: string, card
   payment.card_type = cardType || "bKash";
   payment.paid_at = new Date().toISOString();
 
-  const booking = db.bookings.find((b) => b.id === payment.booking_id);
+  let booking = db.bookings.find((b) => b.id === payment.booking_id);
+  if (!booking && extra?.bookingId) {
+    booking = db.bookings.find((b) => b.id === extra.bookingId);
+  }
+
+  // If not found in local memory, attempt direct fetch from Supabase
+  if (!booking && payment.booking_id) {
+    try {
+      const supabase = getSupabaseAdminClient();
+      const { data: remoteB } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("id", payment.booking_id)
+        .maybeSingle();
+
+      if (remoteB) {
+        booking = {
+          id: remoteB.id,
+          reference: remoteB.reference || extra?.bookingRef || `AT-${remoteB.id.slice(-6).toUpperCase()}`,
+          tour_id: remoteB.tour_id,
+          tour_title: remoteB.tour_title,
+          tour_slug: remoteB.tour_slug,
+          destination_slug: remoteB.destination_slug || remoteB.tour_slug || "bangladesh",
+          departure_date: remoteB.departure_date,
+          traveler_count: Number(remoteB.traveler_count || 1),
+          selected_seats: Array.isArray(remoteB.selected_seats) ? remoteB.selected_seats : [],
+          unit_price: String(remoteB.unit_price || 0),
+          total_price: String(remoteB.total_price || payment.amount || 0),
+          final_price: String(remoteB.total_price || payment.amount || 0),
+          payment_plan: Number(remoteB.due_on_tour_day || 0) > 0 ? "partial" : "full",
+          advance_required_percent: "40",
+          advance_amount: String(remoteB.advance_amount || payment.amount || 0),
+          amount_paid: String(remoteB.amount_paid || 0),
+          amount_due: String(remoteB.due_on_tour_day || 0),
+          due_date: remoteB.departure_date || new Date().toISOString().slice(0, 10),
+          status: remoteB.status || "pending_payment",
+          customer_id: remoteB.customer_id || undefined,
+          customer_full_name: remoteB.customer_name || "Customer",
+          customer_phone_number: remoteB.customer_phone || "+8801700000000",
+          customer_email: remoteB.customer_email || "",
+          special_requests: remoteB.special_requests || "",
+          travelers: Array.isArray(remoteB.travelers) ? remoteB.travelers : [],
+          created_at: remoteB.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        db.bookings.unshift(booking);
+      }
+    } catch {}
+  }
+
+  // If still not found, construct a fallback booking to ensure the confirmed payment is honored
   if (!booking) {
-    throw new Error("Associated booking not found");
+    const fallbackRef = extra?.bookingRef || `AT-${payment.booking_id ? payment.booking_id.slice(-6).toUpperCase() : Date.now().toString().slice(-6)}`;
+    booking = {
+      id: payment.booking_id || `book-${Date.now()}`,
+      reference: fallbackRef,
+      tour_id: "tour_package",
+      tour_title: "Confirmed Tour Booking",
+      tour_slug: "confirmed-tour",
+      destination_slug: "bangladesh",
+      departure_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+      traveler_count: 1,
+      selected_seats: [],
+      unit_price: payment.amount || "2000.00",
+      total_price: payment.amount || "2000.00",
+      final_price: payment.amount || "2000.00",
+      payment_plan: payment.payment_type === "advance" ? "partial" : "full",
+      advance_required_percent: "40",
+      advance_amount: payment.amount || "2000.00",
+      amount_paid: "0.00",
+      amount_due: "0.00",
+      due_date: new Date().toISOString().slice(0, 10),
+      status: "pending_payment",
+      customer_full_name: "Valued Traveler",
+      customer_phone_number: "+8801700000000",
+      customer_email: "traveler@savartourlover.com",
+      special_requests: `Recovered from transaction ${tranId}`,
+      travelers: [{ id: `trav-${Date.now()}-1`, full_name: "Valued Traveler", is_lead_traveler: true }],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    db.bookings.unshift(booking);
   }
 
   const paidAmount = parseFloat(payment.amount);
@@ -1446,6 +1829,65 @@ export async function clearTicketOnTourDay(
   await saveDb(db);
   await syncBookingToSupabase(booking);
   return { ticket, booking };
+}
+
+export async function completeDuePayment(
+  bookingId: string,
+  method: "sslcommerz" | "host_cash" | "host_pos" | "customer_self_pay" | "bkash" | "nagad" | "bank_transfer" = "customer_self_pay",
+  amount?: string
+): Promise<{ payment: DbPayment; booking: DbBooking; ticket: DbClearanceTicket }> {
+  const db = loadDb();
+  const booking = db.bookings.find((b) => b.id === bookingId);
+  if (!booking) {
+    throw new Error(`Booking ${bookingId} not found`);
+  }
+
+  const dueToPay = amount || booking.amount_due;
+  const numDue = parseFloat(dueToPay);
+
+  if (numDue <= 0) {
+    let ticket = db.clearanceTickets.find((t) => t.booking_id === bookingId);
+    if (!ticket) ticket = getClearanceTicket(bookingId)!;
+    if (ticket) {
+      ticket.is_cleared = true;
+      ticket.cleared_at = ticket.cleared_at || new Date().toISOString();
+      ticket.clearance_method = method === "host_cash" ? "host_cash" : "customer_self_pay";
+    }
+    booking.status = "confirmed_fully_paid";
+    booking.updated_at = new Date().toISOString();
+    await saveDb(db);
+    await syncBookingToSupabase(booking);
+
+    const existingPayment = db.payments.find((p) => p.booking_id === bookingId && p.status === "success") || {
+      id: `pay-${Date.now()}`,
+      booking_id: booking.id,
+      amount: booking.total_price,
+      payment_type: "final" as const,
+      payment_method: method as any,
+      status: "success" as const,
+      tran_id: `TRAN-ALREADY-PAID-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    };
+    return {
+      payment: existingPayment,
+      booking,
+      ticket: ticket || getClearanceTicket(bookingId)!,
+    };
+  }
+
+  // Create payment record
+  const payment = await createPayment({
+    booking_id: booking.id,
+    amount: dueToPay,
+    payment_type: "final",
+    payment_method: (method === "host_cash" ? "host_cash" : method === "host_pos" ? "host_pos" : "sslcommerz"),
+  });
+
+  // Confirm payment success
+  const valId = `DUE-SETTLE-${Date.now()}`;
+  const cardType = method.toUpperCase();
+  const result = await confirmPaymentSuccess(payment.tran_id, valId, cardType, { bookingId: booking.id });
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -1598,6 +2040,15 @@ export async function saveTour(tourData: Partial<DbTour>): Promise<DbTour> {
     transportation_notes: tourData.transportation_notes || "",
     meals_notes: tourData.meals_notes || "",
     meeting_point: tourData.meeting_point || "Dhaka",
+    pickup_points: Array.isArray(tourData.pickup_points)
+      ? tourData.pickup_points
+      : typeof (tourData as any).pickup_points === "string"
+      ? String((tourData as any).pickup_points)
+          .split("\n")
+          .flatMap((s) => s.split(","))
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
     departure_schedule: tourData.departure_schedule || "Every Friday",
     total_seats: tourData.total_seats || 20,
     departures: tourData.departures && tourData.departures.length > 0 ? tourData.departures : generateInitialDepartures(),
@@ -1765,7 +2216,9 @@ export async function saveOffer(offerData: Partial<DbOffer>): Promise<DbOffer> {
     discount_value: offerData.discount_value || "10",
     minimum_spend: offerData.minimum_spend || "0",
     valid_from: offerData.valid_from || new Date().toISOString().slice(0, 10),
+    tour_id: offerData.tour_id || null,
     tour_slug: offerData.tour_slug || null,
+    tour_title: offerData.tour_title || null,
     valid_until: offerData.valid_until || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     banner_image: offerData.banner_image ? normalizeImageUrl(offerData.banner_image) : null,
     is_active: offerData.is_active !== false,
@@ -1896,6 +2349,21 @@ export async function updateBookingStatus(id: string, status: DbBooking["status"
   const booking = db.bookings.find((b) => b.id === id);
   if (!booking) return null;
   booking.status = status;
+
+  if (status === "confirmed_fully_paid" || status === "cleared_on_tour_day") {
+    booking.amount_paid = booking.total_price;
+    booking.amount_due = "0.00";
+    let ticket = db.clearanceTickets.find((t) => t.booking_id === id);
+    if (!ticket) {
+      ticket = getClearanceTicket(id) || undefined;
+    }
+    if (ticket) {
+      ticket.is_cleared = true;
+      ticket.cleared_at = new Date().toISOString();
+      ticket.clearance_method = status === "cleared_on_tour_day" ? "host_verification" : "verification_only";
+    }
+  }
+
   booking.updated_at = new Date().toISOString();
   await saveDb(db);
   await syncBookingToSupabase(booking);

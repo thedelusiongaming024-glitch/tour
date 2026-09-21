@@ -48,13 +48,27 @@ export function OfferCard({ offer }: OfferCardProps) {
         {offer.description}
       </p>
       <div className="mt-4 flex flex-col gap-2">
-        <div className="inline-flex items-center gap-2 rounded-xl border border-dashed border-gold/50 bg-gold/5 px-3 py-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
-            Code
-          </span>
-          <span className="font-mono text-sm font-bold tracking-wide text-gold">
-            {offer.code}
-          </span>
+        <div className="inline-flex items-center justify-between gap-2 rounded-xl border border-dashed border-gold/50 bg-gold/5 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+              Code
+            </span>
+            <span className="font-mono text-sm font-bold tracking-wide text-gold">
+              {offer.code}
+            </span>
+          </div>
+          {offer.tour_title ? (
+            <span
+              className="rounded-md bg-emerald-100/90 px-2 py-0.5 text-[10px] font-medium text-emerald-900 border border-emerald-300/80 truncate max-w-[150px]"
+              title={`Valid only for: ${offer.tour_title}`}
+            >
+              🎯 {offer.tour_title}
+            </span>
+          ) : (
+            <span className="rounded-md bg-white/70 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200">
+              🌐 All Tours
+            </span>
+          )}
         </div>
         <span className="text-[11px] text-ink-faint">{offer.expiry}</span>
       </div>

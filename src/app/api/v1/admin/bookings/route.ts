@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUserFromHeader } from "@/server/auth";
-import { getAllBookingsAdmin, updateBookingStatus } from "@/server/db";
+import { getAllBookingsAdmin, updateBookingStatus, completeDuePayment } from "@/server/db";
 
 export async function GET(request: Request) {
   const user = getAuthUserFromHeader(request.headers.get("Authorization"));
@@ -20,9 +20,18 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, status } = body;
-    if (!id || !status) {
-      return NextResponse.json({ detail: "id and status are required." }, { status: 400 });
+    const { id, status, action, method } = body;
+    if (!id) {
+      return NextResponse.json({ detail: "id is required." }, { status: 400 });
+    }
+
+    if (action === "settle_due") {
+      const result = await completeDuePayment(id, method || "host_cash");
+      return NextResponse.json(result.booking);
+    }
+
+    if (!status) {
+      return NextResponse.json({ detail: "status or action is required." }, { status: 400 });
     }
 
     const updated = await updateBookingStatus(id, status);

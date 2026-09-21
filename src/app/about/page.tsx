@@ -9,7 +9,7 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "The story, values, and local hosts behind ATITHI — a premium domestic travel agency built for Bangladesh.",
+    "The story, values, and local hosts behind Savar Tour Lover — আপনার স্বপ্ন উড়তে দিন। Curated domestic tours across Bangladesh.",
 };
 
 export default async function AboutPage() {

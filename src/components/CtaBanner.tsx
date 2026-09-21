@@ -21,7 +21,7 @@ export function CtaBanner(props: CtaBannerProps) {
 
   const eyebrow =
     props.eyebrow ??
-    (isBn ? "অতিথি — আতিথেয়তাই আমাদের ধর্ম" : "Atithi — the guest is God");
+    (isBn ? "সাভার ট্যুর লাভার — আপনার স্বপ্ন উড়তে দিন" : "Savar Tour Lover — Let Your Dreams Fly");
   const title =
     props.title ??
     (isBn

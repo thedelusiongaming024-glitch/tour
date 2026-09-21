@@ -13,29 +13,29 @@ const officeInfoData = [
     icon: "mapPin",
     labelEn: "Office",
     labelBn: "কার্যালয়",
-    valueEn: "House 14, Road 7, Banani, Dhaka 1213, Bangladesh",
-    valueBn: "বাড়ি ১৪, রোড ৭, বনানী, ঢাকা ১২১৩, বাংলাদেশ",
+    valueEn: "Savar Pollibidut, Kobarsthan Road, Savar, Dhaka, 1340, Bangladesh",
+    valueBn: "সাভার পল্লীবিদ্যুৎ, কবরস্থান রোড, সাভার, ঢাকা, ১৩৪০, বাংলাদেশ",
   },
   {
     icon: "phone",
     labelEn: "Phone",
     labelBn: "ফোন",
-    valueEn: "+880 1XXX-XXXXXX",
-    valueBn: "+৮৮০ ১XXX-XXXXXX",
+    valueEn: "01620592884, 01646325350",
+    valueBn: "০১৬২০৫৯২৮৮৪, ০১৬৪৬৩২৫৩৫০",
   },
   {
     icon: "mail",
     labelEn: "Email",
     labelBn: "ইমেইল",
-    valueEn: "hello@atithi.example.com",
-    valueBn: "hello@atithi.example.com",
+    valueEn: "savartourlover@gmail.com",
+    valueBn: "savartourlover@gmail.com",
   },
   {
     icon: "clock",
     labelEn: "Hours",
     labelBn: "সময়সূচী",
-    valueEn: "Every day, 9:00 AM – 9:00 PM (BST)",
-    valueBn: "প্রতিদিন, সকাল ৯:০০ – রাত ৯:০০ (BST)",
+    valueEn: "Every day, 9:00 AM – 10:00 PM (BST)",
+    valueBn: "প্রতিদিন, সকাল ৯:০০ – রাত ১০:০০ (BST)",
   },
 ];
 
@@ -164,7 +164,7 @@ export default function ContactPage() {
                         name="phone"
                         type="tel"
                         required
-                        placeholder={isBn ? "০১XXX-XXXXXX" : "01XXX-XXXXXX"}
+                        placeholder={isBn ? "০১৬২০৫৯২৮৮৪" : "01620592884"}
                         className="mt-2 w-full rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-sm text-ink placeholder:text-ink-faint/70 outline-none transition-colors focus:border-emerald/50 focus:bg-white"
                       />
                     </div>
@@ -331,7 +331,9 @@ export default function ContactPage() {
                       : "Message us directly for a same-day reply, e-tickets, and your booking payment confirmations."}
                   </p>
                   <Link
-                    href="https://wa.me/8801XXXXXXXXX"
+                    href="https://wa.me/8801620592884"
+                    target="_blank"
+                    rel="noreferrer"
                     className="btn btn-gold mt-5 w-full !py-2.5"
                   >
                     {isBn ? "হোয়াটসঅ্যাপে চ্যাট করুন" : "Chat on WhatsApp"}
@@ -347,8 +349,8 @@ export default function ContactPage() {
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">
                   {isBn
-                    ? "আমাদের ঢাকা অফিস এবং হেল্পলাইন প্রতিদিন খোলা থাকে — সাপ্তাহিক ছুটির দিন এবং সরকারি ছুটির দিনেও।"
-                    : "Our Dhaka office and phone lines are open every day — including weekends and public holidays, since most trips are booked outside standard office hours."}
+                    ? "আমাদের সাভার অফিস এবং হেল্পলাইন প্রতিদিন খোলা থাকে — সাপ্তাহিক ছুটির দিন এবং সরকারি ছুটির দিনেও।"
+                    : "Our Savar office and phone lines are open every day — including weekends and public holidays, since most trips are booked outside standard office hours."}
                 </p>
               </div>
             </Reveal>

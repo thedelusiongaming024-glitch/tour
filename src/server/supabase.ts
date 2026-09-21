@@ -97,6 +97,8 @@ export async function syncTourToSupabase(tour: DbTour): Promise<boolean> {
       inclusions: tour.inclusions || [],
       exclusions: tour.exclusions || [],
       departures: tour.departures || [],
+      meeting_point: tour.meeting_point || null,
+      pickup_points: Array.isArray(tour.pickup_points) ? tour.pickup_points : [],
       faqs: tour.faqs || [],
       status: tour.status || "published",
       is_featured: Boolean(tour.is_featured),
@@ -132,7 +134,7 @@ export async function deleteTourFromSupabase(id: string): Promise<boolean> {
 export async function syncOfferToSupabase(offer: DbOffer): Promise<boolean> {
   const supabase = getSupabaseAdminClient();
   try {
-    const payload = {
+    const fullPayload: Record<string, any> = {
       id: offer.id,
       title: offer.title,
       code: offer.code || offer.slug || "PROMO",
@@ -144,8 +146,31 @@ export async function syncOfferToSupabase(offer: DbOffer): Promise<boolean> {
       valid_until: offer.valid_until ? offer.valid_until.slice(0, 10) : null,
       minimum_spend: Number(offer.minimum_spend || 0),
       image_url: offer.banner_image || null,
+      tour_id: offer.tour_id || null,
+      tour_slug: offer.tour_slug || null,
+      tour_title: offer.tour_title || null,
+      is_active: offer.is_active !== undefined ? Boolean(offer.is_active) : true,
     };
-    const { error } = await supabase.from("offers").upsert(payload);
+
+    let { error } = await supabase.from("offers").upsert(fullPayload);
+    if (error && (error.code === "PGRST204" || error.message?.includes("column"))) {
+      const basePayload = {
+        id: offer.id,
+        title: offer.title,
+        code: offer.code || offer.slug || "PROMO",
+        tagline: offer.description || null,
+        discount_badge: offer.discount_type === "percent" ? `${offer.discount_value}% OFF` : `BDT ${offer.discount_value} OFF`,
+        discount_type: offer.discount_type === "percent" ? "percentage" : "flat",
+        discount_value: Number(offer.discount_value || 0),
+        valid_from: offer.valid_from ? offer.valid_from.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        valid_until: offer.valid_until ? offer.valid_until.slice(0, 10) : null,
+        minimum_spend: Number(offer.minimum_spend || 0),
+        image_url: offer.banner_image || null,
+      };
+      const retry = await supabase.from("offers").upsert(basePayload);
+      error = retry.error;
+    }
+
     if (error) {
       console.warn("[Supabase Postgres] Offer upsert warning:", error.message);
       return false;
@@ -264,7 +289,7 @@ export async function syncHomepageBlockToSupabase(block: DbHomepageBlock): Promi
 export async function syncCustomerToSupabase(customer: DbCustomerUser): Promise<boolean> {
   const supabase = getSupabaseAdminClient();
   try {
-    const payload = {
+    const basePayload = {
       id: customer.id,
       phone_number: customer.phone_number,
       full_name: customer.full_name,
@@ -273,8 +298,20 @@ export async function syncCustomerToSupabase(customer: DbCustomerUser): Promise<
       updated_at: customer.updated_at || new Date().toISOString(),
       last_login_at: customer.last_login_at || null,
     };
-    const { error } = await supabase.from("customers").upsert(payload);
+    const fullPayload = {
+      ...basePayload,
+      preferred_pickup_point: customer.preferred_pickup_point || null,
+    };
+    const { error } = await supabase.from("customers").upsert(fullPayload);
     if (error) {
+      if (error.code === "PGRST204" || error.message?.includes("preferred_pickup_point") || error.message?.includes("column")) {
+        const fallbackRes = await supabase.from("customers").upsert(basePayload);
+        if (fallbackRes.error) {
+          console.warn("[Supabase Postgres] Customer upsert fallback warning:", fallbackRes.error.message);
+          return false;
+        }
+        return true;
+      }
       console.warn("[Supabase Postgres] Customer upsert warning:", error.message);
       return false;
     }
@@ -318,9 +355,16 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
         ? `Seats: ${booking.selected_seats.join(", ")}`
         : null;
 
+    const promoStr = booking.promo_code
+      ? `[Promo: ${booking.promo_code} (-৳${Math.round(Number(booking.discount_amount || 0)).toLocaleString()})]`
+      : null;
+
     let specialReqs = booking.special_requests || "";
     if (seatsStr && !specialReqs.includes("[Seats:")) {
       specialReqs = specialReqs ? `${specialReqs} [${seatsStr}]` : `[${seatsStr}]`;
+    }
+    if (promoStr && !specialReqs.includes("[Promo:")) {
+      specialReqs = specialReqs ? `${specialReqs} ${promoStr}` : promoStr;
     }
 
     const basePayload = {
@@ -333,8 +377,8 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       customer_name: booking.customer_full_name,
       customer_email: booking.customer_email || "guest@example.com",
       customer_phone: booking.customer_phone_number || "+8801700000000",
-      customer_id: b.customer_id || null,
-      pickup_point: seatsStr || b.pickup_point || null,
+      customer_id: booking.customer_id || b.customer_id || null,
+      pickup_point: booking.pickup_point || b.pickup_point || null,
       special_requests: specialReqs || null,
       total_price: Number(booking.total_price || 0),
       advance_amount: Number(booking.advance_amount || 0),
@@ -349,13 +393,26 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       reference: booking.reference || null,
       selected_seats: Array.isArray(booking.selected_seats) ? booking.selected_seats : [],
       travelers: Array.isArray(booking.travelers) ? booking.travelers : [],
+      promo_code: booking.promo_code || null,
+      discount_amount: booking.discount_amount ? Number(booking.discount_amount) : null,
     };
 
-    const { error } = await supabase.from("bookings").upsert(fullPayload);
+    let { error } = await supabase.from("bookings").upsert(fullPayload);
     if (error) {
+      // If error is foreign key violation on customer_id, retry with customer_id: null
+      if (error.code === "23503" || error.message?.includes("customer_id") || error.message?.includes("foreign key")) {
+        const fallbackRes = await supabase.from("bookings").upsert({ ...fullPayload, customer_id: null });
+        if (!fallbackRes.error) {
+          return true;
+        }
+        error = fallbackRes.error;
+      }
       // If error is caused by missing column (before SQL migration is run), retry with basePayload
-      if (error.code === "PGRST204" || error.message?.includes("column")) {
-        const fallbackRes = await supabase.from("bookings").upsert(basePayload);
+      if (error && (error.code === "PGRST204" || error.message?.includes("column"))) {
+        let fallbackRes = await supabase.from("bookings").upsert(basePayload);
+        if (fallbackRes.error && (fallbackRes.error.code === "23503" || fallbackRes.error.message?.includes("customer_id"))) {
+          fallbackRes = await supabase.from("bookings").upsert({ ...basePayload, customer_id: null });
+        }
         if (fallbackRes.error) {
           console.warn("[Supabase Postgres] Booking upsert fallback warning:", fallbackRes.error.message);
           return false;
@@ -491,8 +548,10 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       valid_from: o.valid_from || new Date().toISOString().slice(0, 10),
       valid_until: o.valid_until || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
       banner_image: o.image_url || null,
+      tour_id: o.tour_id || null,
+      tour_title: o.tour_title || null,
       tour_slug: o.tour_slug || null,
-      is_active: true,
+      is_active: o.is_active !== undefined ? Boolean(o.is_active) : true,
     }));
 
     const mappedTestimonials: DbTestimonial[] = (testsRes.data || []).map((t: any) => ({
@@ -622,6 +681,17 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
             }))
           : [{ id: `trav-${b.id}-1`, full_name: b.customer_name, is_lead_traveler: true }]);
 
+      // Promo code extraction from direct columns or special_requests fallback
+      let promo_code = b.promo_code || undefined;
+      let discount_amount = b.discount_amount !== undefined && b.discount_amount !== null ? String(b.discount_amount) : undefined;
+      if (!promo_code && b.special_requests && typeof b.special_requests === "string" && b.special_requests.includes("[Promo: ")) {
+        const promoMatch = b.special_requests.match(/\[Promo:\s*([A-Za-z0-9_\-]+)\s*\(-৳?([0-9,.]+)\)\]/);
+        if (promoMatch) {
+          promo_code = promoMatch[1].trim();
+          discount_amount = discount_amount || promoMatch[2].trim().replace(/,/g, "");
+        }
+      }
+
       return {
         id: b.id,
         reference: b.reference || (b.id ? `AT-${b.id.slice(-6).toUpperCase()}` : `AT-${Date.now().toString().slice(-6)}`),
@@ -635,6 +705,8 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
         unit_price: String(b.unit_price || Math.round(Number(b.total_price || 0) / Math.max(1, Number(b.traveler_count || 1)))),
         total_price: String(b.total_price || 0),
         final_price: String(b.total_price || 0),
+        promo_code,
+        discount_amount,
         payment_plan: Number(b.due_on_tour_day || 0) > 0 ? "partial" : "full",
         advance_required_percent: "40",
         advance_amount: String(b.advance_amount || 0),

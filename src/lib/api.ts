@@ -128,6 +128,9 @@ function slugifyFallback(name: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+import { DEFAULT_PICKUP_POINTS } from "@/lib/pickupPoints";
+export { DEFAULT_PICKUP_POINTS };
+
 function adaptTour(t: any): Tour {
   const slug = t.slug || `tour-${Date.now()}`;
   const title = t.title || "Untitled Tour";
@@ -206,6 +209,9 @@ function adaptTour(t: any): Tour {
     departure: t.departure_schedule || "Every Friday",
     departures,
     meetingPoint: t.meeting_point || "Dhaka Sayedabad / Fakirapool",
+    pickupPoints: Array.isArray(t.pickup_points) && t.pickup_points.length > 0
+      ? t.pickup_points
+      : DEFAULT_PICKUP_POINTS,
     faqs,
     featured: Boolean(t.is_featured),
   };
@@ -244,6 +250,9 @@ export async function fetchOffers(): Promise<Offer[]> {
         ? new Date(o.valid_until).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
         : "Limited time",
       bannerUrl: normalizeImageUrl(o.banner_image || o.image_url) || undefined,
+      tour_id: o.tour_id || null,
+      tour_slug: o.tour_slug || null,
+      tour_title: o.tour_title || null,
     }));
   } catch {
     return [];

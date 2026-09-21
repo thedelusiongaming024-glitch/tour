@@ -106,3 +106,17 @@ CREATE POLICY "Public Update Access on atithi-data"
 ON storage.objects FOR UPDATE TO public
 USING (bucket_id = 'atithi-data')
 WITH CHECK (bucket_id = 'atithi-data');
+
+
+-- 5. COLUMN MIGRATIONS: Ensure promo code and tour columns exist in tables
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS promo_code TEXT;
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10, 2);
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS reference TEXT;
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS selected_seats JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS travelers JSONB DEFAULT '[]'::jsonb;
+
+ALTER TABLE public.offers ADD COLUMN IF NOT EXISTS tour_id TEXT;
+ALTER TABLE public.offers ADD COLUMN IF NOT EXISTS tour_slug TEXT;
+ALTER TABLE public.offers ADD COLUMN IF NOT EXISTS tour_title TEXT;
+ALTER TABLE public.offers ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+

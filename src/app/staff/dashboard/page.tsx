@@ -626,6 +626,11 @@ function StaffDashboardContent() {
       transportation_notes: formData.get("transportation_notes") as string,
       meals_notes: formData.get("meals_notes") as string,
       meeting_point: formData.get("meeting_point") as string,
+      pickup_points: ((formData.get("pickup_points") as string) || "")
+        .split("\n")
+        .flatMap((s) => s.split(","))
+        .map((s) => s.trim())
+        .filter(Boolean),
       departure_schedule: formData.get("departure_schedule") as string,
       total_seats: Number(formData.get("total_seats") || 40),
       is_featured: formData.get("is_featured") === "on",
@@ -812,6 +817,10 @@ function StaffDashboardContent() {
     const formData = new FormData(e.currentTarget);
     const offer = offerModal.offer || {};
     const code = (formData.get("code") as string) || "PROMO";
+    const selectedTourId = (formData.get("tour_id") as string) || "";
+    const matchedTour = selectedTourId
+      ? tours.find((t) => t.id === selectedTourId || t.slug === selectedTourId)
+      : null;
 
     const payload: Partial<DbOffer> = {
       id: offer.id,
@@ -822,6 +831,9 @@ function StaffDashboardContent() {
       discount_type: formData.get("discount_type") as "percent" | "flat",
       discount_value: formData.get("discount_value") as string,
       minimum_spend: (formData.get("minimum_spend") as string) || "0",
+      tour_id: matchedTour ? matchedTour.id : (selectedTourId || null),
+      tour_slug: matchedTour ? matchedTour.slug : null,
+      tour_title: matchedTour ? matchedTour.title : null,
       valid_from: formData.get("valid_from") as string,
       valid_until: (formData.get("valid_until") as string) || new Date(Date.now() + 30 * 86400000).toISOString(),
       banner_image: normalizeImageUrl((formData.get("banner_image") as string)) || null,
@@ -837,6 +849,9 @@ function StaffDashboardContent() {
       showNotification("success", "Promotional offer saved.");
       setOfferModal({ isOpen: false, offer: null });
       loadData();
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      showNotification("error", errData.detail || "Failed to save offer.");
     }
   }
 
@@ -996,6 +1011,24 @@ function StaffDashboardContent() {
     }
   }
 
+  // Settle Due Balance
+  async function handleSettleDue(id: string, reference: string, dueAmount: string) {
+    if (!confirm(`Confirm completing the remaining due payment of ৳${Number(dueAmount).toLocaleString()} for booking ${reference}?`)) {
+      return;
+    }
+    const res = await staffFetch("/admin/bookings", {
+      method: "PATCH",
+      body: JSON.stringify({ id, action: "settle_due", method: "host_cash" }),
+    });
+    if (res.ok) {
+      showNotification("success", `Due payment settled successfully for booking ${reference}.`);
+      loadData();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showNotification("error", err.detail || "Failed to settle due payment.");
+    }
+  }
+
   // Inquiry updater
   async function handleSaveInquiry(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1046,42 +1079,40 @@ function StaffDashboardContent() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col font-sans">
       {/* Top Professional Header */}
-      <header className="border-b border-slate-200 bg-white px-6 py-3.5 sticky top-0 z-30 shadow-xs">
-        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-700 text-white font-bold text-sm tracking-tight">
-              A
-            </div>
+      <header className="border-b border-slate-200 bg-white px-3.5 py-2.5 sm:px-6 sm:py-3.5 sticky top-0 z-30 shadow-xs">
+        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <img src="/images/logo-badge.png" alt="Savar Tour Lover" className="h-8 sm:h-9 w-auto object-contain shrink-0 drop-shadow-xs" />
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="font-semibold text-slate-900 text-base tracking-tight">Atithi Admin</h1>
-                <span className="rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-xs font-medium">
+              <div className="flex items-center gap-1.5 sm:gap-2.5">
+                <h1 className="font-semibold text-slate-900 text-sm sm:text-base tracking-tight">Savar Tour Lover</h1>
+                <span className="rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium">
                   {user.role === "super_admin" ? "Super Admin" : user.role}
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-xs font-medium">
+                <span className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-xs font-medium">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Supabase Cloud
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                Connected user: <span className="font-medium text-slate-700">{user.username}</span>
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate max-w-[160px] sm:max-w-none">
+                Connected: <span className="font-medium text-slate-700">{user.username}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5 text-xs sm:text-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 text-xs sm:text-sm">
             <a
               href="/"
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium flex items-center gap-1.5"
+              className="rounded-lg border border-slate-200 bg-white px-2 sm:px-3 py-1 sm:py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium flex items-center gap-1"
             >
-              <span>Public Website</span>
+              <span>Site</span>
               <span className="text-slate-400">↗</span>
             </a>
             <button
               onClick={() => loadData()}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium"
+              className="rounded-lg border border-slate-200 bg-white px-2 sm:px-3 py-1 sm:py-1.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition font-medium"
               title="Refresh datasets"
             >
               Refresh
@@ -1091,7 +1122,7 @@ function StaffDashboardContent() {
                 clearStaffSession();
                 router.push("/staff/login");
               }}
-              className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5 hover:bg-rose-100 transition font-medium"
+              className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-rose-100 transition font-medium"
             >
               Sign Out
             </button>
@@ -1198,7 +1229,7 @@ function StaffDashboardContent() {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 mx-auto max-w-7xl w-full p-6 sm:p-8">
+      <main className="flex-1 mx-auto max-w-7xl w-full p-3 sm:p-6 md:p-8">
         {loading && (
           <div className="mb-4 flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span className="inline-block h-2 w-2 animate-spin rounded-full border border-slate-500 border-t-transparent" />
@@ -1208,55 +1239,55 @@ function StaffDashboardContent() {
 
         {/* ================= OVERVIEW TAB ================= */}
         {activeTab === "overview" && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Quick Actions Card */}
             {isSuperAdmin && (
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                   <div>
                     <h2 className="text-sm font-semibold text-slate-900">Quick Actions</h2>
                     <p className="text-xs text-slate-500">Fast shortcuts to add new packages or update homepage configuration</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => setTourModal({ isOpen: true, tour: null })}
-                      className="rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs"
+                      className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition shadow-xs text-center justify-center flex items-center"
                     >
-                      + Add Tour Package
+                      + Add Tour
                     </button>
                     <button
                       onClick={() => setActiveTab("reports")}
-                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition shadow-xs"
+                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition shadow-xs text-center justify-center flex items-center"
                     >
-                      📊 Tour & Customer Reports
+                      📊 Reports
                     </button>
                     <button
                       onClick={() => setDestModal({ isOpen: true, destination: null })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      + Add Destination
+                      + Add Dest
                     </button>
                     <button
                       onClick={() => setActiveTab("cms")}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      Configure Homepage
+                      Edit Home
                     </button>
                     <button
                       onClick={() => setActiveTab("about_cms")}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      Configure About Us Page
+                      Edit About
                     </button>
                     <button
                       onClick={() => setBlogModal({ isOpen: true, post: null })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
-                      + New Journal Post
+                      + New Post
                     </button>
                     <button
                       onClick={() => setOfferModal({ isOpen: true, offer: null })}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="col-span-2 sm:col-span-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition text-center justify-center flex items-center"
                     >
                       + New Promo Code
                     </button>
@@ -1266,28 +1297,28 @@ function StaffDashboardContent() {
             )}
 
             {/* Supabase Cloud Database Status Banner */}
-            <div className="rounded-xl border border-emerald-100 bg-white p-4 shadow-xs">
+            <div className="rounded-xl border border-emerald-100 bg-white p-3.5 sm:p-4 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-xs">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-xs shrink-0">
                     DB
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Online Database: Supabase Connected</h3>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.2 text-[11px] font-medium text-emerald-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.2 text-[10px] sm:text-[11px] font-medium text-emerald-700">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Active Cloud Sync
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Cloud Host: <span className="font-mono text-slate-700 font-medium">tcituxdzdqjgslhctncu.supabase.co</span> • Bucket: <span className="font-mono text-slate-700 font-medium">atithi-data</span> • PostgreSQL schema ready
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 break-all sm:break-normal">
+                      Host: <span className="font-mono text-slate-700 font-medium">tcituxdzdqjgslhctncu.supabase.co</span> • Bucket: <span className="font-mono text-slate-700 font-medium">atithi-data</span>
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                    Dual-Layer Persistence (Instant Local + Cloud Backup)
+                  <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium bg-slate-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-slate-200">
+                    Dual-Layer Persistence
                   </span>
                 </div>
               </div>
@@ -1295,32 +1326,32 @@ function StaffDashboardContent() {
 
             {/* Profit Dashboard Section */}
             <div>
-              <div className="mb-3">
+              <div className="mb-2.5 sm:mb-3">
                 <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-500">Financial Summary</h2>
-                <p className="text-sm font-medium text-slate-800">Operational revenue, costs, and current margins</p>
+                <p className="text-xs sm:text-sm font-medium text-slate-800">Operational revenue, costs, and current margins</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Revenue</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.total_revenue ?? 0)}</p>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Revenue</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.total_revenue ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Direct Costs</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.total_direct_cost ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Direct Costs</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.total_direct_cost ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Gross Margin</p>
-                  <p className={`mt-2 text-2xl font-bold ${Number(overview?.gross_profit) >= 0 ? "text-emerald-700" : "text-slate-900"}`}>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Gross Margin</p>
+                  <p className={`mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold ${Number(overview?.gross_profit) >= 0 ? "text-emerald-700" : "text-slate-900"}`}>
                     {formatBDT(overview?.gross_profit ?? 0)}
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Operating Expenses</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.total_operational_expense ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Operating Exp.</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.total_operational_expense ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Net Profit</p>
-                  <p className={`mt-2 text-2xl font-bold ${Number(overview?.net_profit) >= 0 ? "text-emerald-700" : "text-rose-600"}`}>
+                <div className="col-span-2 sm:col-span-1 rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Net Profit</p>
+                  <p className={`mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold ${Number(overview?.net_profit) >= 0 ? "text-emerald-700" : "text-rose-600"}`}>
                     {formatBDT(overview?.net_profit ?? 0)}
                   </p>
                 </div>
@@ -1329,26 +1360,26 @@ function StaffDashboardContent() {
 
             {/* Receivables & Inventory */}
             <div>
-              <div className="mb-3">
+              <div className="mb-2.5 sm:mb-3">
                 <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-500">Receivables & Operational Capacity</h2>
-                <p className="text-sm font-medium text-slate-800">Booking counts, pending advances, and balance due on tour day</p>
+                <p className="text-xs sm:text-sm font-medium text-slate-800">Booking counts, pending advances, and balance due on tour day</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("bookings")}>
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Total Bookings</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{overview?.bookings_count ?? bookings.length}</p>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("bookings")}>
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Total Bookings</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{overview?.bookings_count ?? bookings.length}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("tours")}>
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Published Tours</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{overview?.active_tours_count ?? tours.length}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs cursor-pointer hover:border-slate-300 transition" onClick={() => setActiveTab("tours")}>
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Published Tours</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{overview?.active_tours_count ?? tours.length}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Pending Advances</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">{formatBDT(overview?.pending_advances ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Pending Advances</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">{formatBDT(overview?.pending_advances ?? 0)}</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <p className="text-xs uppercase tracking-wide font-medium text-slate-500">Due On Tour Day</p>
-                  <p className="mt-2 text-2xl font-bold text-amber-700">{formatBDT(overview?.due_on_tour_day ?? 0)}</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Due On Tour Day</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-amber-700">{formatBDT(overview?.due_on_tour_day ?? 0)}</p>
                 </div>
               </div>
             </div>
@@ -1696,7 +1727,7 @@ function StaffDashboardContent() {
                     <span className="text-xl">🌄</span>
                     <div>
                       <div className="text-xs font-semibold text-slate-900">Atmospheric Slideshow</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">Rotating scenic Bangladeshi backdrops (Cox's Bazar, Sajek, Sundarbans, etc.)</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Rotating scenic Bangladeshi backdrops (Cox&apos;s Bazar, Sajek, Sundarbans, etc.)</div>
                     </div>
                   </button>
 
@@ -3232,14 +3263,30 @@ function StaffDashboardContent() {
               {offers.map((o) => (
                 <div key={o.id} className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition">
                   <div>
-                    <span className="font-mono text-xs font-semibold text-slate-900 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md">
-                      {o.code || o.slug}
-                    </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-mono text-xs font-semibold text-slate-900 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md">
+                        {o.code || o.slug}
+                      </span>
+                      {o.tour_id || o.tour_slug ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-medium text-amber-800" title={o.tour_title || o.tour_slug || ""}>
+                          🎯 Fixed: {o.tour_title || o.tour_slug}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800">
+                          🌐 All Tours
+                        </span>
+                      )}
+                    </div>
                     <h3 className="font-semibold text-base text-slate-900 mt-3">{o.title}</h3>
                     <p className="text-sm text-slate-600 mt-2">{o.description}</p>
-                    <p className="text-xs text-slate-500 mt-3">
-                      Valid until: {o.valid_until ? o.valid_until.slice(0, 10) : "Open"}
-                    </p>
+                    <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                      <span>
+                        Discount: {o.discount_type === "percent" ? `${o.discount_value}%` : `৳${o.discount_value}`}
+                      </span>
+                      <span>
+                        Valid until: {o.valid_until ? o.valid_until.slice(0, 10) : "Open"}
+                      </span>
+                    </div>
                   </div>
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                     <button
@@ -3371,12 +3418,39 @@ function StaffDashboardContent() {
                               Seats: {b.selected_seats.join(", ")}
                             </div>
                           )}
+                          {b.pickup_point && (
+                            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                              <span>📍 Pick-up:</span>
+                              <span className="font-semibold text-slate-800">{b.pickup_point}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-semibold text-emerald-800">{formatBDT(b.amount_paid)} paid</div>
                           <div className="text-xs text-slate-500">Total: {formatBDT(b.total_price)}</div>
+                          {(b.promo_code || (b.special_requests && b.special_requests.includes("[Promo: "))) && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900 border border-amber-200">
+                              <span>🎟️</span>
+                              <span>{b.promo_code || b.special_requests?.match(/\[Promo:\s*([A-Za-z0-9_\-]+)/)?.[1]}</span>
+                              {(b.discount_amount || b.special_requests?.match(/\[Promo:\s*[A-Za-z0-9_\-]+\s*\(-৳?([0-9,.]+)\)\]/)?.[1]) && (
+                                <span className="text-amber-700 font-normal">
+                                  (-৳{Math.round(Number(b.discount_amount || b.special_requests?.match(/\[Promo:\s*[A-Za-z0-9_\-]+\s*\(-৳?([0-9,.]+)\)\]/)?.[1] || 0)).toLocaleString("en-BD")})
+                                </span>
+                              )}
+                            </div>
+                          )}
                           {Number(b.amount_due) > 0 && (
-                            <div className="text-xs text-rose-700 font-medium">Due: {formatBDT(b.amount_due)}</div>
+                            <div className="mt-1 flex items-center gap-1.5">
+                              <span className="text-xs text-rose-700 font-medium">Due: {formatBDT(b.amount_due)}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleSettleDue(b.id, b.reference, b.amount_due)}
+                                className="rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-700 transition shadow-xs cursor-pointer"
+                                title="Settle and complete remaining due payment"
+                              >
+                                ✓ Settle Due
+                              </button>
+                            </div>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -3609,52 +3683,58 @@ function StaffDashboardContent() {
 
             {/* Whole Details Modal / Drawer */}
             {selectedCustomer && (
-              <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+                <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full my-4 sm:my-8 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl">
                   {/* Modal Header */}
-                  <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-start justify-between gap-4 z-10">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white font-bold text-2xl shadow-sm">
+                  <div className="sticky top-0 bg-white border-b border-slate-100 p-3.5 sm:p-6 flex items-start justify-between gap-3 sm:gap-4 z-10">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white font-bold text-lg sm:text-2xl shadow-sm shrink-0">
                         {selectedCustomer.full_name?.charAt(0).toUpperCase() || "T"}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold text-slate-900">{selectedCustomer.full_name}</h3>
-                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <h3 className="text-base sm:text-lg font-bold text-slate-900">{selectedCustomer.full_name}</h3>
+                          <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold">
                             Verified Traveler
                           </span>
                         </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 sm:gap-x-3 text-[11px] sm:text-xs text-slate-500">
                           <span className="font-mono font-medium text-slate-700">{selectedCustomer.phone_number}</span>
                           <span>•</span>
-                          <span>{selectedCustomer.email || "No email on record"}</span>
-                          <span>•</span>
-                          <span>Joined: {new Date(selectedCustomer.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                          <span className="truncate max-w-[140px] sm:max-w-none">{selectedCustomer.email || "No email on record"}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="hidden sm:inline">Joined: {new Date(selectedCustomer.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                         </div>
+                        {selectedCustomer.preferred_pickup_point && (
+                          <div className="mt-1 flex items-center gap-1.5 text-xs text-emerald-800 font-medium">
+                            <span>📍 Preferred Pick-up:</span>
+                            <span className="font-semibold text-slate-900">{selectedCustomer.preferred_pickup_point}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <button
                       onClick={() => setSelectedCustomer(null)}
-                      className="rounded-lg p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition text-base font-bold"
+                      className="rounded-lg p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition text-base font-bold shrink-0"
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="p-6 space-y-6">
+                  <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-6">
                     {/* Financial Summary Card */}
-                    <div className="grid grid-cols-3 gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
                       <div>
-                        <p className="text-xs text-slate-500">Total Bookings</p>
-                        <p className="text-lg font-bold text-slate-900">{selectedCustomer.bookings_count || 0}</p>
+                        <p className="text-[11px] sm:text-xs text-slate-500">Total Bookings</p>
+                        <p className="text-base sm:text-lg font-bold text-slate-900">{selectedCustomer.bookings_count || 0}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Total Amount Paid</p>
-                        <p className="text-lg font-bold text-emerald-700">{formatBDT(selectedCustomer.total_spent || 0)}</p>
+                        <p className="text-[11px] sm:text-xs text-slate-500">Total Amount Paid</p>
+                        <p className="text-base sm:text-lg font-bold text-emerald-700">{formatBDT(selectedCustomer.total_spent || 0)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Pending Amount Due</p>
-                        <p className="text-lg font-bold text-amber-700">{formatBDT(selectedCustomer.total_due || 0)}</p>
+                        <p className="text-[11px] sm:text-xs text-slate-500">Pending Amount Due</p>
+                        <p className="text-base sm:text-lg font-bold text-amber-700">{formatBDT(selectedCustomer.total_due || 0)}</p>
                       </div>
                     </div>
 
@@ -3707,6 +3787,11 @@ function StaffDashboardContent() {
                                         Seats: {b.selected_seats.join(", ")}
                                       </span>
                                     )}
+                                    {b.pickup_point && (
+                                      <span className="block text-[11px] text-slate-600 font-medium">
+                                        📍 Pick-up: {b.pickup_point}
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                                 <div>
@@ -3750,11 +3835,18 @@ function StaffDashboardContent() {
                                   </span>
                                 </div>
                                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">{act.description}</p>
-                                {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
-                                  <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
-                                    Seats: {(act.metadata.selected_seats as string[]).join(", ")}
-                                  </div>
-                                )}
+                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                  {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
+                                    <div className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200">
+                                      Seats: {(act.metadata.selected_seats as string[]).join(", ")}
+                                    </div>
+                                  )}
+                                  {typeof act.metadata?.pickup_point === "string" && (
+                                    <div className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 border border-slate-200">
+                                      📍 Pick-up: {act.metadata.pickup_point}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -4006,6 +4098,24 @@ function StaffDashboardContent() {
                   />
                 </label>
               </div>
+
+              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                Pick-up Points (one per line or comma-separated for traveler selection during booking)
+                <textarea
+                  name="pickup_points"
+                  rows={3}
+                  defaultValue={
+                    tourModal.tour?.pickup_points && tourModal.tour.pickup_points.length > 0
+                      ? tourModal.tour.pickup_points.join("\n")
+                      : ""
+                  }
+                  placeholder={"Savar Thana Stand (09:00 PM)\nSavar Pollibidut (09:15 PM)\nGabtoli Bus Terminal (09:45 PM)\nKallyanpur Bus Stand (10:15 PM)\nSayedabad Janapath (11:00 PM)"}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs font-mono text-xs"
+                />
+                <span className="text-[11px] text-slate-400">
+                  Leave blank to use default Savar / Dhaka boarding points. Travelers will select from these points during booking.
+                </span>
+              </label>
 
               <ImageUrlInput
                 label="Cover Photo URL"
@@ -4455,6 +4565,25 @@ function StaffDashboardContent() {
                   className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   placeholder="e.g. Winter Holiday Special"
                 />
+              </label>
+
+              <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
+                Applicable Tour (নির্দিষ্ট ট্যুর বা সকল ট্যুর)
+                <select
+                  name="tour_id"
+                  defaultValue={offerModal.offer?.tour_id || offerModal.offer?.tour_slug || ""}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                >
+                  <option value="">🌐 All Tours (সকল ট্যুরের জন্য উন্মুক্ত)</option>
+                  {tours.map((t) => (
+                    <option key={t.id || t.slug} value={t.id || t.slug}>
+                      🎯 {t.title}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-[11px] text-slate-500">
+                  নির্দিষ্ট কোনো ট্যুর নির্বাচন করলে প্রোমোকোডটি শুধুমাত্র সেই ট্যুরের বুকিংয়ে প্রযোজ্য হবে। অন্য কোনো ট্যুরে গ্রাহক এটি ব্যবহার করতে পারবে না।
+                </span>
               </label>
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">

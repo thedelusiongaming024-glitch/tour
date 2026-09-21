@@ -36,6 +36,8 @@ export async function POST(request: Request) {
         cus_email: booking.customer_email,
         tour_title: booking.tour_title,
         origin,
+        booking_id: booking.id,
+        booking_ref: booking.reference,
       });
 
       if (sslRes.success && sslRes.gatewayUrl) {

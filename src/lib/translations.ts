@@ -201,8 +201,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       specialOffersEyebrow: "Special Deals",
       specialOffersSub:
         "Special seasonal discounts and early bird vouchers for your next adventure across Bangladesh.",
-      whyUs: "Why Travel With Atithi",
-      whyUsEyebrow: "The Atithi Standard",
+      whyUs: "Why Travel With Savar Tour Lover",
+      whyUsEyebrow: "The Savar Tour Lover Standard",
       whyUsSub:
         "We built the travel experience we always wanted for ourselves in Bangladesh.",
       testimonials: "Traveler Stories",
@@ -256,22 +256,22 @@ export const translations: Record<Language, TranslationDictionary> = {
       paymentQrClearance: "Payment & Confirmation",
       allRightsReserved: "All rights reserved.",
       paymentsAccepted: "Payments: bKash · Nagad · Cards",
-      location: "Dhaka, Bangladesh 🇧🇩",
+      location: "Savar, Dhaka, Bangladesh 🇧🇩",
       brandBlurb:
         "Curated domestic tours across Bangladesh — trusted local hosts, transparent pricing, and seamless booking confirmation.",
-      brandSpirit: '— "guest", in the spirit of Bengali hospitality.',
+      brandSpirit: "— আপনার স্বপ্ন উড়তে দিন (Let Your Dreams Fly).",
     },
     about: {
       heroEyebrow: "Our Story",
       title: "Built by people who call Bangladesh home",
       subtitle:
-        "Atithi was born from a simple belief: booking a domestic trip shouldn't mean middlemen, vague pricing, and cash changing hands with no record. We host you the way we'd host family.",
+        "Savar Tour Lover was born from a simple belief: Let your dreams fly (আপনার স্বপ্ন উড়তে দিন). Booking a domestic trip shouldn't mean middlemen, vague pricing, and cash changing hands with no record. We host you the way we'd host family.",
       storyBadge: "Where it started",
       storyTitle: "From a shared frustration to a proper agency",
       storyParagraphs: [
         "Most domestic travel in Bangladesh was broken in two ways: either you were on your own navigating erratic transport, unverified hotels, and hidden costs — or you were packed into a thirty-person bus tour with fixed buffets and thirty-minute photo stops.",
         "We wanted something different: trips designed the way an experienced friend would show you their hometown. Small groups, handpicked local hosts, honest pricing, and genuine hospitality.",
-        "Today, Atithi runs curated journeys to twelve destinations across Bangladesh — from the tea valleys of Sreemangal to the coral reefs of Saint Martin. Every trip is led by someone who actually lives there.",
+        "Today, Savar Tour Lover runs curated journeys across Bangladesh — from the tea valleys of Sreemangal to the hills of Sajek and coral reefs of Saint Martin. Every trip is led by someone who actually lives there.",
       ],
       ourMission: "Our Mission",
       missionText:
@@ -440,22 +440,22 @@ export const translations: Record<Language, TranslationDictionary> = {
       paymentQrClearance: "পেমেন্ট ও বুকিং নিশ্চিতকরণ",
       allRightsReserved: "সর্বস্বত্ব সংরক্ষিত।",
       paymentsAccepted: "পেমেন্ট মাধ্যম: বিকাশ · নগদ · কার্ডস",
-      location: "ঢাকা, বাংলাদেশ 🇧🇩",
+      location: "সাভার, ঢাকা, বাংলাদেশ 🇧🇩",
       brandBlurb:
         "সারা বাংলাদেশে বাছাইকৃত অভ্যন্তরীণ ভ্রমণ — বিশ্বস্ত স্থানীয় হোস্ট, স্বচ্ছ মূল্য এবং নির্বিঘ্ন পেমেন্ট ও বুকিং সুবিধা।",
-      brandSpirit: '— বাঙালির চিরায়ত আতিথেয়তার উজ্জ্বল প্রতীক।',
+      brandSpirit: "— আপনার স্বপ্ন উড়তে দিন।",
     },
     about: {
       heroEyebrow: "আমাদের গল্প",
       title: "বাংলাদেশকে ভালোবেসে স্থানীয়দের হাতে গড়া",
       subtitle:
-        "অতিথির জন্ম এক সহজ ভাবনা থেকে: দেশে ভ্রমণ করার অর্থ অযথা মধ্যস্থতাকারী, অস্পষ্ট মূল্যতালিকা বা প্রমাণহীন লেনদেন নয়। আমরা আপনাকে ঘরের মানুষের মতোই আতিথেয়তা জানাই।",
+        "সাভার ট্যুর লাভার-এর জন্ম এক সহজ ভাবনা থেকে: আপনার স্বপ্ন উড়তে দিন। দেশে ভ্রমণ করার অর্থ অযথা মধ্যস্থতাকারী, অস্পষ্ট মূল্যতালিকা বা প্রমাণহীন লেনদেন নয়। আমরা আপনাকে ঘরের মানুষের মতোই আতিথেয়তা জানাই।",
       storyBadge: "কোথা থেকে শুরু",
       storyTitle: "একটি সাধারণ অসন্তোষ থেকে এক নির্ভরযোগ্য এজেন্সি",
       storyParagraphs: [
         "বাংলাদেশে সাধারণ অভ্যন্তরীণ ভ্রমণে দুটি সমস্যা প্রধান ছিল: হয় অনিশ্চিত গাড়ি, অপরীক্ষিত হোটেল ও লুকানো খরচে একা ভ্রমণ করতে হতো — অথবা ত্রিশ জনের বাসে নির্ধারিত খাবার আর আধ ঘণ্টার ফটো স্টপে আটকে থাকতে হতো।",
         "আমরা ভিন্ন কিছু চেয়েছিলাম: এমন এক ভ্রমণ, যেখানে একজন অভিজ্ঞ বন্ধু নিজের শহর যেভাবে ঘুরিয়ে দেখান, ঠিক সেভাবে আপনি দেশকে জানবেন। ছোট দল, বাছাইকৃত স্থানীয় হোস্ট, শতভাগ স্বচ্ছ দাম এবং আন্তরিক আতিথেয়তা।",
-        "আজ অতিথি সারা বাংলাদেশে ১২টি বিখ্যাত অঞ্চলে যত্নশীল ভ্রমণ পরিচালনা করছে — শ্রীমঙ্গলের চায়ের উপত্যকা থেকে সেন্টমার্টিনের প্রবাল দ্বীপ পর্যন্ত। প্রতিটি দলের নেতৃত্ব দেন এমন একজন, যিনি সত্যিকার অর্থে সেই অঞ্চলের মানুষ।",
+        "আজ সাভার ট্যুর লাভার সারা বাংলাদেশে যত্নশীল ভ্রমণ পরিচালনা করছে — শ্রীমঙ্গলের চায়ের উপত্যকা থেকে সাজেকের পাহাড় ও সেন্টমার্টিনের প্রবাল দ্বীপ পর্যন্ত। প্রতিটি দলের নেতৃত্ব দেন এমন একজন, যিনি সত্যিকার অর্থে সেই অঞ্চলের মানুষ।",
       ],
       ourMission: "আমাদের লক্ষ্য",
       missionText:
@@ -501,7 +501,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       nameLabel: "আপনার নাম",
       namePlaceholder: "উদাঃ তানভীর আহমেদ",
       phoneLabel: "ফোন নম্বর (হোয়াটসঅ্যাপ সংযুক্ত)",
-      phonePlaceholder: "+৮৮০ ১XXX-XXXXXX",
+      phonePlaceholder: "০১৬২০৫৯২৮৮৪ / ০১৬৪৬৩২৫৩৫০",
       emailLabel: "ইমেইল ঠিকানা",
       emailPlaceholder: "tanvir@example.com",
       tripTypeLabel: "ভ্রমণের ধরন",
@@ -512,10 +512,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       submitButton: "বার্তা পাঠান",
       submitting: "পাঠানো হচ্ছে...",
       successTitle: "বার্তা পাওয়া গেছে!",
-      successMessage: "ধন্যবাদ! আমাদের ট্রাভেল টিম ২ ঘণ্টার মধ্যে আপনার সাথে হোয়াটসঅ্যাপে যোগাযোগ করবে।",
+      successMessage: "ধন্যবাদ! আমাদের ট্রাভেল টিম দ্রুত আপনার সাথে হোয়াটসঅ্যাপে যোগাযোগ করবে।",
       officeTitle: "সরাসরি যোগাযোগ",
       hoursLabel: "সহায়তার সময়",
-      hoursValue: "প্রতিদিন, সকাল ৯:০০ – রাত ৯:০০",
+      hoursValue: "প্রতিদিন, সকাল ৯:০০ – রাত ১০:০০",
     },
     booking: {
       advanceRequired: "প্রয়োজনীয় অগ্রিম",

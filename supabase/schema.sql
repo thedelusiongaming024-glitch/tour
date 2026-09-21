@@ -63,16 +63,21 @@ CREATE TABLE IF NOT EXISTS public.tours (
 -- 3. BOOKINGS
 CREATE TABLE IF NOT EXISTS public.bookings (
   id TEXT PRIMARY KEY,
+  reference TEXT,
   tour_id TEXT REFERENCES public.tours(id) ON DELETE RESTRICT,
   tour_title TEXT NOT NULL,
   tour_slug TEXT NOT NULL,
   departure_date DATE NOT NULL,
   traveler_count INT NOT NULL DEFAULT 1,
+  selected_seats JSONB DEFAULT '[]'::jsonb,
+  travelers JSONB DEFAULT '[]'::jsonb,
   customer_name TEXT NOT NULL,
   customer_email TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   pickup_point TEXT,
   special_requests TEXT,
+  promo_code TEXT,
+  discount_amount NUMERIC(10, 2),
   total_price NUMERIC(10, 2) NOT NULL,
   advance_amount NUMERIC(10, 2) NOT NULL,
   amount_paid NUMERIC(10, 2) DEFAULT 0,
@@ -120,6 +125,10 @@ CREATE TABLE IF NOT EXISTS public.offers (
   valid_until DATE,
   minimum_spend NUMERIC(10, 2),
   image_url TEXT,
+  tour_id TEXT,
+  tour_slug TEXT,
+  tour_title TEXT,
+  is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

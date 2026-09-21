@@ -415,3 +415,29 @@ body {
   background: #64748b;
 }
 
+/* Mobile responsiveness & touch scrolling enhancements */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+@media (max-width: 640px) {
+  /* Prevent giant text overflow on narrow viewports */
+  .font-display {
+    word-break: break-word;
+  }
+  
+  /* Ensure comfortable tap targets on phone touchscreens */
+  button, a.btn, input, select, textarea {
+    touch-action: manipulation;
+  }
+}
+

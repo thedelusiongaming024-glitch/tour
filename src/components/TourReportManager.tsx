@@ -83,6 +83,9 @@ function generatePrintableReportHtml(params: {
         : "Default Point";
       const statusLabel = b.status.replace(/_/g, " ").toUpperCase();
 
+      const promoCode = b.promo_code || b.special_requests?.match(/\[Promo:\s*([A-Za-z0-9_\-]+)/)?.[1];
+      const discountVal = b.discount_amount || b.special_requests?.match(/\[Promo:\s*[A-Za-z0-9_\-]+\s*\(-৳?([0-9,.]+)\)\]/)?.[1];
+
       return `
         <tr style="background: ${idx % 2 === 1 ? "#f8fafc" : "#ffffff"};">
           <td style="text-align: center; font-family: monospace; font-weight: bold; border: 1px solid #cbd5e1; padding: 5px 6px;">${idx + 1}</td>
@@ -94,7 +97,10 @@ function generatePrintableReportHtml(params: {
           <td style="font-family: monospace; font-weight: bold; color: #047857; text-align: center; border: 1px solid #cbd5e1; padding: 5px 6px;">${escapeHtml(seatsList)}</td>
           <td style="font-size: 9.5px; color: #334155; border: 1px solid #cbd5e1; padding: 5px 6px;">${escapeHtml(travNames)}</td>
           <td style="font-size: 9.5px; color: #475569; border: 1px solid #cbd5e1; padding: 5px 6px;">${escapeHtml(pickup)}</td>
-          <td style="text-align: right; font-weight: 600; border: 1px solid #cbd5e1; padding: 5px 6px;">৳${Math.round(Number(b.total_price || 0)).toLocaleString("en-BD")}</td>
+          <td style="text-align: right; font-weight: 600; border: 1px solid #cbd5e1; padding: 5px 6px;">
+            <div>৳${Math.round(Number(b.total_price || 0)).toLocaleString("en-BD")}</div>
+            ${promoCode ? `<div style="font-size: 8px; color: #b45309; font-weight: bold; margin-top: 2px;">🎟️ ${escapeHtml(promoCode)}${discountVal ? ` (-৳${Math.round(Number(discountVal)).toLocaleString("en-BD")})` : ""}</div>` : ""}
+          </td>
           <td style="text-align: right; font-weight: bold; color: #047857; border: 1px solid #cbd5e1; padding: 5px 6px;">৳${Math.round(Number(b.amount_paid || 0)).toLocaleString("en-BD")}</td>
           <td style="text-align: right; font-weight: bold; color: #b45309; border: 1px solid #cbd5e1; padding: 5px 6px;">৳${Math.round(Number(b.amount_due || 0)).toLocaleString("en-BD")}</td>
           <td style="text-align: center; font-size: 8.5px; font-weight: bold; border: 1px solid #cbd5e1; padding: 5px 6px;">${escapeHtml(statusLabel)}</td>
@@ -293,9 +299,9 @@ function generatePrintableReportHtml(params: {
 <body>
   <div class="header">
     <div>
-      <h1 class="brand-title">Savar Tour Lover · অতিথি (Atithi)</h1>
-      <p class="brand-sub">Official Tour Passenger Manifest & Financial Settlement Report</p>
-      <p class="brand-contact">Hotline: +880 1929-582426 · savartourlover@gmail.com · Savar, Dhaka</p>
+      <h1 class="brand-title">Savar Tour Lover (সাভার ট্যুর লাভার)</h1>
+      <p class="brand-sub">আপনার স্বপ্ন উড়তে দিন · Official Passenger Manifest & Revenue Settlement Report</p>
+      <p class="brand-contact">Phones: 01620592884, 01646325350 · savartourlover@gmail.com · Savar Pollibidut, Kobarsthan Road, Savar, Dhaka, 1340</p>
     </div>
     <div class="doc-meta">
       <div class="doc-type">TOUR MANIFEST & REVENUE</div>
@@ -788,33 +794,33 @@ export function TourReportManager({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
           <button
             onClick={handlePrintPdf}
             disabled={filteredBookings.length === 0}
-            className="rounded-xl bg-emerald-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+            className="rounded-xl bg-emerald-700 px-3 py-2 sm:px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
             title="Export/Save as PDF"
           >
-            <span>📄 Print / Save as PDF</span>
+            <span>📄 Print PDF</span>
           </button>
           <button
             onClick={() => setShowPdfModal(true)}
             disabled={filteredBookings.length === 0}
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 sm:px-3.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 cursor-pointer"
             title="Preview on screen before printing"
           >
-            <span>👁️ Preview Document</span>
+            <span>👁️ Preview</span>
           </button>
           <button
             onClick={handleExportCsv}
             disabled={filteredBookings.length === 0}
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 sm:px-3.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 cursor-pointer"
           >
             <span>📥 Export CSV</span>
           </button>
           <button
             onClick={handleResetFilters}
-            className="rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+            className="rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer flex items-center justify-center gap-1"
             title="Reset All Filters"
           >
             <span>↻ Reset</span>
@@ -1156,7 +1162,18 @@ export function TourReportManager({
                       </td>
                       <td className="px-3.5 py-3">
                         <div className="font-semibold text-slate-900">{formatBDT(b.total_price)}</div>
-                        <div className="text-xs text-emerald-800 font-medium">
+                        {(b.promo_code || (b.special_requests && b.special_requests.includes("[Promo: "))) && (
+                          <div className="mt-0.5 inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 border border-amber-200">
+                            <span>🎟️</span>
+                            <span>{b.promo_code || b.special_requests?.match(/\[Promo:\s*([A-Za-z0-9_\-]+)/)?.[1]}</span>
+                            {(b.discount_amount || b.special_requests?.match(/\[Promo:\s*[A-Za-z0-9_\-]+\s*\(-৳?([0-9,.]+)\)\]/)?.[1]) && (
+                              <span className="text-amber-700 font-normal">
+                                (-৳{Math.round(Number(b.discount_amount || b.special_requests?.match(/\[Promo:\s*[A-Za-z0-9_\-]+\s*\(-৳?([0-9,.]+)\)\]/)?.[1] || 0)).toLocaleString("en-BD")})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <div className="text-xs text-emerald-800 font-medium mt-0.5">
                           Paid: {formatBDT(b.amount_paid)}
                         </div>
                         {Number(b.amount_due) > 0 ? (

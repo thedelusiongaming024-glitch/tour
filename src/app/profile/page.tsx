@@ -7,6 +7,8 @@ import { Reveal } from "@/components/Reveal";
 import { Icon } from "@/components/Icon";
 import { useLanguage } from "@/context/LanguageContext";
 import type { DbBooking, DbCustomerActivity, DbCustomerUser } from "@/server/types";
+import { TourTicketModal } from "@/components/TourTicketModal";
+import { isTicketVisible, getTicketVisibilityStatus, TICKET_COMPANY_INFO } from "@/lib/ticketUtils";
 
 function formatBDT(amount: number | string): string {
   const num = typeof amount === "string" ? parseFloat(amount) || 0 : amount;
@@ -53,7 +55,10 @@ export default function CustomerProfilePage() {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [updateMsg, setUpdateMsg] = useState("");
 
-  // Check login on mount
+  // E-Ticket modal state
+  const [selectedTicketBooking, setSelectedTicketBooking] = useState<DbBooking | null>(null);
+
+  // Check login on mount & auto-refresh when window regains focus (e.g. returning from SSLCommerz)
   useEffect(() => {
     const storedToken = localStorage.getItem("atithi_customer_token");
     if (storedToken) {
@@ -62,6 +67,26 @@ export default function CustomerProfilePage() {
     } else {
       setIsLoading(false);
     }
+
+    const onFocus = () => {
+      const activeToken = localStorage.getItem("atithi_customer_token");
+      if (activeToken) {
+        fetchProfile(activeToken);
+      }
+    };
+
+    window.addEventListener("focus", onFocus);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        onFocus();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, []);
 
   async function fetchProfile(authToken: string) {
@@ -173,16 +198,32 @@ export default function CustomerProfilePage() {
     }
   }
 
+  // Active/Upcoming booking: not cancelled, not cleared on tour day, and departure date is not past expiry
+  function isBookingActive(b: DbBooking): boolean {
+    if (b.status === "cancelled" || b.status === "cleared_on_tour_day") return false;
+    return isTicketVisible(b.departure_date);
+  }
+
+  // Completed booking: cleared on tour day or departure date has passed
+  function isBookingCompleted(b: DbBooking): boolean {
+    if (b.status === "cleared_on_tour_day") return true;
+    if (b.status === "cancelled") return false;
+    return !isTicketVisible(b.departure_date);
+  }
+
   // Filter bookings
   const filteredBookings = bookings.filter((b) => {
     if (bookingFilter === "active") {
-      return b.status === "confirmed_advance_paid" || b.status === "pending_payment";
+      return isBookingActive(b);
     }
     if (bookingFilter === "cleared") {
-      return b.status === "confirmed_fully_paid" || b.status === "cleared_on_tour_day";
+      return isBookingCompleted(b);
     }
     return true;
   });
+
+  const activeBookingsCount = bookings.filter(isBookingActive).length;
+  const completedBookingsCount = bookings.filter(isBookingCompleted).length;
 
   const totalSpent = bookings.reduce(
     (acc, b) => acc + (parseFloat(b.amount_paid) || 0),
@@ -289,27 +330,27 @@ export default function CustomerProfilePage() {
           <div className="space-y-8">
             {/* Customer Header Card */}
             <Reveal>
-              <div className="glass glass-sweep rounded-3xl p-6 sm:p-8 shadow-glass border border-white/60">
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep text-2xl sm:text-3xl font-bold text-white shadow-md">
+              <div className="glass glass-sweep rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-glass border border-white/60">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex h-12 w-12 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald to-emerald-deep text-xl sm:text-3xl font-bold text-white shadow-md">
                       {customer.full_name?.charAt(0).toUpperCase() || "A"}
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">
+                        <h1 className="font-display text-xl sm:text-3xl font-semibold text-ink">
                           {customer.full_name}
                         </h1>
-                        <span className="rounded-full bg-emerald/15 px-3 py-0.5 text-xs font-semibold text-emerald-deep">
+                        <span className="rounded-full bg-emerald/15 px-2.5 py-0.5 text-[11px] sm:text-xs font-semibold text-emerald-deep">
                           {isBn ? "যাচাইকৃত পর্যটক" : "Verified Traveler"}
                         </span>
                       </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-soft">
-                        <span className="font-mono">{customer.phone_number}</span>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs sm:text-sm text-ink-soft">
+                        <span className="font-mono font-medium">{customer.phone_number}</span>
                         {customer.email && (
                           <>
                             <span className="hidden sm:inline">•</span>
-                            <span>{customer.email}</span>
+                            <span className="truncate max-w-[180px] sm:max-w-none">{customer.email}</span>
                           </>
                         )}
                         <span className="hidden sm:inline">•</span>
@@ -318,22 +359,29 @@ export default function CustomerProfilePage() {
                           {formatDate(customer.created_at, isBn)}
                         </span>
                       </div>
+                      {customer.preferred_pickup_point && (
+                        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-800 font-medium">
+                          
+                          <span>{isBn ? "পছন্দের বোর্ডিং পয়েন্ট: " : "Preferred Pick-up: "}</span>
+                          <span className="font-semibold text-ink">{customer.preferred_pickup_point}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Actions: Edit & Logout */}
-                  <div className="flex items-center gap-2 sm:self-start">
+                  <div className="flex items-center gap-2 sm:self-start mt-2 sm:mt-0">
                     <button
                       type="button"
                       onClick={() => setIsEditing(!isEditing)}
-                      className="rounded-xl border border-ink/10 bg-white/80 px-3.5 py-2 text-xs font-semibold text-ink-soft backdrop-blur transition hover:bg-white hover:text-ink"
+                      className="rounded-xl border border-ink/10 bg-white/80 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold text-ink-soft backdrop-blur transition hover:bg-white hover:text-ink"
                     >
                       {isEditing ? (isBn ? "বাতিল" : "Cancel") : (isBn ? "প্রোফাইল সম্পাদনা" : "Edit Profile")}
                     </button>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                      className="rounded-xl border border-rose-200 bg-rose-50/70 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
                     >
                       {isBn ? "লগ আউট" : "Sign Out"}
                     </button>
@@ -344,12 +392,12 @@ export default function CustomerProfilePage() {
                 {isEditing && (
                   <form
                     onSubmit={handleUpdateProfile}
-                    className="mt-6 rounded-2xl border border-white/80 bg-white/70 p-5 shadow-sm space-y-4"
+                    className="mt-5 rounded-2xl border border-white/80 bg-white/70 p-4 sm:p-5 shadow-sm space-y-4"
                   >
                     <h3 className="text-sm font-semibold text-ink">
                       {isBn ? "ব্যক্তিগত তথ্য পরিবর্তন করুন" : "Update Traveler Details"}
                     </h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <label className="block text-xs font-semibold text-ink-soft mb-1">
                           {isBn ? "পূর্ণ নাম" : "Full Name"}
@@ -390,48 +438,36 @@ export default function CustomerProfilePage() {
                 )}
 
                 {/* Quick Statistics Strip */}
-                <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 border-t border-ink/5 pt-6">
-                  <div className="rounded-2xl border border-white/60 bg-white/50 p-4">
-                    <p className="text-xs text-ink-soft font-medium">
+                <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4 border-t border-ink/5 pt-5 sm:pt-6">
+                  <div className="rounded-xl sm:rounded-2xl border border-white/60 bg-white/50 p-3 sm:p-4">
+                    <p className="text-[11px] sm:text-xs text-ink-soft font-medium">
                       {isBn ? "মোট বুকিং" : "Total Bookings"}
                     </p>
-                    <p className="mt-1 font-display text-2xl font-bold text-ink">
+                    <p className="mt-1 font-display text-xl sm:text-2xl font-bold text-ink">
                       {bookings.length}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/60 bg-white/50 p-4">
-                    <p className="text-xs text-ink-soft font-medium">
+                  <div className="rounded-xl sm:rounded-2xl border border-white/60 bg-white/50 p-3 sm:p-4">
+                    <p className="text-[11px] sm:text-xs text-ink-soft font-medium">
                       {isBn ? "আসন্ন ট্যুর" : "Active / Upcoming"}
                     </p>
-                    <p className="mt-1 font-display text-2xl font-bold text-emerald-deep">
-                      {
-                        bookings.filter(
-                          (b) =>
-                            b.status === "confirmed_advance_paid" ||
-                            b.status === "pending_payment"
-                        ).length
-                      }
+                    <p className="mt-1 font-display text-xl sm:text-2xl font-bold text-emerald-deep">
+                      {activeBookingsCount}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/60 bg-white/50 p-4">
-                    <p className="text-xs text-ink-soft font-medium">
+                  <div className="rounded-xl sm:rounded-2xl border border-white/60 bg-white/50 p-3 sm:p-4">
+                    <p className="text-[11px] sm:text-xs text-ink-soft font-medium">
                       {isBn ? "সম্পন্ন ভ্রমণ" : "Completed Journeys"}
                     </p>
-                    <p className="mt-1 font-display text-2xl font-bold text-ink">
-                      {
-                        bookings.filter(
-                          (b) =>
-                            b.status === "confirmed_fully_paid" ||
-                            b.status === "cleared_on_tour_day"
-                        ).length
-                      }
+                    <p className="mt-1 font-display text-xl sm:text-2xl font-bold text-ink">
+                      {completedBookingsCount}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-white/60 bg-white/50 p-4">
-                    <p className="text-xs text-ink-soft font-medium">
+                  <div className="rounded-xl sm:rounded-2xl border border-white/60 bg-white/50 p-3 sm:p-4">
+                    <p className="text-[11px] sm:text-xs text-ink-soft font-medium">
                       {isBn ? "পরিশোধিত অর্থ" : "Total Paid"}
                     </p>
-                    <p className="mt-1 font-display text-2xl font-bold text-ink">
+                    <p className="mt-1 font-display text-xl sm:text-2xl font-bold text-ink">
                       {formatBDT(totalSpent)}
                     </p>
                   </div>
@@ -439,22 +475,140 @@ export default function CustomerProfilePage() {
               </div>
             </Reveal>
 
+            {/* Recent Tour E-Ticket Showcase */}
+            {bookings.length > 0 && (() => {
+              const recentBooking = bookings[0];
+              const isRecentTicketVisible = isTicketVisible(recentBooking.departure_date);
+              const statusInfo = getTicketVisibilityStatus(recentBooking.departure_date, isBn);
+              const seats = recentBooking.selected_seats || [];
+
+              return (
+                <Reveal>
+                  <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-emerald-800/30 bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-5 sm:p-7 text-white shadow-xl">
+                    {/* Background decorative watermark */}
+                    <div className="absolute -right-8 -bottom-8 pointer-events-none opacity-10 select-none">
+                      <img src="/images/logo-badge.png" alt="Watermark" className="w-56 h-56 object-contain grayscale" />
+                    </div>
+
+                    <div className="relative z-10">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3 mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-lg bg-amber-400/20 border border-amber-300/30 px-2.5 py-1 text-xs font-bold text-amber-300">
+                            🎟️ {isBn ? "সাম্প্রতিক বুক করা ট্যুর" : "Recent Tour Booked"}
+                          </span>
+                          <span className="font-mono text-xs text-slate-300">
+                            {recentBooking.reference}
+                          </span>
+                        </div>
+
+                        {/* Visibility Status Badge */}
+                        <div>
+                          {isRecentTicketVisible ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3 py-1 text-[11px] font-bold text-emerald-300">
+                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                              {isBn ? "টিকিট ডাউনলোড সক্রিয় (যাত্রার পরদিন পর্যন্ত)" : "Ticket Download Active (Until Day After Departure)"}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/30 px-3 py-1 text-[11px] font-semibold text-amber-200">
+                              <Icon name="clock" className="h-3 w-3 text-amber-300" />
+                              {isBn ? "যাত্রার পরের দিন অতিক্রম করায় মেয়াদ শেষ" : "Expired Day After Departure"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-3 gap-4 items-center">
+                        <div className="sm:col-span-2 space-y-2">
+                          <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-white">
+                            {recentBooking.tour_title}
+                          </h2>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs sm:text-sm text-slate-300">
+                            <span>
+                              📅 <strong>{isBn ? "যাত্রার তারিখ: " : "Departure: "}</strong>
+                              <span className="text-white font-medium">{formatDate(recentBooking.departure_date, isBn)}</span>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              👥 <strong>{isBn ? "যাত্রী: " : "Travelers: "}</strong>
+                              <span className="text-white font-medium">{recentBooking.traveler_count} {isBn ? "জন" : "person(s)"}</span>
+                            </span>
+                            {seats.length > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-1">
+                                  💺 <strong>{isBn ? "আসন: " : "Seats: "}</strong>
+                                  <span className="font-bold text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">
+                                    {seats.join(", ")}
+                                  </span>
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          {recentBooking.pickup_point && (
+                            <p className="text-xs text-slate-300">
+                              📍 <strong>{isBn ? "পিক-আপ পয়েন্ট: " : "Pick-up Point: "}</strong>
+                              <span className="text-white">{recentBooking.pickup_point}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex flex-col sm:items-end justify-center gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10">
+                          {isRecentTicketVisible ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedTicketBooking(recentBooking)}
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 px-5 py-3 text-xs sm:text-sm font-extrabold text-slate-950 shadow-lg transition active:scale-95"
+                              >
+                                <Icon name="ticket" className="h-4 w-4" />
+                                <span>{isBn ? "টিকিট ডাউনলোড করুন" : "Download E-Ticket"}</span>
+                              </button>
+
+                              <Link
+                                href={`/tickets/${recentBooking.id}?print=true`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-slate-200 transition"
+                              >
+                                <Icon name="receipt" className="h-3.5 w-3.5" />
+                                <span>{isBn ? "🖨️ সরাসরি প্রিন্ট / PDF" : "🖨️ Quick Print / PDF"}</span>
+                              </Link>
+                            </>
+                          ) : (
+                            <div className="text-xs text-amber-300/80 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20 text-center sm:text-right">
+                              <p className="font-semibold">{statusInfo.message}</p>
+                              <p className="mt-0.5 text-[11px] text-slate-400">
+                                {isBn ? "যাত্রার পরদিন পর্যন্ত টিকিট ডাউনলোড কার্যকর থাকে" : "Tickets are valid until 1 day post-departure"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })()}
+
             {/* Tab Navigation */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ink/10 pb-4">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink/10 pb-3 sm:pb-4">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar touch-scroll pb-1 sm:pb-0 w-full sm:w-auto -mx-1 px-1">
                 <button
                   type="button"
                   onClick={() => setActiveTab("bookings")}
-                  className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
                     activeTab === "bookings"
                       ? "bg-emerald-deep text-white shadow-sm"
                       : "bg-white/70 text-ink-soft hover:bg-white hover:text-ink"
                   }`}
                 >
-                  <Icon name="compass" className="h-4 w-4" />
+                  <Icon name="compass" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span>{isBn ? "বুকিং হিস্টোরি" : "Booking History"}</span>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
+                    className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold ${
                       activeTab === "bookings"
                         ? "bg-white/20 text-white"
                         : "bg-ink/5 text-ink-soft"
@@ -467,16 +621,16 @@ export default function CustomerProfilePage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("activity")}
-                  className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
                     activeTab === "activity"
                       ? "bg-emerald-deep text-white shadow-sm"
                       : "bg-white/70 text-ink-soft hover:bg-white hover:text-ink"
                   }`}
                 >
-                  <Icon name="clock" className="h-4 w-4" />
-                  <span>{isBn ? "অ্যাক্টিভিটি হিস্টোরি" : "Activity Log"}</span>
+                  <Icon name="clock" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span>{isBn ? "অ্যাক্টিভিটি" : "Activity Log"}</span>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
+                    className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold ${
                       activeTab === "activity"
                         ? "bg-white/20 text-white"
                         : "bg-ink/5 text-ink-soft"
@@ -489,24 +643,24 @@ export default function CustomerProfilePage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("support")}
-                  className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
                     activeTab === "support"
                       ? "bg-emerald-deep text-white shadow-sm"
                       : "bg-white/70 text-ink-soft hover:bg-white hover:text-ink"
                   }`}
                 >
-                  <Icon name="shield" className="h-4 w-4" />
-                  <span>{isBn ? "ট্যুর হোস্ট ও সহায়তা" : "Host & Support"}</span>
+                  <Icon name="shield" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span>{isBn ? "হোস্ট ও সহায়তা" : "Host & Support"}</span>
                 </button>
               </div>
 
               {/* Sub-filters for Bookings Tab */}
               {activeTab === "bookings" && bookings.length > 0 && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold">
+                <div className="flex items-center gap-1.5 text-xs font-semibold overflow-x-auto no-scrollbar touch-scroll">
                   <button
                     type="button"
                     onClick={() => setBookingFilter("all")}
-                    className={`rounded-lg px-3 py-1.5 transition ${
+                    className={`rounded-lg px-2.5 py-1 sm:px-3 sm:py-1.5 transition whitespace-nowrap ${
                       bookingFilter === "all"
                         ? "bg-ink text-white"
                         : "bg-white/60 text-ink-soft hover:bg-white"
@@ -517,24 +671,24 @@ export default function CustomerProfilePage() {
                   <button
                     type="button"
                     onClick={() => setBookingFilter("active")}
-                    className={`rounded-lg px-3 py-1.5 transition ${
+                    className={`rounded-lg px-2.5 py-1 sm:px-3 sm:py-1.5 transition whitespace-nowrap ${
                       bookingFilter === "active"
                         ? "bg-emerald-deep text-white"
                         : "bg-white/60 text-ink-soft hover:bg-white"
                     }`}
                   >
-                    {isBn ? "আসন্ন" : "Active"}
+                    {isBn ? "আসন্ন" : "Active"} ({activeBookingsCount})
                   </button>
                   <button
                     type="button"
                     onClick={() => setBookingFilter("cleared")}
-                    className={`rounded-lg px-3 py-1.5 transition ${
+                    className={`rounded-lg px-2.5 py-1 sm:px-3 sm:py-1.5 transition whitespace-nowrap ${
                       bookingFilter === "cleared"
                         ? "bg-purple-700 text-white"
                         : "bg-white/60 text-ink-soft hover:bg-white"
                     }`}
                   >
-                    {isBn ? "সম্পন্ন" : "Cleared"}
+                    {isBn ? "সম্পন্ন" : "Cleared"} ({completedBookingsCount})
                   </button>
                 </div>
               )}
@@ -582,8 +736,8 @@ export default function CustomerProfilePage() {
                       };
                     } else if (b.status === "confirmed_fully_paid") {
                       statusBadge = {
-                        text: isBn ? "সম্পূর্ণ পরিশোধিত" : "Fully Paid",
-                        classes: "bg-blue-100 text-blue-800 border-blue-200",
+                        text: isBn ? "নিশ্চিত (সম্পূর্ণ পরিশোধিত)" : "Confirmed (Fully Paid)",
+                        classes: "bg-emerald-100 text-emerald-900 border-emerald-300 font-bold",
                       };
                     } else if (b.status === "cleared_on_tour_day") {
                       statusBadge = {
@@ -600,7 +754,7 @@ export default function CustomerProfilePage() {
                     return (
                       <div
                         key={b.id}
-                        className="glass rounded-3xl p-6 sm:p-7 shadow-glass border border-white/60 transition hover:shadow-glass-lg"
+                        className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-glass border border-white/60 transition hover:shadow-glass-lg"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                           <div className="space-y-2">
@@ -609,33 +763,44 @@ export default function CustomerProfilePage() {
                                 {b.reference}
                               </span>
                               <span
-                                className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${statusBadge.classes}`}
+                                className={`text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg border ${statusBadge.classes}`}
                               >
                                 {statusBadge.text}
                               </span>
                             </div>
 
-                            <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink">
+                            <h2 className="font-display text-lg sm:text-2xl font-semibold text-ink">
                               {b.tour_title}
                             </h2>
 
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-soft">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-ink-soft">
                               <span>
                                 📅 <strong>{isBn ? "যাত্রার তারিখ: " : "Departure: "}</strong>
                                 {formatDate(b.departure_date, isBn)}
                               </span>
                               <span>•</span>
                               <span>
-                                👥 <strong>{isBn ? "যাত্রী সংখ্যা: " : "Travelers: "}</strong>
+                                👥 <strong>{isBn ? "যাত্রী: " : "Travelers: "}</strong>
                                 {b.traveler_count} {isBn ? "জন" : "person(s)"}
                               </span>
                               {b.selected_seats && b.selected_seats.length > 0 && (
                                 <>
                                   <span>•</span>
                                   <span>
-                                    💺 <strong>{isBn ? "সিট নম্বর: " : "Seats: "}</strong>
+                                    💺 <strong>{isBn ? "সিট: " : "Seats: "}</strong>
                                     <span className="font-semibold text-emerald-800">
                                       {b.selected_seats.join(", ")}
+                                    </span>
+                                  </span>
+                                </>
+                              )}
+                              {b.pickup_point && (
+                                <>
+                                  <span>•</span>
+                                  <span>
+                                    📍 <strong>{isBn ? "পিক-আপ: " : "Pick-up: "}</strong>
+                                    <span className="font-semibold text-ink">
+                                      {b.pickup_point}
                                     </span>
                                   </span>
                                 </>
@@ -644,7 +809,7 @@ export default function CustomerProfilePage() {
                           </div>
 
                           {/* Payment Summary Box */}
-                          <div className="flex flex-col rounded-2xl bg-white/70 p-4 border border-white/80 sm:min-w-[220px]">
+                          <div className="flex flex-col rounded-xl sm:rounded-2xl bg-white/70 p-3.5 sm:p-4 border border-white/80 sm:min-w-[220px]">
                             <div className="flex justify-between text-xs text-ink-soft mb-1">
                               <span>{isBn ? "মোট প্যাকেজ মূল্য" : "Total Price"}:</span>
                               <span className="font-semibold text-ink">{formatBDT(total)}</span>
@@ -659,33 +824,58 @@ export default function CustomerProfilePage() {
                                 <span>{formatBDT(due)}</span>
                               </div>
                             ) : (
-                              <div className="flex justify-between text-xs text-blue-900 border-t border-ink/5 pt-1 mt-1 font-bold">
-                                <span>{isBn ? "অবশিষ্ট বকেয়া" : "Due Balance"}:</span>
-                                <span>{isBn ? "পরিশোধিত" : "None (Paid)"}</span>
+                              <div className="flex justify-between items-center text-xs border-t border-ink/5 pt-1.5 mt-1 font-bold">
+                                <span className="text-slate-600">{isBn ? "অবশিষ্ট বকেয়া" : "Due Balance"}:</span>
+                                <div className="flex items-center gap-1.5 text-emerald-700">
+                                  <span className="font-extrabold">{formatBDT(0)}</span>
+                                  <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                                    ✓ {isBn ? "সম্পূর্ণ পরিশোধিত" : "Fully Paid"}
+                                  </span>
+                                </div>
                               </div>
                             )}
                           </div>
                         </div>
 
                         {/* Card Actions */}
-                        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-ink/5 pt-4">
+                        <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 border-t border-ink/5 pt-4">
+                          {/* E-Ticket Download / Print Action (Visible until day after departure) */}
+                          {isTicketVisible(b.departure_date) ? (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedTicketBooking(b)}
+                              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-950 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:brightness-110 w-full sm:w-auto"
+                            >
+                              <Icon name="ticket" className="h-4 w-4 text-amber-300" />
+                              <span>{isBn ? "টিকিট ডাউনলোড / প্রিন্ট" : "Download Ticket"}</span>
+                            </button>
+                          ) : (
+                            <span
+                              title={isBn ? "যাত্রার পরের দিন অতিক্রম করায় ডাউনলোডের মেয়াদ শেষ হয়েছে" : "Ticket download expired the day after departure"}
+                              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100/90 px-3.5 py-2 text-xs font-medium text-slate-500 w-full sm:w-auto cursor-help"
+                            >
+                              <Icon name="clock" className="h-3.5 w-3.5 text-slate-400" />
+                              <span>{isBn ? "টিকিট মেয়াদোত্তীর্ণ" : "Ticket Expired"}</span>
+                            </span>
+                          )}
+
                           {/* 1-Click Digital Booking Pass */}
                           <Link
                             href={`/clearance/${b.id}`}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-deep px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:brightness-110"
+                            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-deep/90 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:brightness-110 w-full sm:w-auto"
                           >
-                            <Icon name="ticket" className="h-4 w-4" />
-                            <span>{isBn ? "ডিজিটাল বুকিং পাস দেখুন" : "View Booking Pass"}</span>
+                            <Icon name="shield" className="h-4 w-4" />
+                            <span>{isBn ? "ডিজিটাল পাস" : "Boarding Pass"}</span>
                           </Link>
 
-                          {/* Pay Remaining Due Link */}
+                          {/* Pay Remaining Due Link via SSLCommerz */}
                           {due > 0 && b.status !== "cancelled" && (
                             <Link
                               href={`/clearance/${b.id}`}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100"
+                              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-900 transition hover:bg-emerald-100 w-full sm:w-auto"
                             >
                               <Icon name="sparkle" className="h-4 w-4" />
-                              <span>{isBn ? "বাকি টাকা পরিশোধ করুন" : "Pay Due Balance"}</span>
+                              <span>{isBn ? "SSLCommerz দিয়ে বাকি টাকা পরিশোধ করুন" : "Pay Due via SSLCommerz"}</span>
                             </Link>
                           )}
 
@@ -693,7 +883,7 @@ export default function CustomerProfilePage() {
                           {b.tour_slug && (
                             <Link
                               href={`/tours/${b.tour_slug}`}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white/70 px-4 py-2.5 text-xs font-semibold text-ink-soft transition hover:bg-white hover:text-ink"
+                              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-ink/10 bg-white/70 px-4 py-2.5 text-xs font-semibold text-ink-soft transition hover:bg-white hover:text-ink w-full sm:w-auto"
                             >
                               <span>{isBn ? "ট্যুরের বিস্তারিত" : "View Tour Itinerary"}</span>
                               <Icon name="arrow" className="h-3.5 w-3.5" />
@@ -747,6 +937,11 @@ export default function CustomerProfilePage() {
                             {Array.isArray(act.metadata?.selected_seats) && (act.metadata.selected_seats as string[]).length > 0 && (
                               <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
                                 💺 {isBn ? "সিট নম্বর: " : "Seats: "} {(act.metadata.selected_seats as string[]).join(", ")}
+                              </div>
+                            )}
+                            {typeof act.metadata?.pickup_point === "string" && (
+                              <div className="mt-2 ml-1.5 inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200">
+                                📍 {isBn ? "পিক-আপ: " : "Pick-up: "} {act.metadata.pickup_point}
                               </div>
                             )}
                           </div>
@@ -810,6 +1005,14 @@ export default function CustomerProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Official E-Ticket & Boarding Pass Download Modal */}
+      <TourTicketModal
+        booking={selectedTicketBooking}
+        isOpen={!!selectedTicketBooking}
+        onClose={() => setSelectedTicketBooking(null)}
+        isBn={isBn}
+      />
     </main>
   );
 }

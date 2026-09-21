@@ -15,6 +15,7 @@ interface ClearanceBooking {
   departure_date?: string;
   traveler_count?: number;
   selected_seats?: string[];
+  pickup_point?: string;
 }
 
 interface ResolveResponse {
@@ -38,8 +39,7 @@ function formatBDT(amount: string | number): string {
 export default function ClearancePage() {
   const params = useParams<{ bookingId: string }>();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
-
+  const [token, setToken] = useState(searchParams.get("token") ?? "");
   const [state, setState] = useState<ViewState>({ kind: "loading" });
   const [paying, setPaying] = useState(false);
 
@@ -61,7 +61,10 @@ export default function ClearancePage() {
           setState({ kind: "error", message: "Could not verify this booking right now." });
           return;
         }
-        const data = (await res.json()) as ResolveResponse;
+        const data = (await res.json()) as ResolveResponse & { token?: string };
+        if (data.token && !token) {
+          setToken(data.token);
+        }
         setState({ kind: "resolved", data });
       } catch {
         setState({ kind: "error", message: "Could not reach the server. Check your connection and reload." });
@@ -73,25 +76,22 @@ export default function ClearancePage() {
   async function handlePay() {
     setPaying(true);
     try {
-      // endpoint is authorized by the signed clearance token (it's
-      // AllowAny — there's no customer login), not by anything else in
-      // the request. `token` was already in scope from the page's query
-      // params but wasn't being sent, so every "Pay now" tap failed with
-      // 400 "Invalid or missing clearance token."
-      // The token was already parsed off the booking pass URL
-      // in resolveBooking; it just wasn't being kept around in state for
-      // this second request to use.
+      const activeToken = token || (state.kind === "resolved" && (state.data as any).token) || "";
       const res = await fetch(`${API_BASE}/clearance/${params.bookingId}/pay`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method: "customer_self_pay", token }),
+        body: JSON.stringify({ method: "customer_self_pay", token: activeToken }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Payment initiation failed.");
+      }
       const data = await res.json();
       if (data.redirect_url) {
         window.location.href = data.redirect_url;
       }
-    } catch {
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Could not initiate payment. Please try again or contact support.");
       setPaying(false);
     }
   }
@@ -99,6 +99,14 @@ export default function ClearancePage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50 to-white px-4 py-16">
       <div className="w-full max-w-md rounded-3xl border border-white/60 bg-white/80 p-8 text-center shadow-xl backdrop-blur">
+        <div className="mb-6 flex flex-col items-center">
+          <div className="h-12 w-12 rounded-2xl bg-white border border-emerald/20 p-1 shadow-xs mb-2">
+            <img src="/images/logo-badge.png" alt="Savar Tour Lover" className="h-full w-full object-contain" />
+          </div>
+          <span className="font-display text-lg font-bold text-ink">Savar Tour Lover</span>
+          <span className="text-xs font-semibold text-emerald-700">আপনার স্বপ্ন উড়তে দিন</span>
+        </div>
+
         {state.kind === "loading" && (
           <>
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-emerald-deep/20 border-t-emerald-deep" />
@@ -149,6 +157,12 @@ export default function ClearancePage() {
                   💺 Assigned Seats: {state.data.booking.selected_seats.join(", ")}
                 </div>
               )}
+              {state.data.booking.pickup_point && (
+                <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-slate-700 font-medium">
+                  <span>📍 Pick-up Point:</span>
+                  <span className="font-semibold text-slate-900">{state.data.booking.pickup_point}</span>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -171,16 +185,33 @@ export default function ClearancePage() {
                   💺 Assigned Seats: {state.data.booking.selected_seats.join(", ")}
                 </div>
               )}
+              {state.data.booking.pickup_point && (
+                <div className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-slate-700 font-medium">
+                  <span>📍 Pick-up Point:</span>
+                  <span className="font-semibold text-slate-900">{state.data.booking.pickup_point}</span>
+                </div>
+              )}
             </div>
             <p className="mt-4 font-display text-3xl font-semibold text-ink">
               {formatBDT(state.data.amount_due ?? state.data.booking.amount_due)}
             </p>
+
+            {/* SSLCommerz Gateway Trust Badge */}
+            <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-emerald-200/70 bg-emerald-50/50 p-2.5 text-center">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900">
+                <span>🔒 Secured by SSLCommerz Payment Gateway</span>
+              </div>
+              <p className="text-[11px] text-emerald-700">
+                bKash, Nagad, Rocket, Upay, Visa, MasterCard, Amex &amp; Internet Banking
+              </p>
+            </div>
+
             <button
               onClick={handlePay}
               disabled={paying}
-              className="mt-6 w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 disabled:opacity-60"
+              className="mt-4 w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 disabled:opacity-60 shadow-xs"
             >
-              {paying ? "Redirecting to payment…" : "Pay now"}
+              {paying ? "Connecting to SSLCommerz…" : "Pay Due with SSLCommerz"}
             </button>
           </>
         )}
