@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+build/
+
+# env files (never commit real secrets/config — see .env.local.example)
+.env.local
+.env*.local
+
+# misc
+*.tsbuildinfo
+.DS_Store
+npm-debug.log*
+decode_qr.mjs
