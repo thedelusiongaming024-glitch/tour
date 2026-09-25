@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyClearanceToken } from "@/server/clearance";
 import { getBookingById, getClearanceTicket } from "@/server/db";
+import { resolveBookingAccess } from "@/server/access";
 
 export async function GET(
   request: Request,
@@ -16,6 +17,7 @@ export async function GET(
       return NextResponse.json({ detail: "No clearance ticket found for this booking." }, { status: 404 });
     }
 
+    // A token, when supplied, must be valid (expired links get a clear 410).
     if (token) {
       const verify = verifyClearanceToken(token, bookingId, ticket.token_expires_at);
       if (!verify.valid) {
@@ -25,7 +27,6 @@ export async function GET(
         return NextResponse.json({ detail: "Invalid clearance token." }, { status: 400 });
       }
     }
-
 
     const booking = getBookingById(bookingId);
     if (!booking) {
@@ -47,11 +48,17 @@ export async function GET(
       pickup_point: booking.pickup_point || null,
     };
 
+    // The signed token is a credential: only hand it out to someone who already proved access
+    // (valid token, the booking's signed-in owner, or staff). It used to be returned to anyone who
+    // knew the booking id, which made the token worthless.
+    const access = resolveBookingAccess(request, booking, token, ticket.token_expires_at);
+    const tokenForClient = access ? ticket.token : undefined;
+
     if (isCleared) {
       return NextResponse.json({
         status: "verified",
         message: "Booking Confirmed — Fully Paid",
-        token: ticket.token,
+        token: tokenForClient,
         booking: bookingPayload,
       });
     }
@@ -60,7 +67,7 @@ export async function GET(
       status: "due_pending",
       message: "Remaining balance due — proceed to payment.",
       amount_due: booking.amount_due,
-      token: ticket.token,
+      token: tokenForClient,
       booking: bookingPayload,
       pay_endpoint: `/api/v1/clearance/${bookingId}/pay/`,
     });

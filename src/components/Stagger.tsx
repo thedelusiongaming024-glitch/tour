@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import type { ReactNode } from "react";
 
 interface StaggerProps {
@@ -10,7 +11,7 @@ interface StaggerProps {
 }
 
 export function Stagger({ children, className, stagger = 0.1 }: StaggerProps) {
-  const reduce = useReducedMotion();
+  const reduce = useSafeReducedMotion();
 
   return (
     <motion.div
@@ -44,7 +45,7 @@ export function StaggerItem({
   y = 28,
   blur = true,
 }: StaggerItemProps) {
-  const reduce = useReducedMotion();
+  const reduce = useSafeReducedMotion();
   const applyBlur = blur && !reduce;
 
   return (

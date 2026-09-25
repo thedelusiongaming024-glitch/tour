@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { normalizeImageUrl } from "@/lib/media";
 import { Icon } from "@/components/Icon";
@@ -44,7 +45,7 @@ export function TourHeroBackgroundSlider({
   const [isPaused, setIsPaused] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [progressKey, setProgressKey] = useState(0);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useSafeReducedMotion();
 
   const total = slides.length;
 

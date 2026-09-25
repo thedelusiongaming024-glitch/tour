@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { createBooking } from "@/server/db";
-import { generateCustomerToken } from "@/server/auth";
+import { customerCookieOptions, generateCustomerToken } from "@/server/auth";
+import { limitOr429 } from "@/server/rateLimit";
+import { trackServerEvent } from "@/server/tracking";
 
 export async function POST(request: Request) {
+  // Public endpoint that reserves seats: cap creation rate per IP to prevent seat-hoarding/spam.
+  const limited = await limitOr429(request, "bookings-create", 10, 10 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const {
@@ -17,6 +23,7 @@ export async function POST(request: Request) {
       special_requests,
       selected_seats,
       promo_code,
+      payment_method,
     } = body;
 
     if (!tour_id) {
@@ -34,6 +41,7 @@ export async function POST(request: Request) {
       departure_id,
       traveler_count: Math.max(1, Number(traveler_count) || 1),
       payment_plan: payment_plan === "full" ? "full" : "partial",
+      payment_method: typeof payment_method === "string" ? payment_method.trim() : undefined,
       customer_full_name,
       customer_phone_number,
       customer_email,
@@ -45,6 +53,28 @@ export async function POST(request: Request) {
 
     const customer_token = generateCustomerToken(customer);
 
+    // Server-side conversion tracking
+    const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0].trim();
+    void trackServerEvent({
+      event_name: "booking_created",
+      path: `/tours/${booking.tour_slug || booking.tour_id}`,
+      title: `Booking: ${booking.tour_title}`,
+      referrer: request.headers.get("referer") || "",
+      user_agent: request.headers.get("user-agent") || "",
+      ip: forwardedFor,
+      metadata: {
+        booking_id: booking.id,
+        reference: booking.reference,
+        tour_id: booking.tour_id,
+        tour_title: booking.tour_title,
+        traveler_count: booking.traveler_count,
+        total_price: booking.total_price,
+        advance_amount: booking.advance_amount,
+        payment_method: booking.payment_method,
+        payment_plan: booking.payment_plan,
+      },
+    });
+
     const response = NextResponse.json(
       {
         ...booking,
@@ -54,11 +84,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
 
-    response.cookies.set("atithi_customer_token", customer_token, {
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60,
-      sameSite: "lax",
-    });
+    response.cookies.set("tourlover_customer_token", customer_token, customerCookieOptions());
 
     return response;
   } catch (err: unknown) {

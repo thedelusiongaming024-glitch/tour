@@ -1,9 +1,9 @@
 "use client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
-const TOKEN_KEY = "atithi_staff_access_token";
-const REFRESH_KEY = "atithi_staff_refresh_token";
-const USER_KEY = "atithi_staff_user";
+const TOKEN_KEY = "tourlover_staff_access_token";
+const REFRESH_KEY = "tourlover_staff_refresh_token";
+const USER_KEY = "tourlover_staff_user";
 
 export interface StaffUser {
   id: string;
@@ -47,17 +47,17 @@ export function saveStaffSession(access: string, refresh: string, user: StaffUse
 
 export function getStaffToken(): string | null {
   if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY) || sessionStorage.getItem("atithi_staff_access_token");
 }
 
 function getStaffRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(REFRESH_KEY);
+  return sessionStorage.getItem(REFRESH_KEY) || sessionStorage.getItem("atithi_staff_refresh_token");
 }
 
 export function getStaffUser(): StaffUser | null {
   if (typeof window === "undefined") return null;
-  const raw = sessionStorage.getItem(USER_KEY);
+  const raw = sessionStorage.getItem(USER_KEY) || sessionStorage.getItem("atithi_staff_user");
   if (!raw) return null;
   try {
     return JSON.parse(raw) as StaffUser;
@@ -70,6 +70,9 @@ export function clearStaffSession() {
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_KEY);
   sessionStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem("atithi_staff_access_token");
+  sessionStorage.removeItem("atithi_staff_refresh_token");
+  sessionStorage.removeItem("atithi_staff_user");
 }
 
 /**
@@ -158,7 +161,7 @@ export async function staffLogin(username: string, password: string): Promise<{ 
 
   // The access token payload carries `role`; decode without a JWT library
   // since we only need the two custom claims we set in
-  // AtithiTokenObtainPairSerializer. decodeJwtPayload never throws.
+  // TokenObtainPairSerializer. decodeJwtPayload never throws.
   const payload = decodeJwtPayload(data.access);
   if (!payload || typeof payload.user_id !== "string" || typeof payload.role !== "string") {
     return { ok: false, error: "Received an unexpected response from the server. Please try again." };

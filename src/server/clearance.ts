@@ -1,6 +1,21 @@
 import crypto from "node:crypto";
 
-const CLEARANCE_SECRET = process.env.CLEARANCE_SECRET || "atithi-clearance-secret-salt-2026";
+const DEV_CLEARANCE_SECRET = "dev-only-clearance-secret-do-not-use-in-production";
+
+function getClearanceSecret(): string {
+  const value = process.env.CLEARANCE_SECRET?.trim();
+  if (value) return value;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("CLEARANCE_SECRET environment variable is required in production.");
+  }
+  return DEV_CLEARANCE_SECRET;
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
 const TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days outer bound
 
 interface ClearanceTokenData {
@@ -31,7 +46,7 @@ export function generateClearanceToken(bookingId: string): string {
   };
   const payload = base64UrlEncode(JSON.stringify(data));
   const sig = crypto
-    .createHmac("sha256", CLEARANCE_SECRET)
+    .createHmac("sha256", getClearanceSecret())
     .update(payload)
     .digest("base64")
     .replace(/=/g, "")
@@ -54,14 +69,14 @@ export function verifyClearanceToken(
 
     const [payload, sig] = parts;
     const expectedSig = crypto
-      .createHmac("sha256", CLEARANCE_SECRET)
+      .createHmac("sha256", getClearanceSecret())
       .update(payload)
       .digest("base64")
       .replace(/=/g, "")
       .replace(/\+/g, "-")
       .replace(/\//g, "_");
 
-    if (sig !== expectedSig) {
+    if (!safeEqual(sig, expectedSig)) {
       return { valid: false, reason: "bad_signature" };
     }
 

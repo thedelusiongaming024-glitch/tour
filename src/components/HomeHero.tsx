@@ -80,7 +80,7 @@ export function HomeHero({
   });
 
   return (
-    <section className="relative overflow-hidden px-3.5 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-40">
+    <section className="relative overflow-hidden min-h-[520px] xs:min-h-[560px] sm:min-h-[640px] flex flex-col justify-center px-3.5 pb-28 pt-24 sm:px-6 sm:pb-32 sm:pt-36">
       {mediaType === "video" && videoUrl ? (
         <HeroVideoBackdrop videoUrl={videoUrl} fallbackSlides={slides ?? undefined} />
       ) : (
@@ -95,7 +95,7 @@ export function HomeHero({
             </span>
           </Reveal>
           <Reveal delay={0.08}>
-            <h1 className="mt-5 sm:mt-6 font-display text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.12] sm:leading-[1.05] tracking-tight text-ink">
+            <h1 className="mt-4 sm:mt-6 font-display text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.15] sm:leading-[1.05] tracking-tight text-ink">
               {defaultHeadline}
               <br />
               <span className="bg-gradient-to-r from-emerald via-emerald-deep to-gold bg-clip-text text-transparent">
@@ -104,35 +104,35 @@ export function HomeHero({
             </h1>
           </Reveal>
           <Reveal delay={0.16}>
-            <p className="mt-4 sm:mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-ink-soft px-2 sm:px-0">
+            <p className="mt-3 sm:mt-5 max-w-xl text-xs sm:text-base leading-relaxed text-ink-soft px-2 sm:px-0">
               {defaultSubheadline}
             </p>
           </Reveal>
           <Reveal delay={0.24}>
-            <div className="mt-7 sm:mt-9 flex flex-col gap-3 w-full sm:w-auto sm:flex-row justify-center px-4 sm:px-0">
-              <Link href={primaryCtaHref ?? "/tours"} className="btn btn-emerald w-full sm:w-auto text-center !py-3 sm:!py-3.5">
+            <div className="mt-4 sm:mt-8 flex flex-row items-center justify-center gap-2.5 sm:gap-4 w-auto px-2 sm:px-0">
+              <Link href={primaryCtaHref ?? "/tours"} className="btn btn-emerald text-center !py-2.5 sm:!py-3.5 !px-4 sm:!px-7 text-xs sm:text-base shrink-0 shadow-md">
                 {defaultPrimaryCta}
               </Link>
-              <Link href={secondaryCtaHref ?? "/contact"} className="btn btn-glass w-full sm:w-auto text-center !py-3 sm:!py-3.5">
+              <Link href={secondaryCtaHref ?? "/contact"} className="btn btn-glass text-center !py-2.5 sm:!py-3.5 !px-4 sm:!px-7 text-xs sm:text-base shrink-0 shadow-sm">
                 {defaultSecondaryCta}
               </Link>
             </div>
           </Reveal>
         </div>
 
-        {/* Stat panel */}
+        {/* Stat panel - 4-column horizontal desktop strip scaled for mobile */}
         {localizedStats.length > 0 && (
-          <Reveal delay={0.32} className="mx-auto mt-10 sm:mt-14 max-w-4xl">
+          <Reveal delay={0.32} className="mx-auto mt-8 sm:mt-14 max-w-4xl">
             <Stagger
-              className="glass glass-sweep grid grid-cols-2 gap-3 sm:gap-y-8 rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 sm:grid-cols-4"
+              className="glass glass-sweep grid grid-cols-4 gap-1.5 xs:gap-2 sm:gap-y-8 rounded-2xl sm:rounded-[2rem] p-2.5 xs:p-3.5 sm:p-8"
               stagger={0.08}
             >
               {localizedStats.map((stat) => (
-                <StaggerItem key={stat.label} className="text-center p-2 rounded-xl bg-white/30 sm:bg-transparent">
-                  <div className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-emerald-deep">
+                <StaggerItem key={stat.label} className="text-center p-1.5 xs:p-2 rounded-xl bg-white/30 sm:bg-transparent">
+                  <div className="font-display text-base xs:text-xl sm:text-3xl lg:text-4xl font-semibold text-emerald-deep">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-[11px] font-medium uppercase tracking-wider text-ink-faint sm:text-sm">
+                  <div className="mt-0.5 sm:mt-1 text-[8px] xs:text-[9px] sm:text-sm font-medium uppercase tracking-wider text-ink-faint truncate">
                     {stat.label}
                   </div>
                 </StaggerItem>

@@ -26,8 +26,33 @@ export function TourCard({ tour, showDiscount = true }: TourCardProps) {
         .replace(/\d+/g, (m) => formatNumber(Number(m)))
     : tour.duration;
 
+  const displayCategory = isBn
+    ? (() => {
+        const cat = (tour.category || "").toLowerCase();
+        if (cat.includes("package")) return "প্যাকেজ ট্যুর";
+        if (cat.includes("group")) return "গ্রুপ ট্যুর";
+        if (cat.includes("day")) return "ডে ট্যুর";
+        if (cat.includes("weekend")) return "উইকেন্ড";
+        if (cat.includes("adventure")) return "অ্যাডভেঞ্চার";
+        if (cat.includes("honeymoon")) return "হানিমুন";
+        if (cat.includes("heritage")) return "ঐতিহ্যবাহী";
+        if (cat.includes("combo")) return "কম্বো";
+        return tour.category;
+      })()
+    : tour.category;
+
+  const displayDeparture = isBn
+    ? (() => {
+        const dep = (tour.departure || "").toLowerCase();
+        if (dep.includes("dhaka")) return "ঢাকা থেকে যাত্রা";
+        if (dep.includes("chattogram") || dep.includes("chittagong")) return "চট্টগ্রাম থেকে যাত্রা";
+        if (dep.includes("savar")) return "সাভার থেকে যাত্রা";
+        return `${tour.departure} থেকে`;
+      })()
+    : tour.departure;
+
   return (
-    <GlassCard className="group flex h-full flex-col overflow-hidden rounded-3xl shadow-glass transition-shadow duration-300 hover:shadow-glass-lg">
+    <GlassCard className="group flex h-full flex-col overflow-hidden rounded-2xl sm:rounded-3xl shadow-glass transition-shadow duration-300 hover:shadow-glass-lg">
       <Link href={`/tours/${tour.slug}`} className="flex flex-1 flex-col">
         <div className="relative">
           <SceneBackdrop
@@ -35,63 +60,62 @@ export function TourCard({ tour, showDiscount = true }: TourCardProps) {
             className="aspect-[16/10] transition-transform duration-700 ease-out group-hover:scale-105"
             showLabel={false}
           />
-          <div className="absolute left-3 top-3 flex flex-col gap-2">
-            <span className="rounded-full bg-ink/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur">
-              {tour.category}
+          <div className="absolute left-2 top-2 sm:left-3 sm:top-3 flex flex-col gap-1 sm:gap-2">
+            <span className="rounded-full bg-ink/75 px-2 py-0.5 sm:px-3 sm:py-1 text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur">
+              {displayCategory}
             </span>
             {showDiscount && tour.discount > 0 && (
-              <span className="rounded-full bg-coral/90 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">
+              <span className="rounded-full bg-coral/90 px-2 py-0.5 sm:px-3 sm:py-1 text-[9px] sm:text-[11px] font-semibold text-white backdrop-blur">
                 {t("card.save")} {formatPrice(tour.discount)}
               </span>
             )}
           </div>
         </div>
 
-        <div className="glass glass-sweep flex flex-1 flex-col gap-3 rounded-b-3xl p-5">
-          <div className="flex items-center gap-2 text-xs font-medium text-ink-faint">
-            <span className="inline-flex items-center gap-1">
-              <Icon name="clock" className="h-3.5 w-3.5" />
+        <div className="glass glass-sweep flex flex-1 flex-col gap-1.5 sm:gap-3 rounded-b-2xl sm:rounded-b-3xl p-3 sm:p-5">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-medium text-ink-faint truncate">
+            <span className="inline-flex items-center gap-1 shrink-0">
+              <Icon name="clock" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               {displayDuration}
             </span>
-            <span className="h-1 w-1 rounded-full bg-ink-faint/50" />
-            <span className="inline-flex items-center gap-1">
-              <Icon name="mapPin" className="h-3.5 w-3.5" />
-              {tour.departure}
+            <span className="h-1 w-1 rounded-full bg-ink-faint/50 shrink-0" />
+            <span className="inline-flex items-center gap-1 truncate">
+              <Icon name="mapPin" className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+              <span className="truncate">{displayDeparture}</span>
             </span>
           </div>
 
-          <h3 className="font-display text-lg font-semibold leading-snug text-ink transition-colors group-hover:text-emerald-deep">
+          <h3 className="font-display text-xs sm:text-lg font-semibold leading-snug text-ink transition-colors group-hover:text-emerald-deep line-clamp-2">
             {tour.title}
           </h3>
-          <p className="text-sm leading-relaxed text-ink-soft">{tour.summary}</p>
+          <p className="hidden xs:line-clamp-1 sm:line-clamp-2 text-xs sm:text-sm leading-relaxed text-ink-soft">{tour.summary}</p>
 
-          <div className="mt-auto flex items-end justify-between border-t border-white/60 pt-3">
-            <div>
+          <div className="mt-auto flex items-end justify-between border-t border-white/60 pt-2 sm:pt-3">
+            <div className="min-w-0 pr-1">
               {showDiscount && tour.discount > 0 ? (
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-ink-faint line-through">
+                <div className="flex items-baseline gap-1 sm:gap-2">
+                  <span className="text-[10px] sm:text-sm text-ink-faint line-through truncate">
                     {formatPrice(original)}
                   </span>
-                  <span className="font-display text-xl font-semibold text-emerald-deep">
+                  <span className="font-display text-sm sm:text-xl font-semibold text-emerald-deep">
                     {formatPrice(final)}
                   </span>
                 </div>
               ) : (
-                <span className="font-display text-xl font-semibold text-emerald-deep">
+                <span className="font-display text-sm sm:text-xl font-semibold text-emerald-deep">
                   {formatPrice(original)}
                 </span>
               )}
-              <span className="text-[11px] text-ink-faint">
-                {t("card.perPerson")} · {t("card.bookFrom")}{" "}
-                {formatNumber(tour.advancePercent)}% {t("card.advanceBadge")}
+              <span className="block text-[8px] sm:text-[11px] text-ink-faint truncate">
+                {t("card.perPerson")} · {formatNumber(tour.advancePercent)}% {t("card.advanceBadge")}
               </span>
             </div>
             <motion.span
               whileHover={{ x: 4 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald/90 text-white"
+              className="flex h-6 w-6 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-emerald/90 text-white"
             >
-              <Icon name="arrowRight" className="h-4 w-4" />
+              <Icon name="arrowRight" className="h-3 w-3 sm:h-4 sm:w-4" />
             </motion.span>
           </div>
         </div>

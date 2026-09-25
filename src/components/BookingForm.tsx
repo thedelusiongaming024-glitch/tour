@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Tour } from "@/lib/types";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickupPoints";
 import { BusSeatSelector } from "@/components/BusSeatSelector";
@@ -13,10 +13,54 @@ interface BookingFormProps {
   advanceAmount: number;
 }
 
-type Step = "form" | "submitting" | "redirecting" | "error" | "offline";
+type Step = "form" | "submitting" | "redirecting" | "cash_confirmed" | "error" | "offline";
 
 function formatBDT(amount: number): string {
   return "৳" + Math.round(amount).toLocaleString("en-BD");
+}
+
+function CashCountdown({ expiresAt }: { expiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    setTimeLeft(Math.max(0, Math.floor(diff / 1000)));
+  }, [expiresAt]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      const s = Math.max(0, Math.floor(diff / 1000));
+      setTimeLeft(s);
+      if (s <= 0) clearInterval(timer);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  if (timeLeft === null) return null;
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+  const isExpired = timeLeft <= 0;
+
+  if (isExpired) {
+    return (
+      <div className="rounded-xl bg-rose-100 border border-rose-300 p-3 text-center text-rose-800 font-bold text-sm">
+        ❌ 10-Minute Window Expired. Seats have been automatically released.
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-amber-50 border border-amber-300 p-3.5 text-center">
+      <div className="text-xs text-amber-800 font-medium">Time Remaining for Admin Approval:</div>
+      <div className="text-2xl font-mono font-extrabold text-amber-900 tracking-wider my-0.5">
+        ⏳ {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+      </div>
+      <p className="text-[11px] text-amber-700">
+        Admin will verify physical cash and approve from the admin panel within 10 minutes.
+      </p>
+    </div>
+  );
 }
 
 interface AppliedPromo {
@@ -48,6 +92,15 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
   const [paymentPlan, setPaymentPlan] = useState<"full" | "partial">(
     tour.allowPartialPayment === false ? "full" : "partial"
   );
+  const [paymentMethod, setPaymentMethod] = useState<"sslcommerz" | "cash_on_hand">("sslcommerz");
+  const [cashBookingData, setCashBookingData] = useState<{
+    reference: string;
+    expiresAt: string;
+    amount: number;
+    isFull: boolean;
+    phone: string;
+    bookingId: string;
+  } | null>(null);
 
   // Promo code states
   const [promoInput, setPromoInput] = useState("");
@@ -181,6 +234,7 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
           pickup_point: finalPickupPoint,
           selected_seats: selectedSeats,
           promo_code: appliedPromo ? appliedPromo.code : undefined,
+          payment_method: paymentMethod,
         }),
       });
 
@@ -197,12 +251,28 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
 
       if (booking.customer_token) {
         try {
+          localStorage.setItem("tourlover_customer_token", booking.customer_token);
           localStorage.setItem("atithi_customer_token", booking.customer_token);
           if (booking.customer) {
+            localStorage.setItem("tourlover_customer", JSON.stringify(booking.customer));
             localStorage.setItem("atithi_customer", JSON.stringify(booking.customer));
           }
-          document.cookie = `atithi_customer_token=${booking.customer_token}; path=/; max-age=2592000; SameSite=Lax`;
+          // The server already set the (httpOnly) session cookie on this response —
+          // no need to (and, being httpOnly, no way to) set it again from JS.
         } catch {}
+      }
+
+      if (paymentMethod === "cash_on_hand") {
+        setCashBookingData({
+          reference: booking.reference || booking.id,
+          expiresAt: booking.cash_approval_expires_at || new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          amount: paymentPlan === "full" ? totalFinalPrice : totalAdvanceAmount,
+          isFull: paymentPlan === "full",
+          phone: phone,
+          bookingId: booking.id,
+        });
+        setStep("cash_confirmed");
+        return;
       }
 
       const paymentRes = await fetch(`${API_BASE}/payments/initiate`, {
@@ -236,6 +306,64 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
       <div className="rounded-2xl border border-white/40 bg-white/60 p-5 text-sm text-ink-soft backdrop-blur">
         Live booking isn&apos;t available in preview mode right now — please contact us directly to
         reserve this tour, or try again once the booking service is back online.
+      </div>
+    );
+  }
+
+  if (step === "cash_confirmed" && cashBookingData) {
+    return (
+      <div className="space-y-4 rounded-2xl border border-amber-300 bg-white/95 p-5 sm:p-6 backdrop-blur shadow-md animate-in fade-in">
+        <div className="text-center space-y-1">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800 text-2xl font-bold">
+            💵
+          </div>
+          <h3 className="text-lg font-bold text-slate-900">
+            Cash Booking Reserved!
+          </h3>
+          <p className="text-xs text-slate-600">
+            Booking Reference: <strong className="font-mono text-emerald-800 font-bold text-sm">{cashBookingData.reference}</strong>
+          </p>
+        </div>
+
+        {/* Live 10-Minute Countdown Clock */}
+        <CashCountdown expiresAt={cashBookingData.expiresAt} />
+
+        <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-xs text-slate-700">
+          <div className="flex justify-between border-b border-slate-200/80 pb-2 font-medium">
+            <span>Payment Amount ({cashBookingData.isFull ? "Full Payment" : "Advance Deposit"}):</span>
+            <span className="font-extrabold text-slate-900 text-sm">{formatBDT(cashBookingData.amount)}</span>
+          </div>
+          <div className="space-y-1.5 pt-1">
+            <div>
+              <span className="font-bold text-slate-800">🏢 Office Address:</span>
+              <p className="text-slate-600 mt-0.5">Savar Pollibidut, Kobarsthan Road, Savar, Dhaka</p>
+            </div>
+            <div>
+              <span className="font-bold text-slate-800">📞 Counter Hotlines:</span>
+              <p className="text-slate-600 font-mono mt-0.5">+880 1620-592884 · +880 1929-582426</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 leading-relaxed">
+          <strong>✓ Security Instruction:</strong> Please hand over physical cash to the counter executive immediately. The admin will verify and approve your booking from the admin panel within the <strong>10-minute window</strong>. Once approved, your official E-Ticket and Boarding Pass will be immediately available in your profile.
+        </div>
+
+        <div className="pt-1 flex flex-col sm:flex-row gap-2">
+          <a
+            href="/profile"
+            className="flex-1 rounded-xl bg-emerald-deep px-4 py-2.5 text-center text-xs font-semibold text-white shadow-xs hover:brightness-110 transition"
+          >
+            Go to My Profile / Bookings →
+          </a>
+          <button
+            type="button"
+            onClick={() => setStep("form")}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+          >
+            Book Another Tour
+          </button>
+        </div>
       </div>
     );
   }
@@ -520,20 +648,103 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
         </div>
       )}
 
-      {/* SSLCommerz Gateway Trust Banner */}
-      <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/60 p-3 text-center">
-        <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-900">
-          <span>🔒 100% Secure Checkout via SSLCommerz Gateway</span>
+      {/* Payment Method Selector (Online vs Cash on Hand) */}
+      <div className="flex flex-col gap-2 text-sm pt-1">
+        <span className="text-ink-soft font-medium flex items-center justify-between">
+          <span>Payment Method (পেমেন্ট মাধ্যম)</span>
+          <span className="text-[11px] text-emerald-800 font-semibold">Choose How to Pay</span>
+        </span>
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          <label
+            className={`flex items-start gap-2.5 rounded-xl border p-3 cursor-pointer transition-all ${
+              paymentMethod === "sslcommerz"
+                ? "border-emerald-600 bg-emerald-50/80 shadow-xs ring-1 ring-emerald-600"
+                : "border-white/60 bg-white/80 hover:bg-white"
+            }`}
+          >
+            <input
+              type="radio"
+              name="paymentMethod"
+              className="mt-0.5 accent-emerald-700"
+              checked={paymentMethod === "sslcommerz"}
+              onChange={() => setPaymentMethod("sslcommerz")}
+            />
+            <div>
+              <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                <span>💳 Online Payment</span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">Instant</span>
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                bKash, Nagad, Rocket, Cards via SSLCommerz
+              </div>
+            </div>
+          </label>
+
+          <label
+            className={`flex items-start gap-2.5 rounded-xl border p-3 cursor-pointer transition-all ${
+              paymentMethod === "cash_on_hand"
+                ? "border-amber-600 bg-amber-50/80 shadow-xs ring-1 ring-amber-600"
+                : "border-white/60 bg-white/80 hover:bg-white"
+            }`}
+          >
+            <input
+              type="radio"
+              name="paymentMethod"
+              className="mt-0.5 accent-amber-700"
+              checked={paymentMethod === "cash_on_hand"}
+              onChange={() => setPaymentMethod("cash_on_hand")}
+            />
+            <div>
+              <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+                <span>💵 Pay Cash by Hand</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">হাতে নগদ</span>
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                Pay cash at counter with 10-minute admin approval
+              </div>
+            </div>
+          </label>
         </div>
-        <p className="mt-0.5 text-[11px] text-emerald-700">
-          Pay with bKash, Nagad, Rocket, Upay, Visa, MasterCard, Amex &amp; 30+ Banks
-        </p>
+
+        {paymentMethod === "cash_on_hand" && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-3 text-xs text-amber-900 space-y-1 animate-in fade-in">
+            <div className="font-bold flex items-center gap-1.5 text-amber-950">
+              <span>⏳ 10-Minute Admin Approval Security Rule:</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-amber-800">
+              For anti-hoarding security, after reserving your booking, the admin must physically receive the cash and approve your payment in the admin panel within <strong>10 minutes</strong>. If not approved within 10 minutes, the reservation will automatically cancel and seats will be released.
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Payment Gateway Trust Banner (Online Only) */}
+      {paymentMethod === "sslcommerz" ? (
+        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/60 p-3 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-900">
+            <span>🔒 100% Secure Checkout via SSLCommerz Gateway</span>
+          </div>
+          <p className="mt-0.5 text-[11px] text-emerald-700">
+            Pay with bKash, Nagad, Rocket, Upay, Visa, MasterCard, Amex &amp; 30+ Banks
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-950">
+            <span>🏢 Savar Office Counter / Tour Host Cash Verification</span>
+          </div>
+          <p className="mt-0.5 text-[11px] text-amber-800">
+            Hand over cash at counter · Admin will verify and activate ticket within 10 minutes
+          </p>
+        </div>
+      )}
 
       <button
         type="submit"
         disabled={step === "submitting" || step === "redirecting"}
-        className="w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 disabled:opacity-60 shadow-xs"
+        className={`w-full rounded-xl px-4 py-3 font-semibold text-white transition hover:brightness-110 disabled:opacity-60 shadow-xs cursor-pointer ${
+          paymentMethod === "cash_on_hand" ? "bg-amber-800 hover:bg-amber-900" : "bg-emerald-deep"
+        }`}
       >
         {step === "submitting"
           ? "Creating your booking…"
@@ -541,7 +752,9 @@ export function BookingForm({ tour, finalPrice, advanceAmount }: BookingFormProp
             ? "Connecting to SSLCommerz…"
             : selectedSeats.length === 0
               ? "Select seats to continue"
-              : `Pay with SSLCommerz — ${formatBDT(paymentPlan === "full" ? totalFinalPrice : totalAdvanceAmount)}`}
+              : paymentMethod === "cash_on_hand"
+                ? `Reserve & Pay Cash by Hand — ${formatBDT(paymentPlan === "full" ? totalFinalPrice : totalAdvanceAmount)}`
+                : `Pay with SSLCommerz — ${formatBDT(paymentPlan === "full" ? totalFinalPrice : totalAdvanceAmount)}`}
       </button>
     </form>
   );

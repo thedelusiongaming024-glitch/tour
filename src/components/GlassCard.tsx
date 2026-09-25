@@ -3,10 +3,10 @@
 import {
   motion,
   useMotionValue,
-  useReducedMotion,
   useSpring,
   useTransform,
 } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import type { MouseEvent, ReactNode } from "react";
 
 interface GlassCardProps {
@@ -34,7 +34,7 @@ export function GlassCard({
   tilt = true,
   lift = 8,
 }: GlassCardProps) {
-  const reduce = useReducedMotion();
+  const reduce = useSafeReducedMotion();
 
   const px = useMotionValue(0.5);
   const py = useMotionValue(0.5);

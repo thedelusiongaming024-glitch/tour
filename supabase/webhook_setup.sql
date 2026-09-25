@@ -17,14 +17,11 @@ VALUES (
   ARRAY['application/json']
 )
 ON CONFLICT (id) DO UPDATE
-SET public = true,
+SET public = false,
     file_size_limit = 52428800;
 
--- Allow public read access to db.json snapshot via CDN
-CREATE POLICY "Public Read Access on atithi-data"
-ON storage.objects FOR SELECT
-TO public
-USING (bucket_id = 'atithi-data');
+-- (Public read access was removed on purpose: the snapshot holds private customer data.)
+DROP POLICY IF EXISTS "Public Read Access on atithi-data" ON storage.objects;
 
 -- Allow service_role to manage all files in atithi-data
 CREATE POLICY "Service Role Full Access on atithi-data"

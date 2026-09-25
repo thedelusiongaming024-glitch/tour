@@ -11,6 +11,7 @@ import type {
   DbPayment,
   DbTestimonial,
   DbTour,
+  DbContactInquiry,
 } from "./types";
 
 const BUCKET_NAME = "atithi-data";
@@ -238,7 +239,7 @@ export async function syncBlogPostToSupabase(post: DbBlogPost): Promise<boolean>
       slug: post.slug,
       excerpt: post.excerpt || null,
       content: post.body || post.content || null,
-      author: post.author_name || post.author || "Atithi Editorial",
+      author: post.author_name || post.author || "Savar Tour Lover Editorial",
       hero_image: post.cover_image || post.hero_image || null,
       read_time_minutes: Number(post.read_time_minutes || 5),
       tags: post.tags || [],
@@ -395,6 +396,10 @@ export async function syncBookingToSupabase(booking: DbBooking): Promise<boolean
       travelers: Array.isArray(booking.travelers) ? booking.travelers : [],
       promo_code: booking.promo_code || null,
       discount_amount: booking.discount_amount ? Number(booking.discount_amount) : null,
+      payment_method: booking.payment_method || null,
+      cash_approval_expires_at: booking.cash_approval_expires_at || null,
+      cash_approved_by: booking.cash_approved_by || null,
+      cash_approved_at: booking.cash_approved_at || null,
     };
 
     let { error } = await supabase.from("bookings").upsert(fullPayload);
@@ -451,6 +456,32 @@ export async function syncPaymentToSupabase(payment: DbPayment): Promise<boolean
   }
 }
 
+/**
+ * Reads EVERY row of a table. PostgREST silently caps a single request at 1,000 rows, so a plain
+ * `.select("*")` quietly truncated bookings / customers / activities once they grew past that, and
+ * the truncated copy then replaced the in-memory database.
+ */
+async function selectAllRows(
+  supabase: ReturnType<typeof getSupabaseAdminClient>,
+  table: string,
+  orderColumn?: string,
+  ascending: boolean = true
+): Promise<{ data: any[] | null; error: { message: string } | null }> {
+  const pageSize = 1000;
+  const rows: any[] = [];
+  for (let from = 0; ; from += pageSize) {
+    let query = supabase.from(table).select("*");
+    if (orderColumn) query = query.order(orderColumn, { ascending });
+    // Stable tiebreaker so rows are never skipped or duplicated between pages.
+    query = query.order("id", { ascending: true });
+    const { data, error } = await query.range(from, from + pageSize - 1);
+    if (error) return { data: null, error };
+    rows.push(...(data ?? []));
+    if (!data || data.length < pageSize) break;
+  }
+  return { data: rows, error: null };
+}
+
 // =============================================================================
 // Full PostgreSQL Hydration from Supabase
 // =============================================================================
@@ -458,17 +489,32 @@ export async function syncPaymentToSupabase(payment: DbPayment): Promise<boolean
 export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null> {
   const supabase = getSupabaseAdminClient();
   try {
-    const [destsRes, toursRes, offersRes, testsRes, blogsRes, blocksRes, staffRes, custsRes, bookingsRes, actsRes] = await Promise.all([
-      supabase.from("destinations").select("*").order("name"),
-      supabase.from("tours").select("*").order("title"),
-      supabase.from("offers").select("*"),
-      supabase.from("testimonials").select("*"),
-      supabase.from("blog_posts").select("*"),
-      supabase.from("homepage_blocks").select("*").order("display_order"),
-      supabase.from("staff_users").select("*"),
-      supabase.from("customers").select("*"),
-      supabase.from("bookings").select("*").order("created_at", { ascending: false }),
-      supabase.from("customer_activities").select("*").order("created_at", { ascending: false }),
+    const [
+      destsRes,
+      toursRes,
+      offersRes,
+      testsRes,
+      blogsRes,
+      blocksRes,
+      staffRes,
+      custsRes,
+      bookingsRes,
+      actsRes,
+      paymentsRes,
+      inqsRes,
+    ] = await Promise.all([
+      selectAllRows(supabase, "destinations", "name"),
+      selectAllRows(supabase, "tours", "title"),
+      selectAllRows(supabase, "offers"),
+      selectAllRows(supabase, "testimonials"),
+      selectAllRows(supabase, "blog_posts"),
+      selectAllRows(supabase, "homepage_blocks", "display_order"),
+      selectAllRows(supabase, "staff_users"),
+      selectAllRows(supabase, "customers"),
+      selectAllRows(supabase, "bookings", "created_at", false),
+      selectAllRows(supabase, "customer_activities", "created_at", false),
+      selectAllRows(supabase, "payments", "created_at", false),
+      selectAllRows(supabase, "contact_inquiries", "created_at", false),
     ]);
 
     if (destsRes.error && toursRes.error) {
@@ -575,8 +621,8 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       excerpt: b.excerpt || "",
       body: b.content || "",
       content: b.content || "",
-      author_name: b.author || "Atithi Editorial",
-      author: b.author || "Atithi Editorial",
+      author_name: b.author || "Savar Tour Lover Editorial",
+      author: b.author || "Savar Tour Lover Editorial",
       cover_image: b.hero_image || null,
       hero_image: b.hero_image || null,
       read_time_minutes: Number(b.read_time_minutes || 5),
@@ -714,6 +760,10 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
         amount_due: String(b.due_on_tour_day || 0),
         due_date: b.departure_date || new Date().toISOString().slice(0, 10),
         status: b.status || "pending_payment",
+        payment_method: b.payment_method || (b.special_requests?.includes("Pay Cash by Hand") || b.special_requests?.includes("Cash on Hand") ? "cash_on_hand" : "sslcommerz"),
+        cash_approval_expires_at: b.cash_approval_expires_at || undefined,
+        cash_approved_by: b.cash_approved_by || undefined,
+        cash_approved_at: b.cash_approved_at || undefined,
         customer_id: b.customer_id || undefined,
         customer_full_name: b.customer_name,
         customer_phone_number: b.customer_phone,
@@ -725,26 +775,71 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       };
     });
 
-    // Hydrate any rich CMS blocks (e.g. block-home-page, block-about-page, block-journal-page)
-    // from the storage snapshot mirror where CMS configurations are safely persisted
-    let storageBlocks: DbHomepageBlock[] = [];
+    // Map payments from Postgres table
+    const mappedPayments: DbPayment[] = (paymentsRes.data || []).map((p: any) => ({
+      id: p.id,
+      booking_id: p.booking_id,
+      amount: String(p.amount || "0"),
+      payment_type: p.payment_type || "advance",
+      payment_method: p.payment_method || "sslcommerz",
+      status: p.status || "pending",
+      tran_id: p.transaction_id || p.tran_id || `TRAN-${p.id}`,
+      val_id: p.raw_payload?.val_id || p.val_id || undefined,
+      card_type: p.card_type || undefined,
+      created_at: p.created_at || new Date().toISOString(),
+      paid_at: p.paid_at || undefined,
+    }));
+
+    // Map contact inquiries from Postgres table if present
+    const mappedInquiries: DbContactInquiry[] = (inqsRes.data || []).map((i: any) => ({
+      id: i.id,
+      name: i.name || "Traveler",
+      email: i.email || "",
+      phone: i.phone || "",
+      destination: i.destination || "",
+      dates: i.dates || "",
+      trip_type: i.trip_type || "",
+      travelers: Number(i.travelers || 1),
+      message: i.message || "",
+      status: i.status || "new",
+      admin_notes: i.admin_notes || undefined,
+      created_at: i.created_at || new Date().toISOString(),
+    }));
+
+    // Hydrate collections from the storage snapshot mirror
+    let snapshotData: Partial<DatabaseSchema> = {};
     try {
       const { data: storageData, error: storageErr } = await supabase.storage.from(BUCKET_NAME).download(DB_OBJECT_PATH);
       if (!storageErr && storageData) {
         const text = await storageData.text();
-        const parsed = JSON.parse(text) as Partial<DatabaseSchema>;
-        if (Array.isArray(parsed.homepageBlocks)) {
-          storageBlocks = parsed.homepageBlocks;
-        }
+        snapshotData = JSON.parse(text) as Partial<DatabaseSchema>;
       }
     } catch {}
 
     const tableBlocks: DbHomepageBlock[] = blocksRes.data || [];
     const tableBlockIds = new Set(tableBlocks.map((b) => b.id));
     const mergedHomepageBlocks = [...tableBlocks];
-    for (const sb of storageBlocks) {
+    for (const sb of snapshotData.homepageBlocks || []) {
       if (!tableBlockIds.has(sb.id)) {
         mergedHomepageBlocks.push(sb);
+      }
+    }
+
+    // Merge payments: table rows take precedence, supplemented by snapshot payments
+    const paymentIds = new Set(mappedPayments.map((p) => p.id));
+    const mergedPayments = [...mappedPayments];
+    for (const sp of snapshotData.payments || []) {
+      if (!paymentIds.has(sp.id)) {
+        mergedPayments.push(sp);
+      }
+    }
+
+    // Inquiries: table rows if available, otherwise snapshot
+    const inquiryIds = new Set(mappedInquiries.map((i) => i.id));
+    const mergedInquiries = [...mappedInquiries];
+    for (const si of snapshotData.contactInquiries || []) {
+      if (!inquiryIds.has(si.id)) {
+        mergedInquiries.push(si);
       }
     }
 
@@ -758,12 +853,13 @@ export async function fetchDatabaseFromSupabase(): Promise<DatabaseSchema | null
       staffUsers: mappedStaff,
       customers: mappedCustomers,
       bookings: mappedBookings,
-      payments: [],
-      clearanceTickets: [],
-      alerts: [],
-      expenses: [],
-      suppliers: [],
-      contactInquiries: [],
+      payments: mergedPayments,
+      clearanceTickets: Array.isArray(snapshotData.clearanceTickets) ? snapshotData.clearanceTickets : [],
+      alerts: Array.isArray(snapshotData.alerts) ? snapshotData.alerts : [],
+      expenses: Array.isArray(snapshotData.expenses) ? snapshotData.expenses : [],
+      suppliers: Array.isArray(snapshotData.suppliers) ? snapshotData.suppliers : [],
+      contactInquiries: mergedInquiries,
+      analyticsEvents: Array.isArray(snapshotData.analyticsEvents) ? snapshotData.analyticsEvents : [],
     };
 
     lastSyncTimestamp = new Date().toISOString();

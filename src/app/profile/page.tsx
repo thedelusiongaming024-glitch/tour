@@ -29,6 +29,44 @@ function formatDate(dateStr?: string, isBn?: boolean): string {
   }
 }
 
+function ProfileCashCountdown({ expiresAt, isBn }: { expiresAt?: string; isBn?: boolean }) {
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (!expiresAt) return 0;
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    return Math.max(0, Math.floor(diff / 1000));
+  });
+
+  useEffect(() => {
+    if (!expiresAt) return;
+    const timer = setInterval(() => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      const s = Math.max(0, Math.floor(diff / 1000));
+      setTimeLeft(s);
+      if (s <= 0) clearInterval(timer);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  if (!expiresAt) return null;
+  const isExpired = timeLeft <= 0;
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+
+  if (isExpired) {
+    return (
+      <span className="text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded border border-rose-300">
+        ❌ {isBn ? "১০ মিনিটের মেয়াদ শেষ" : "10m Window Expired"}
+      </span>
+    );
+  }
+
+  return (
+    <span className="font-mono text-xs font-bold text-amber-900 bg-amber-100/90 px-2.5 py-1 rounded border border-amber-300 animate-pulse">
+      ⏳ {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")} {isBn ? "বাকি" : "remaining"}
+    </span>
+  );
+}
+
 export default function CustomerProfilePage() {
   const { isBn } = useLanguage();
 
@@ -43,6 +81,8 @@ export default function CustomerProfilePage() {
   const [loginPhone, setLoginPhone] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [registerName, setRegisterName] = useState("");
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<"bookings" | "activity" | "support">("bookings");
@@ -60,7 +100,9 @@ export default function CustomerProfilePage() {
 
   // Check login on mount & auto-refresh when window regains focus (e.g. returning from SSLCommerz)
   useEffect(() => {
-    const storedToken = localStorage.getItem("atithi_customer_token");
+    const storedToken =
+      localStorage.getItem("tourlover_customer_token") ||
+      localStorage.getItem("atithi_customer_token");
     if (storedToken) {
       setToken(storedToken);
       fetchProfile(storedToken);
@@ -69,7 +111,9 @@ export default function CustomerProfilePage() {
     }
 
     const onFocus = () => {
-      const activeToken = localStorage.getItem("atithi_customer_token");
+      const activeToken =
+        localStorage.getItem("tourlover_customer_token") ||
+        localStorage.getItem("atithi_customer_token");
       if (activeToken) {
         fetchProfile(activeToken);
       }
@@ -120,14 +164,22 @@ export default function CustomerProfilePage() {
 
     setIsSubmittingLogin(true);
     try {
+      const payload: { phone_number: string; full_name?: string } = { phone_number: loginPhone.trim() };
+      if (isRegisterMode && registerName.trim()) {
+        payload.full_name = registerName.trim();
+      }
+
       const res = await fetch("/api/v1/auth/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone_number: loginPhone }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) {
+        if (data.notFound) {
+          setIsRegisterMode(true);
+        }
         throw new Error(
           data.error || (isBn ? "কোনো অ্যাকাউন্ট পাওয়া যায়নি।" : "No account found.")
         );
@@ -135,9 +187,10 @@ export default function CustomerProfilePage() {
 
       setToken(data.token);
       setCustomer(data.customer);
-      localStorage.setItem("atithi_customer_token", data.token);
-      localStorage.setItem("atithi_customer", JSON.stringify(data.customer));
-      document.cookie = `atithi_customer_token=${data.token}; path=/; max-age=2592000; SameSite=Lax`;
+      localStorage.setItem("tourlover_customer_token", data.token);
+      localStorage.setItem("tourlover_customer", JSON.stringify(data.customer));
+      // The server already set the (httpOnly) session cookie on this response —
+      // no need to (and, being httpOnly, no way to) set it again from JS.
 
       await fetchProfile(data.token);
     } catch (err: unknown) {
@@ -158,9 +211,14 @@ export default function CustomerProfilePage() {
     setCustomer(null);
     setBookings([]);
     setActivities([]);
+    localStorage.removeItem("tourlover_customer_token");
+    localStorage.removeItem("tourlover_customer");
     localStorage.removeItem("atithi_customer_token");
     localStorage.removeItem("atithi_customer");
-    document.cookie = "atithi_customer_token=; path=/; max-age=0";
+    // The session cookie is httpOnly and can't be cleared from JS — ask the
+    // server to clear it instead. Fire-and-forget: the local state above is
+    // already cleared either way, so a network hiccup here isn't user-visible.
+    fetch("/api/v1/auth/customer/logout", { method: "POST" }).catch(() => {});
   }
 
   async function handleUpdateProfile(e: React.FormEvent) {
@@ -280,20 +338,44 @@ export default function CustomerProfilePage() {
                     </div>
                   </div>
 
+                  {isRegisterMode && (
+                    <div className="animate-in fade-in duration-200">
+                      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                        {isBn ? "আপনার পুরো নাম" : "Your Full Name"}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={registerName}
+                        onChange={(e) => setRegisterName(e.target.value)}
+                        placeholder={isBn ? "উদা: কাজী মিনহাজুল ইসলাম অর্ক" : "e.g. Kazi Minhazul Islam Arko"}
+                        className="w-full rounded-xl border border-white/60 bg-white/90 px-4 py-3 text-base text-ink shadow-sm outline-none transition focus:border-emerald-deep focus:ring-2 focus:ring-emerald/20"
+                      />
+                    </div>
+                  )}
+
                   {loginError && (
                     <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-700">
                       <p className="font-semibold">{loginError}</p>
-                      <p className="mt-1 text-rose-600">
-                        {isBn
-                          ? "আপনি কি এখনো কোনো ট্যুর বুক করেননি? আমাদের আকর্ষনীয় ট্যুরগুলো ঘুরে দেখুন!"
-                          : "Haven't booked a journey yet? An account is created automatically the moment you book any tour package!"}
-                      </p>
-                      <Link
-                        href="/tours"
-                        className="mt-2 inline-block font-bold text-emerald-deep hover:underline"
-                      >
-                        {isBn ? "ট্যুর সমূহ দেখুন →" : "Explore Tour Packages →"}
-                      </Link>
+                      {!isRegisterMode && (
+                        <>
+                          <p className="mt-1 text-rose-600">
+                            {isBn
+                              ? "নতুন ভ্রমণকারী? আপনার নাম লিখে সহজেই প্রোফাইল তৈরি করতে পারেন।"
+                              : "New traveler? You can easily create an account with your name."}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsRegisterMode(true);
+                              setLoginError("");
+                            }}
+                            className="mt-2 text-xs font-bold text-emerald-deep underline hover:text-emerald"
+                          >
+                            {isBn ? "নতুন অ্যাকাউন্ট তৈরি করুন →" : "Create a new account now →"}
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -303,14 +385,33 @@ export default function CustomerProfilePage() {
                     className="w-full rounded-xl bg-emerald-deep px-4 py-3.5 font-medium text-white shadow-md transition hover:brightness-110 disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {isSubmittingLogin ? (
-                      <span>{isBn ? "যাচাই করা হচ্ছে…" : "Matching account…"}</span>
+                      <span>{isBn ? "যাচাই করা হচ্ছে…" : "Processing…"}</span>
                     ) : (
                       <>
-                        <span>{isBn ? "প্রবেশ করুন" : "Sign In to My Account"}</span>
+                        <span>
+                          {isRegisterMode
+                            ? (isBn ? "অ্যাকাউন্ট তৈরি ও প্রবেশ করুন" : "Create Account & Sign In")
+                            : (isBn ? "প্রবেশ করুন" : "Sign In to My Account")}
+                        </span>
                         <Icon name="arrow" className="h-4 w-4" />
                       </>
                     )}
                   </button>
+
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegisterMode(!isRegisterMode);
+                        setLoginError("");
+                      }}
+                      className="text-xs font-semibold text-emerald-deep hover:underline"
+                    >
+                      {isRegisterMode
+                        ? (isBn ? "← ইতোমধ্যে বুকিং বা অ্যাকাউন্ট আছে? লগইন করুন" : "← Already have an account? Sign in directly")
+                        : (isBn ? "নতুন ভ্রমণকারী? প্রোফাইল তৈরি করুন →" : "New traveler? Create your profile →")}
+                    </button>
+                  </div>
                 </form>
 
                 <div className="mt-6 border-t border-ink/5 pt-6 text-center">
@@ -729,7 +830,12 @@ export default function CustomerProfilePage() {
                       classes: "bg-amber-100 text-amber-800 border-amber-200",
                     };
 
-                    if (b.status === "confirmed_advance_paid") {
+                    if (b.status === "pending_cash_approval") {
+                      statusBadge = {
+                        text: isBn ? "নগদ অনুমোদন অপেক্ষমাণ (১০ মিনিট)" : "Pending Cash Approval (10m)",
+                        classes: "bg-amber-100 text-amber-900 border-amber-300 font-bold animate-pulse",
+                      };
+                    } else if (b.status === "confirmed_advance_paid") {
                       statusBadge = {
                         text: isBn ? "নিশ্চিত (অগ্রিম পরিশোধিত)" : "Confirmed (Advance Paid)",
                         classes: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -751,13 +857,15 @@ export default function CustomerProfilePage() {
                       };
                     }
 
+                    const isCashPayment = b.payment_method === "cash_on_hand" || b.payment_method === "cash";
+
                     return (
                       <div
                         key={b.id}
                         className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-glass border border-white/60 transition hover:shadow-glass-lg"
                       >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="space-y-2">
+                          <div className="space-y-2 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-mono text-xs font-bold uppercase tracking-wider bg-ink/5 border border-ink/10 px-2.5 py-1 rounded-lg text-ink">
                                 {b.reference}
@@ -767,6 +875,15 @@ export default function CustomerProfilePage() {
                               >
                                 {statusBadge.text}
                               </span>
+                              {isCashPayment ? (
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
+                                  💵 {isBn ? "হাতে নগদ (Cash)" : "Cash on Hand"}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200">
+                                  💳 {isBn ? "অনলাইন (SSLCommerz)" : "Online (SSLCommerz)"}
+                                </span>
+                              )}
                             </div>
 
                             <h2 className="font-display text-lg sm:text-2xl font-semibold text-ink">
@@ -806,6 +923,37 @@ export default function CustomerProfilePage() {
                                 </>
                               )}
                             </div>
+
+                            {/* Pending Cash Approval 10-Minute Alert Box */}
+                            {b.status === "pending_cash_approval" && (
+                              <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-3 sm:p-3.5 my-2 space-y-1.5 animate-in fade-in">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                                    <span>⏳</span>
+                                    <span>{isBn ? "অ্যাডমিন অনুমোদনের সময় বাকি:" : "Cash Approval Window Remaining:"}</span>
+                                  </span>
+                                  <ProfileCashCountdown expiresAt={b.cash_approval_expires_at} isBn={isBn} />
+                                </div>
+                                <p className="text-[11px] text-amber-800 leading-relaxed">
+                                  {isBn
+                                    ? "নিরাপত্তার স্বার্থে, ১০ মিনিটের মধ্যে সাভার অফিস কাউন্টারে বা ট্যুর পরিচালকের কাছে নগদ টাকা বুঝিয়ে দিন। নির্ধারিত সময়ের মধ্যে অ্যাডমিন অনুমোদন না করলে আসনটি স্বয়ংক্রিয়ভাবে বাতিল হয়ে যাবে।"
+                                    : "For anti-hoarding security, please hand over physical cash at the Savar office counter or to your tour representative. The admin must verify and approve it within 10 minutes or your reserved seats will be automatically released."}
+                                </p>
+                              </div>
+                            )}
+
+                            {b.cash_approved_by && (
+                              <div className="text-xs text-emerald-800 font-semibold flex items-center gap-1 mt-1">
+                                <span>✓</span>
+                                <span>{isBn ? `নগদ পেমেন্ট অনুমোদিত (${b.cash_approved_by})` : `Cash Payment Verified & Approved (${b.cash_approved_by})`}</span>
+                              </div>
+                            )}
+
+                            {b.status === "cancelled" && b.special_requests?.includes("10-minute") && (
+                              <div className="rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700 font-medium my-1.5">
+                                ⚠️ {isBn ? "১০ মিনিটের নির্ধারিত সময়ে নগদ টাকা অনুমোদন না করায় রিজার্ভেশনটি স্বয়ংক্রিয়ভাবে বাতিল হয়েছে।" : "Auto-cancelled: Physical cash was not approved within the 10-minute security window."}
+                              </div>
+                            )}
                           </div>
 
                           {/* Payment Summary Box */}
@@ -961,7 +1109,7 @@ export default function CustomerProfilePage() {
                     <Icon name="shield" className="h-6 w-6" />
                   </div>
                   <h3 className="font-display text-xl font-semibold text-ink">
-                    {isBn ? "অতিথি ভ্রমণ সহকারী ও হটলাইন" : "Atithi Traveler Concierge"}
+                    {isBn ? "সাভার ট্যুর লাভার ভ্রমণ সহকারী ও হটলাইন" : "Savar Tour Lover Traveler Concierge"}
                   </h3>
                   <p className="text-sm text-ink-soft leading-relaxed">
                     {isBn

@@ -4,8 +4,10 @@ import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearStaffSession, getStaffUser, staffFetch, type StaffUser } from "@/lib/staffAuth";
 import { normalizeImageUrl, normalizeVideoUrl } from "@/lib/media";
+import { getBanglaWatermark } from "@/lib/banglaNames";
 import type {
   DbTour,
+  DbTourGalleryItem,
   DbDestination,
   DbBlogPost,
   DbOffer,
@@ -70,7 +72,7 @@ type ActiveTab =
   | "inquiries";
 
 const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
-  hero_eyebrow: "About Atithi",
+  hero_eyebrow: "About Savar Tour Lover",
   hero_title: "Thoughtful journeys across Bangladesh",
   hero_subtitle:
     "Built by local travelers who believe the best trips happen when you're hosted like family, not processed like a transaction.",
@@ -79,7 +81,7 @@ const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
   story_paragraphs: [
     "Most domestic travel in Bangladesh was broken in two ways: either you were on your own navigating erratic transport, unverified hotels, and hidden costs — or you were packed into a thirty-person bus tour with fixed buffets and thirty-minute photo stops.",
     "We wanted something different: trips designed the way an experienced friend would show you their hometown. Small groups, handpicked local hosts, honest pricing, and genuine hospitality.",
-    "Today, Atithi runs curated journeys to twelve destinations across Bangladesh — from the tea valleys of Sreemangal to the coral reefs of Saint Martin. Every trip is led by someone who actually lives there.",
+    "Today, Savar Tour Lover runs curated journeys to twelve destinations across Bangladesh — from the tea valleys of Sreemangal to the coral reefs of Saint Martin. Every trip is led by someone who actually lives there.",
   ],
   mission_title: "Our Mission",
   mission_text:
@@ -101,7 +103,7 @@ const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
       icon: "heart",
       title: "Hospitality first",
       description:
-        'Atithi — "guest" — is central to Bengali culture. We host you the way we\'d host family, not process you like a booking number.',
+        'At Savar Tour Lover, guest hospitality is central to our culture. We host you the way we\'d host family, not process you like a booking number.',
     },
     {
       icon: "sparkle",
@@ -120,7 +122,7 @@ const DEFAULT_ABOUT_PAGE_CMS: AboutPageCmsContent = {
     {
       name: "Raisa Chowdhury",
       role: "Co-founder & Head of Experience",
-      bio: "Ten years guiding across the Chittagong Hill Tracts before building Atithi's tour design team.",
+      bio: "Ten years guiding across the Chittagong Hill Tracts before building Savar Tour Lover's tour design team.",
       scene: "sajek",
     },
     {
@@ -220,7 +222,7 @@ const DEFAULT_HOME_PAGE_CMS: HomePageCmsContent = {
   tours_cta_href: "/tours",
   tours_hidden: false,
 
-  why_us_eyebrow: "Why ATITHI",
+  why_us_eyebrow: "Why Savar Tour Lover",
   why_us_title: "Travel with people who call Bangladesh home",
   why_us_description: "We're not a booking platform that outsources your trip to strangers. We're local hosts who plan, accompany, and settle every detail — including your final payment, confirmed on both sides.",
   why_us_items: [
@@ -311,7 +313,7 @@ const DEFAULT_HOME_PAGE_CMS: HomePageCmsContent = {
   journal_cta_href: "/journal",
   journal_hidden: false,
 
-  cta_eyebrow: "Atithi — the guest is God",
+  cta_eyebrow: "Savar Tour Lover — Let Your Dreams Fly",
   cta_title: "Plan your next journey across Bangladesh",
   cta_description: "Tell us where you want to go and when — we'll design a tour around you. Book with a small advance and settle the rest on tour day.",
   cta_primary_label: "Plan My Trip",
@@ -330,6 +332,54 @@ const SEVERITY_BADGES: Record<Alert["severity"], string> = {
   warning: "bg-amber-50 text-amber-700 border-amber-200",
   info: "bg-sky-50 text-sky-700 border-sky-200",
 };
+
+function AdminCashCountdown({
+  expiresAt,
+  onExpire,
+}: {
+  expiresAt?: string;
+  onExpire?: () => void;
+}) {
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (!expiresAt) return 0;
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    return Math.max(0, Math.floor(diff / 1000));
+  });
+
+  useEffect(() => {
+    if (!expiresAt) return;
+    const timer = setInterval(() => {
+      const diff = new Date(expiresAt).getTime() - Date.now();
+      const s = Math.max(0, Math.floor(diff / 1000));
+      setTimeLeft(s);
+      if (s <= 0) {
+        clearInterval(timer);
+        onExpire?.();
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt, onExpire]);
+
+  if (!expiresAt) return null;
+
+  const isExpired = timeLeft <= 0;
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+
+  if (isExpired) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded bg-rose-100 border border-rose-300 px-2 py-0.5 text-[11px] font-bold text-rose-700">
+        ⚠️ 10m Window Expired
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded bg-amber-100 border border-amber-300 px-2 py-0.5 text-[11px] font-mono font-bold text-amber-900 animate-pulse">
+      ⏳ {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")} remaining
+    </span>
+  );
+}
 
 function ImageUrlInput({
   label = "Cover Image URL",
@@ -428,6 +478,19 @@ function StaffDashboardContent() {
   // Overview data
   const [overview, setOverview] = useState<AgencyOverview | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [trackingData, setTrackingData] = useState<{
+    stats?: {
+      totalEvents: number;
+      totalPageViews: number;
+      pageViews24h: number;
+      uniqueSessions: number;
+      uniqueVisitors: number;
+      eventCounts: Record<string, number>;
+      topPages: { path: string; count: number }[];
+      topSources: { source: string; count: number }[];
+    };
+    recent?: any[];
+  } | null>(null);
 
   // CRUD Data states
   const [tours, setTours] = useState<DbTour[]>([]);
@@ -451,6 +514,12 @@ function StaffDashboardContent() {
 
   // Modals
   const [tourModal, setTourModal] = useState<{ isOpen: boolean; tour: Partial<DbTour> | null }>({ isOpen: false, tour: null });
+  const [tourGalleryModal, setTourGalleryModal] = useState<{
+    isOpen: boolean;
+    tour: DbTour | null;
+    gallery: DbTourGalleryItem[];
+    isSaving: boolean;
+  }>({ isOpen: false, tour: null, gallery: [], isSaving: false });
   const [destModal, setDestModal] = useState<{ isOpen: boolean; destination: Partial<DbDestination> | null }>({ isOpen: false, destination: null });
   const [blogModal, setBlogModal] = useState<{ isOpen: boolean; post: Partial<DbBlogPost> | null }>({ isOpen: false, post: null });
   const [offerModal, setOfferModal] = useState<{ isOpen: boolean; offer: Partial<DbOffer> | null }>({ isOpen: false, offer: null });
@@ -527,6 +596,13 @@ function StaffDashboardContent() {
       if (bookingsRes.ok) setBookings((await bookingsRes.json()).results || []);
       if (inquiriesRes.ok) setInquiries((await inquiriesRes.json()).results || []);
       if (customersRes.ok) setCustomers((await customersRes.json()).results || []);
+
+      fetch("/api/v1/track")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.success) setTrackingData(d);
+        })
+        .catch(() => {});
 
       if (cmsRes.ok) {
         const blocks: DbHomepageBlock[] = (await cmsRes.json()).results || [];
@@ -635,6 +711,7 @@ function StaffDashboardContent() {
       total_seats: Number(formData.get("total_seats") || 40),
       is_featured: formData.get("is_featured") === "on",
       status: formData.get("status") as "published" | "draft",
+      gallery: tour.gallery || [],
     };
 
     const isEdit = Boolean(tour.id);
@@ -675,6 +752,116 @@ function StaffDashboardContent() {
     if (res.ok) {
       showNotification("success", `Tour status changed to ${nextStatus}.`);
       loadData();
+    }
+  }
+
+  function openTourGalleryModal(tour: DbTour) {
+    const rawGallery: DbTourGalleryItem[] = Array.isArray(tour.gallery) ? JSON.parse(JSON.stringify(tour.gallery)) : [];
+    setTourGalleryModal({
+      isOpen: true,
+      tour,
+      gallery: rawGallery,
+      isSaving: false,
+    });
+  }
+
+  function handleAddGalleryImage() {
+    if (!tourGalleryModal.tour) return;
+    const destName = tourGalleryModal.tour.destination_name || "Bangladesh";
+    const existingCount = tourGalleryModal.gallery.length;
+
+    let suggestedSlot = "featured_main";
+    if (existingCount === 0) {
+      suggestedSlot = "featured_main";
+    } else if (existingCount >= 1 && existingCount <= 4) {
+      suggestedSlot = `grid_${existingCount}`;
+    } else if (existingCount === 5) {
+      suggestedSlot = "panorama";
+    } else {
+      suggestedSlot = "grid_1";
+    }
+
+    const newItem: DbTourGalleryItem = {
+      id: `img-${Date.now()}-${existingCount}`,
+      image: "",
+      title: `${tourGalleryModal.tour.title} View ${existingCount + 1}`,
+      caption: "",
+      location: destName,
+      price: tourGalleryModal.tour.final_price ? `৳${Number(tourGalleryModal.tour.final_price).toLocaleString("en-BD")}` : "",
+      badge: "",
+      watermarkText: "",
+      slot: suggestedSlot,
+    };
+
+    setTourGalleryModal((prev) => ({
+      ...prev,
+      gallery: [...prev.gallery, newItem],
+    }));
+  }
+
+  function handleRemoveGalleryImage(index: number) {
+    setTourGalleryModal((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index),
+    }));
+  }
+
+  function handleMoveGalleryImage(index: number, direction: "up" | "down") {
+    setTourGalleryModal((prev) => {
+      const nextList = [...prev.gallery];
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= nextList.length) return prev;
+      const temp = nextList[index];
+      nextList[index] = nextList[targetIndex];
+      nextList[targetIndex] = temp;
+      return { ...prev, gallery: nextList };
+    });
+  }
+
+  function handleUpdateGalleryItem(index: number, field: keyof DbTourGalleryItem, value: any) {
+    setTourGalleryModal((prev) => {
+      const nextList = [...prev.gallery];
+      nextList[index] = { ...nextList[index], [field]: value };
+      return { ...prev, gallery: nextList };
+    });
+  }
+
+  async function handleSaveTourGallery() {
+    if (!tourGalleryModal.tour) return;
+    setTourGalleryModal((prev) => ({ ...prev, isSaving: true }));
+    try {
+      const tourId = tourGalleryModal.tour.id;
+      const updatedGallery = tourGalleryModal.gallery.map((g, idx) => ({
+        id: g.id || `img-${Date.now()}-${idx}`,
+        image: normalizeImageUrl(g.image || (g as any).imageUrl || ""),
+        caption: g.caption || g.title || "",
+        title: g.title || g.caption || "",
+        location: g.location || tourGalleryModal.tour?.destination_name || "",
+        price: g.price !== undefined ? String(g.price) : "",
+        badge: g.badge || "",
+        watermarkText: g.watermarkText || "",
+        slot: g.slot || "",
+      }));
+
+      const res = await staffFetch(`/admin/tours/${tourId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          ...tourGalleryModal.tour,
+          gallery: updatedGallery,
+        }),
+      });
+
+      if (res.ok) {
+        showNotification("success", "Tour gallery photos saved successfully!");
+        setTourGalleryModal({ isOpen: false, tour: null, gallery: [], isSaving: false });
+        loadData();
+      } else {
+        showNotification("error", "Failed to save tour gallery.");
+        setTourGalleryModal((prev) => ({ ...prev, isSaving: false }));
+      }
+    } catch {
+      showNotification("error", "An error occurred while saving gallery.");
+      setTourGalleryModal((prev) => ({ ...prev, isSaving: false }));
     }
   }
 
@@ -738,7 +925,7 @@ function StaffDashboardContent() {
     const post = blogModal.post || {};
     const content = (formData.get("content") as string) || "";
     const catName = (formData.get("category") as string) || "Travel Guide";
-    const author = (formData.get("author") as string) || "Atithi Editorial Team";
+    const author = (formData.get("author") as string) || "Savar Tour Lover Editorial Team";
     const heroImage = normalizeImageUrl((formData.get("hero_image") as string)) || null;
     const excerpt = (formData.get("excerpt") as string) || content.slice(0, 160);
     const isFeatured = formData.get("is_featured") === "on";
@@ -1026,6 +1213,42 @@ function StaffDashboardContent() {
     } else {
       const err = await res.json().catch(() => ({}));
       showNotification("error", err.detail || "Failed to settle due payment.");
+    }
+  }
+
+  // Approve Physical Cash Payment
+  async function handleApproveCashPayment(id: string, reference: string, receivedType: "advance" | "full" = "advance") {
+    const typeLabel = receivedType === "full" ? "FULL PAYMENT" : "ADVANCE DEPOSIT";
+    if (!confirm(`Are you sure you want to approve physical cash received (${typeLabel}) for booking ${reference}?\n\nThis will verify the booking, mark seats as confirmed, and issue the clearance pass.`)) {
+      return;
+    }
+    const res = await staffFetch("/admin/bookings", {
+      method: "PATCH",
+      body: JSON.stringify({ id, action: "approve_cash_payment", received_type: receivedType }),
+    });
+    if (res.ok) {
+      showNotification("success", `Physical cash payment approved for ${reference}! Booking is confirmed.`);
+      loadData();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showNotification("error", err.detail || "Failed to approve cash payment.");
+    }
+  }
+
+  // Reject Physical Cash Payment
+  async function handleRejectCashPayment(id: string, reference: string) {
+    const reason = prompt(`Enter rejection reason for booking ${reference} (optional):`, "Physical cash was not received at counter.");
+    if (reason === null) return;
+    const res = await staffFetch("/admin/bookings", {
+      method: "PATCH",
+      body: JSON.stringify({ id, action: "reject_cash_payment", reason }),
+    });
+    if (res.ok) {
+      showNotification("success", `Booking ${reference} has been cancelled and seats released.`);
+      loadData();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showNotification("error", err.detail || "Failed to reject booking.");
     }
   }
 
@@ -1384,6 +1607,123 @@ function StaffDashboardContent() {
               </div>
             </div>
 
+            {/* Server-Side Tracking & Web Analytics */}
+            <div>
+              <div className="mb-2.5 sm:mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-500">Server-Side Traffic & Conversion Tracking</h2>
+                  <p className="text-xs sm:text-sm font-medium text-slate-800">First-party server analytics immune to browser ad-blockers</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Live Event Ingestion Active
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">24h Page Views</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-emerald-700">
+                    {trackingData?.stats?.pageViews24h ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Total Views Tracked</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">
+                    {trackingData?.stats?.totalPageViews ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Unique Visitors</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">
+                    {trackingData?.stats?.uniqueVisitors ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs">
+                  <p className="text-[11px] sm:text-xs uppercase tracking-wide font-medium text-slate-500">Active Sessions</p>
+                  <p className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-bold text-slate-900">
+                    {trackingData?.stats?.uniqueSessions ?? 0}
+                  </p>
+                </div>
+              </div>
+
+              {/* Conversion Events & Top Pages Grid */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                {/* Top Visited Pages */}
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Top Visited Routes</h3>
+                  {trackingData?.stats?.topPages && trackingData.stats.topPages.length > 0 ? (
+                    <div className="space-y-2">
+                      {trackingData.stats.topPages.slice(0, 5).map((p) => (
+                        <div key={p.path} className="flex items-center justify-between text-xs">
+                          <span className="font-mono text-slate-700 truncate max-w-[200px]" title={p.path}>
+                            {p.path}
+                          </span>
+                          <span className="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                            {p.count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No pageviews recorded yet.</p>
+                  )}
+                </div>
+
+                {/* Traffic Sources & Referrers */}
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Traffic Sources / UTM</h3>
+                  {trackingData?.stats?.topSources && trackingData.stats.topSources.length > 0 ? (
+                    <div className="space-y-2">
+                      {trackingData.stats.topSources.slice(0, 5).map((s) => (
+                        <div key={s.source} className="flex items-center justify-between text-xs">
+                          <span className="text-slate-700 truncate max-w-[200px]" title={s.source}>
+                            {s.source}
+                          </span>
+                          <span className="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                            {s.count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No referral traffic recorded yet.</p>
+                  )}
+                </div>
+
+                {/* Conversion Events Breakdown */}
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Server Conversion Events</h3>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-700">Bookings Created:</span>
+                      <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {trackingData?.stats?.eventCounts?.booking_created ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-700">Payments Confirmed:</span>
+                      <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {trackingData?.stats?.eventCounts?.payment_success ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-700">Contact Leads:</span>
+                      <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                        {trackingData?.stats?.eventCounts?.contact_inquiry ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-700">Tour Page Views:</span>
+                      <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                        {trackingData?.stats?.eventCounts?.tour_view ?? 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Operational Alerts */}
             <div>
               <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-3">
@@ -1575,19 +1915,32 @@ function StaffDashboardContent() {
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                     <button
-                      onClick={() => setTourModal({ isOpen: true, tour: t })}
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                      type="button"
+                      onClick={() => openTourGalleryModal(t)}
+                      className="rounded-lg border border-amber-300 bg-amber-50 text-amber-900 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                      title="Manage Tour Photos & Scenery Gallery (Bento Layout)"
                     >
-                      Edit Details
+                      <span>📸 Gallery</span>
+                      <span className="bg-amber-200 text-amber-900 rounded-full px-1.5 py-0.2 text-[10px] font-bold">
+                        {t.gallery?.length || 0}
+                      </span>
                     </button>
-                    <button
-                      onClick={() => handleDeleteTour(t.id)}
-                      className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5 text-xs font-medium hover:bg-rose-100 transition"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setTourModal({ isOpen: true, tour: t })}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                      >
+                        Edit Details
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTour(t.id)}
+                        className="rounded-lg border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5 text-xs font-medium hover:bg-rose-100 transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -3370,6 +3723,7 @@ function StaffDashboardContent() {
                   className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                 >
                   <option value="all">All Statuses</option>
+                  <option value="pending_cash_approval">⏳ Pending Cash Approval (10m)</option>
                   <option value="confirmed_advance_paid">Advance Paid</option>
                   <option value="confirmed_fully_paid">Fully Paid</option>
                   <option value="confirmed">Confirmed</option>
@@ -3380,16 +3734,40 @@ function StaffDashboardContent() {
               </div>
             </div>
 
+            {/* Urgency Alert for Pending Cash Bookings */}
+            {bookings.filter((b) => b.status === "pending_cash_approval").length > 0 && (
+              <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl animate-bounce">⏳</span>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-amber-950">
+                      {bookings.filter((b) => b.status === "pending_cash_approval").length} Physical Cash Booking(s) Awaiting Approval
+                    </h4>
+                    <p className="text-[11px] sm:text-xs text-amber-800 mt-0.5">
+                      10-minute security auto-cancellation is active. Approve received cash before the deadline to confirm reservations and seats.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBookingStatusFilter("pending_cash_approval")}
+                  className="rounded-lg bg-amber-700 hover:bg-amber-800 text-white px-3.5 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+                >
+                  View Cash Bookings
+                </button>
+              </div>
+            )}
+
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-xs text-slate-600 uppercase tracking-wider border-b border-slate-200 font-semibold">
                   <tr>
-                    <th className="px-4 py-3">Reference</th>
+                    <th className="px-4 py-3">Reference & Method</th>
                     <th className="px-4 py-3">Customer</th>
                     <th className="px-4 py-3">Tour Details</th>
                     <th className="px-4 py-3">Paid / Total / Due</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Booking Pass</th>
+                    <th className="px-4 py-3">Status & Cash Approval</th>
+                    <th className="px-4 py-3 text-right">Pass</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -3401,8 +3779,21 @@ function StaffDashboardContent() {
                     </tr>
                   ) : (
                     filteredBookings.map((b) => (
-                      <tr key={b.id} className="hover:bg-slate-50/70 transition">
-                        <td className="px-4 py-3 font-mono font-medium text-slate-900">{b.reference}</td>
+                      <tr key={b.id} className={`hover:bg-slate-50/70 transition ${b.status === "pending_cash_approval" ? "bg-amber-50/40" : ""}`}>
+                        <td className="px-4 py-3 font-mono font-medium text-slate-900">
+                          <div>{b.reference}</div>
+                          <div className="mt-1">
+                            {b.payment_method === "cash_on_hand" || b.payment_method === "cash" ? (
+                              <span className="inline-flex items-center gap-1 rounded bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 text-[10px] font-bold">
+                                💵 Cash on Hand
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-900 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-semibold">
+                                💳 SSLCommerz
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-3">
                           <div className="font-semibold text-slate-900">{b.customer_full_name}</div>
                           <div className="text-xs text-slate-500">{b.customer_phone_number}</div>
@@ -3454,19 +3845,66 @@ function StaffDashboardContent() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <select
-                            value={b.status}
-                            onChange={(e) => handleUpdateBookingStatus(b.id, e.target.value)}
-                            className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
-                          >
-                            <option value="confirmed_advance_paid">Advance Paid</option>
-                            <option value="confirmed_fully_paid">Fully Paid</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="pending_payment">Pending Payment</option>
-                            <option value="cleared_on_tour_day">Cleared On Tour Day</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
+                          <div className="space-y-1.5">
+                            <select
+                              value={b.status}
+                              onChange={(e) => handleUpdateBookingStatus(b.id, e.target.value)}
+                              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
+                            >
+                              <option value="pending_cash_approval">Pending Cash Approval (10m)</option>
+                              <option value="confirmed_advance_paid">Advance Paid</option>
+                              <option value="confirmed_fully_paid">Fully Paid</option>
+                              <option value="confirmed">Confirmed</option>
+                              <option value="pending_payment">Pending Payment</option>
+                              <option value="cleared_on_tour_day">Cleared On Tour Day</option>
+                              <option value="completed">Completed</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+
+                            {/* Pending Cash Approval 10-Minute Timer & Quick Actions */}
+                            {b.status === "pending_cash_approval" && (
+                              <div className="rounded-lg border border-amber-300 bg-amber-50 p-2 space-y-1.5">
+                                <div>
+                                  <AdminCashCountdown
+                                    expiresAt={b.cash_approval_expires_at}
+                                    onExpire={() => loadData()}
+                                  />
+                                </div>
+                                <div className="flex flex-wrap items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveCashPayment(b.id, b.reference, "advance")}
+                                    className="rounded bg-emerald-700 hover:bg-emerald-800 text-white px-2 py-1 text-[10px] font-bold shadow-2xs transition cursor-pointer"
+                                    title="Approve advance deposit received in cash"
+                                  >
+                                    ✓ Approve Advance ({formatBDT(b.advance_amount)})
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveCashPayment(b.id, b.reference, "full")}
+                                    className="rounded bg-emerald-900 hover:bg-emerald-950 text-white px-2 py-1 text-[10px] font-bold shadow-2xs transition cursor-pointer"
+                                    title="Approve full price received in cash"
+                                  >
+                                    ✓ Approve Full ({formatBDT(b.total_price)})
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectCashPayment(b.id, b.reference)}
+                                    className="rounded bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 text-[10px] font-bold shadow-2xs transition cursor-pointer"
+                                    title="Reject cash reservation and release seats"
+                                  >
+                                    ✕ Reject
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {b.cash_approved_by && (
+                              <div className="text-[11px] text-emerald-800 font-semibold flex items-center gap-1">
+                                <span>✓ Cash approved by {b.cash_approved_by}</span>
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <a
@@ -3935,6 +4373,220 @@ function StaffDashboardContent() {
 
       {/* ================= MODALS ================= */}
 
+      {/* Tour Gallery Modal (Bento Structure) */}
+      {tourGalleryModal.isOpen && tourGalleryModal.tour && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full my-6 max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between gap-4 bg-slate-50/50">
+              <div>
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-800 text-[11px] font-semibold tracking-wide uppercase mb-1">
+                  <span>📸</span>
+                  <span>Tour Photos & Scenery Gallery</span>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {tourGalleryModal.tour.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure high-resolution scenery photos for this tour's Bento gallery.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setTourGalleryModal({ isOpen: false, tour: null, gallery: [], isSaving: false })}
+                className="text-slate-400 hover:text-slate-700 text-xl leading-none p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick Actions Bar */}
+            <div className="px-5 sm:px-6 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={handleAddGalleryImage}
+                className="rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 text-xs font-semibold shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>+ Add Photo</span>
+              </button>
+            </div>
+
+            {/* Modal Body: Photos List */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+              {tourGalleryModal.gallery.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center bg-slate-50/50">
+                  <div className="text-3xl mb-2">📸</div>
+                  <h4 className="text-sm font-bold text-slate-800">No Gallery Photos Added Yet</h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
+                    Click the button below to add photos to this tour's gallery.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddGalleryImage}
+                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 text-xs font-semibold shadow-xs transition cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <span>+ Add Photo</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tourGalleryModal.gallery.map((item, idx) => {
+                    const slotNames: Record<string, string> = {
+                      featured_main: "⭐ Slot 1: Tall (Left)",
+                      grid_1: "🔲 Slot 2: Grid Top-Left",
+                      grid_2: "🔲 Slot 3: Grid Top-Right",
+                      grid_3: "🔲 Slot 4: Grid Bottom-Left",
+                      grid_4: "🔲 Slot 5: Grid Bottom-Right",
+                      panorama: "🏞️ Slot 6: Panorama Banner (Bottom)",
+                    };
+
+                    const currentSlot = item.slot || (idx === 0 ? "featured_main" : idx <= 4 ? `grid_${idx}` : idx === 5 ? "panorama" : "grid_1");
+
+                    return (
+                      <div
+                        key={item.id || idx}
+                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition"
+                      >
+                        {/* Card Top Strip */}
+                        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-800">
+                              {slotNames[currentSlot] || `Slot: ${currentSlot}`}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveGalleryImage(idx, "up")}
+                              className="px-2 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              title="Move Up"
+                            >
+                              ↑ Up
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === tourGalleryModal.gallery.length - 1}
+                              onClick={() => handleMoveGalleryImage(idx, "down")}
+                              className="px-2 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              title="Move Down"
+                            >
+                              ↓ Down
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveGalleryImage(idx)}
+                              className="px-2.5 py-1 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 rounded transition cursor-pointer"
+                              title="Delete Photo"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Form Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
+                          {/* Left: Thumbnail Preview */}
+                          <div className="md:col-span-3">
+                            <div className="aspect-video md:aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative flex items-center justify-center text-slate-400">
+                              {item.image ? (
+                                <img
+                                  src={normalizeImageUrl(item.image)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xs">No image URL</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right: Form Controls */}
+                          <div className="md:col-span-9 space-y-3">
+                            {/* Image URL Input */}
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                Image URL (Direct link / Unsplash / Google Drive) *
+                              </label>
+                              <input
+                                type="text"
+                                value={item.image}
+                                onChange={(e) => handleUpdateGalleryItem(idx, "image", e.target.value)}
+                                placeholder="https://images.unsplash.com/... or direct image link"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono shadow-2xs"
+                              />
+                            </div>
+
+                            {/* Bento Layout Slot */}
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                Bento Layout Slot *
+                              </label>
+                              <select
+                                value={item.slot || currentSlot}
+                                onChange={(e) => handleUpdateGalleryItem(idx, "slot", e.target.value)}
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-2xs"
+                              >
+                                <option value="featured_main">Slot 1: Tall (Left)</option>
+                                <option value="grid_1">Slot 2: Grid Top-Left</option>
+                                <option value="grid_2">Slot 3: Grid Top-Right</option>
+                                <option value="grid_3">Slot 4: Grid Bottom-Left</option>
+                                <option value="grid_4">Slot 5: Grid Bottom-Right</option>
+                                <option value="panorama">Slot 6: Panorama Banner (Bottom)</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50">
+              <span className="text-xs text-slate-500 font-medium">
+                {tourGalleryModal.gallery.length} photos configured
+              </span>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setTourGalleryModal({ isOpen: false, tour: null, gallery: [], isSaving: false })}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={tourGalleryModal.isSaving}
+                  onClick={handleSaveTourGallery}
+                  className="rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 text-white px-5 py-2 text-xs font-semibold shadow-xs transition flex items-center gap-2 cursor-pointer"
+                >
+                  {tourGalleryModal.isSaving ? (
+                    <>
+                      <span className="animate-spin text-sm">⏳</span>
+                      <span>Saving Gallery...</span>
+                    </>
+                  ) : (
+                    <span>Save Gallery Photos</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tour Modal */}
       {tourModal.isOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -4124,6 +4776,31 @@ function StaffDashboardContent() {
                 placeholder="Google Drive link or any custom image URL (https://...)"
                 helperText="Supports Google Drive share links ('Anyone with the link can view'), Dropbox, or any direct image URL."
               />
+
+              {tourModal.tour?.id && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-900">
+                      <span>📸</span>
+                      <span>Tour Photos & Scenery Gallery (Bento Layout)</span>
+                    </div>
+                    <p className="text-[11px] text-amber-700 mt-0.5">
+                      {tourModal.tour?.gallery?.length || 0} photos currently configured for this tour.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (tourModal.tour) {
+                        openTourGalleryModal(tourModal.tour as DbTour);
+                      }
+                    }}
+                    className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition shrink-0 cursor-pointer"
+                  >
+                    Manage Gallery Photos →
+                  </button>
+                </div>
+              )}
 
               <label className="flex flex-col gap-1 text-slate-700 text-xs font-medium">
                 Short Description
@@ -4397,7 +5074,7 @@ function StaffDashboardContent() {
                   <input
                     required
                     name="author"
-                    defaultValue={blogModal.post?.author_name || blogModal.post?.author || "Atithi Editorial Team"}
+                    defaultValue={blogModal.post?.author_name || blogModal.post?.author || "Savar Tour Lover Editorial Team"}
                     className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-xs"
                   />
                 </label>

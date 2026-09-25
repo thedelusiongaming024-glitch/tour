@@ -18,7 +18,16 @@ import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { siteDescription, siteName, siteTagline } from "@/data/site";
+import { ServerTracker } from "@/components/ServerTracker";
+import {
+  siteDescription,
+  siteName,
+  siteNameBn,
+  siteTagline,
+  siteEmail,
+  sitePhonesFormatted,
+  siteAddressEn,
+} from "@/data/site";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -34,6 +43,43 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   metadataBase: new URL("https://savartourlover.com"),
+  alternates: {
+    canonical: "./",
+  },
+  keywords: [
+    "Savar Tour Lover",
+    "সাভার ট্যুর লাভার",
+    "Bangladesh tour packages",
+    "Sajek tour package",
+    "Cox's Bazar tour package",
+    "Saint Martin package tour",
+    "Sylhet tour package",
+    "Sundarbans tour",
+    "Sreemangal tea garden tour",
+    "domestic tours Bangladesh",
+    "cheap tour packages Bangladesh",
+    "family tour package BD",
+    "corporate tour Bangladesh",
+  ],
+  authors: [{ name: siteName, url: "https://savartourlover.com" }],
+  creator: siteName,
+  publisher: siteName,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -49,6 +95,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${siteName} — ${siteTagline}`,
     description: siteDescription,
+    url: "https://savartourlover.com",
+    siteName: siteName,
+    locale: "en_US",
+    alternateLocale: ["bn_BD"],
     type: "website",
     images: [
       {
@@ -58,6 +108,58 @@ export const metadata: Metadata = {
         alt: `${siteName} — আপনার স্বপ্ন উড়তে দিন`,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteName} — ${siteTagline}`,
+    description: siteDescription,
+    images: ["/images/logo-badge.png"],
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  "@id": "https://savartourlover.com/#organization",
+  name: siteName,
+  alternateName: siteNameBn,
+  url: "https://savartourlover.com",
+  logo: "https://savartourlover.com/images/logo-badge.png",
+  image: "https://savartourlover.com/images/logo-badge.png",
+  description: siteDescription,
+  telephone: sitePhonesFormatted[0] || "+880 1620-592884",
+  email: siteEmail,
+  priceRange: "৳৳",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Savar Pollibidut, Kobarsthan Road",
+    addressLocality: "Savar",
+    addressRegion: "Dhaka",
+    postalCode: "1340",
+    addressCountry: "BD",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: "23.8583",
+    longitude: "90.2667",
+  },
+  areaServed: {
+    "@type": "Country",
+    name: "Bangladesh",
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ],
+    opens: "00:00",
+    closes: "23:59",
   },
 };
 
@@ -76,12 +178,17 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var o=new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].attributeName==='cz-shortcut-listen'&&document.body){document.body.removeAttribute('cz-shortcut-listen');}}});o.observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['cz-shortcut-listen']});}catch(_){}`,
+            __html: `try{var l=localStorage.getItem('tourlover_lang')||localStorage.getItem('atithi_lang')||(document.cookie.match(/(?:tourlover_lang|atithi_lang)=(en|bn)/)||[])[1];if(l==='bn'){document.documentElement.lang='bn';document.documentElement.classList.add('lang-bn');}}catch(_){};try{var o=new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].attributeName==='cz-shortcut-listen'&&document.body){document.body.removeAttribute('cz-shortcut-listen');}}});o.observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['cz-shortcut-listen']});}catch(_){}`,
           }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col text-ink overflow-x-clip max-w-[100vw] selection:bg-emerald/20">
         <LanguageProvider>
+          <ServerTracker />
           <Navbar />
           <main className="flex-1 w-full max-w-[100vw] overflow-x-clip">{children}</main>
           <Footer />

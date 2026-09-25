@@ -43,18 +43,18 @@ function SelectField({
   options: { value: string; label: string }[];
 }) {
   return (
-    <label className="group relative flex items-center gap-2.5 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-sm text-ink transition-colors focus-within:border-emerald/50 focus-within:bg-white">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald/10 text-emerald">
-        <Icon name={icon} className="h-3.5 w-3.5" />
+    <label className="group relative flex items-center gap-1.5 sm:gap-2.5 rounded-xl sm:rounded-2xl border border-white/70 bg-white/70 px-2 py-1.5 sm:px-4 sm:py-3 text-xs sm:text-sm text-ink transition-colors focus-within:border-emerald/50 focus-within:bg-white min-w-0">
+      <span className="hidden xs:flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full bg-emerald/10 text-emerald">
+        <Icon name={icon} className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
       </span>
-      <span className="flex-1 overflow-hidden">
-        <span className="block text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
+      <span className="flex-1 overflow-hidden min-w-0">
+        <span className="block text-[8px] sm:text-[10px] font-semibold uppercase tracking-wider text-ink-faint truncate">
           {label}
         </span>
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full cursor-pointer truncate bg-transparent pr-2 text-sm font-medium text-ink outline-none"
+          className="w-full cursor-pointer truncate bg-transparent pr-1 sm:pr-2 text-[11px] sm:text-sm font-medium text-ink outline-none"
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -63,7 +63,7 @@ function SelectField({
           ))}
         </select>
       </span>
-      <Icon name="chevronDown" className="h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200 group-focus-within:rotate-180" />
+      <Icon name="chevronDown" className="h-3 w-3 sm:h-4 sm:w-4 shrink-0 text-ink-faint transition-transform duration-200 group-focus-within:rotate-180" />
     </label>
   );
 }
@@ -169,6 +169,21 @@ export function PopularToursExplorer({
       .replace(/\d+/g, (m) => formatNumber(Number(m)));
   };
 
+  const getCategoryLabel = (cat: string) => {
+    if (!isBn) return cat;
+    if (cat === "All") return "সকল";
+    const cl = cat.toLowerCase();
+    if (cl.includes("group")) return "গ্রুপ ট্যুর";
+    if (cl.includes("package")) return "প্যাকেজ ট্যুর";
+    if (cl.includes("day")) return "ডে ট্যুর";
+    if (cl.includes("weekend")) return "উইকেন্ড";
+    if (cl.includes("adventure")) return "অ্যাডভেঞ্চার";
+    if (cl.includes("honeymoon")) return "হানিমুন";
+    if (cl.includes("heritage")) return "ঐতিহ্যবাহী";
+    if (cl.includes("combo")) return "কম্বো ট্যুর";
+    return cat;
+  };
+
   return (
     <div>
       {/* Filter bar */}
@@ -177,14 +192,14 @@ export function PopularToursExplorer({
           {categories.map((c) => (
             <CategoryPill
               key={c}
-              label={c === "All" ? (isBn ? "সকল" : "All") : c}
+              label={getCategoryLabel(c)}
               active={category === c}
               onClick={() => setCategory(c)}
             />
           ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-1.5 sm:gap-3">
           <SelectField
             icon="mapPin"
             label={isBn ? "গন্তব্য" : "Place"}
@@ -239,7 +254,7 @@ export function PopularToursExplorer({
       </div>
 
       {/* Result count */}
-      <div className="mt-6 h-5">
+      <div className="mt-4 sm:mt-6 h-5">
         <AnimatePresence mode="wait">
           <motion.p
             key={filtered.length}
@@ -247,7 +262,7 @@ export function PopularToursExplorer({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.2 }}
-            className="text-sm font-medium text-ink-soft"
+            className="text-xs sm:text-sm font-medium text-ink-soft"
           >
             {isBn ? (
               <>
@@ -270,8 +285,8 @@ export function PopularToursExplorer({
         </AnimatePresence>
       </div>
 
-      {/* Results grid */}
-      <motion.div layout className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {/* Results grid - 2 columns on mobile, 3 on desktop */}
+      <motion.div layout className="mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-5 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {filtered.map((tour) => (
             <motion.div

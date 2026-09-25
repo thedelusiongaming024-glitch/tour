@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import { Icon } from "@/components/Icon";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { normalizeImageUrl } from "@/lib/media";
@@ -65,7 +66,7 @@ export function TourHeroBannerSlider({
   const [progressKey, setProgressKey] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useSafeReducedMotion();
 
   const totalSlides = slides.length;
 

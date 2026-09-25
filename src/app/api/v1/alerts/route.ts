@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUserFromHeader } from "@/server/auth";
-import { getAlerts } from "@/server/db";
+import { getAlerts, clearAllAlertsAdmin } from "@/server/db";
 
 export async function GET(request: Request) {
   const authUser = getAuthUserFromHeader(request.headers.get("Authorization"));
@@ -14,4 +14,14 @@ export async function GET(request: Request) {
 
   const results = getAlerts(isAcknowledged);
   return NextResponse.json({ results });
+}
+
+export async function POST(request: Request) {
+  const authUser = getAuthUserFromHeader(request.headers.get("Authorization"));
+  if (!authUser) {
+    return NextResponse.json({ detail: "Authentication credentials were not provided." }, { status: 401 });
+  }
+
+  const count = await clearAllAlertsAdmin();
+  return NextResponse.json({ success: true, cleared_count: count });
 }

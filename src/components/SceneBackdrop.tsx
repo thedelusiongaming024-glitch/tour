@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import { getScene } from "@/lib/scenes";
 import { normalizeImageUrl, normalizeVideoUrl } from "@/lib/media";
 import type { Scene } from "@/lib/types";
@@ -22,7 +23,7 @@ interface SceneProps {
  */
 export function SceneBackdrop({ scene, className, showLabel = true }: SceneProps) {
   const def = getScene(scene.key);
-  const reduce = useReducedMotion();
+  const reduce = useSafeReducedMotion();
   const [videoFailed, setVideoFailed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 

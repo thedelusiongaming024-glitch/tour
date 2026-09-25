@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -11,7 +12,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const reduce = useReducedMotion();
+  const reduce = useSafeReducedMotion();
   const { t, isBn } = useLanguage();
 
   const navLinks = [
@@ -66,7 +67,7 @@ export function Navbar() {
           </motion.div>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => {
             const active = pathname.startsWith(link.href);
             return (
@@ -93,44 +94,37 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Mobile Profile Icon Shortcut */}
+          {/* Profile / My Bookings */}
           <Link
             href="/profile"
             aria-label="My Bookings & Profile"
-            className={`sm:hidden flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/70 text-ink-soft transition-all hover:bg-white hover:text-emerald-deep ${
+            className={`flex h-8 w-8 sm:h-9 sm:w-auto items-center justify-center sm:px-3 sm:py-1.5 rounded-full border border-ink/10 bg-white/70 text-ink-soft transition-all hover:bg-white hover:text-emerald-deep ${
               pathname.startsWith("/profile") ? "border-emerald-deep/40 text-emerald-deep bg-white shadow-xs" : ""
             }`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
+            <span className="hidden lg:inline ml-1.5 text-xs font-semibold">{isBn ? "বুকিং" : "Bookings"}</span>
           </Link>
 
-          {/* Desktop/Tablet Profile Link */}
-          <Link
-            href="/profile"
-            className={`hidden sm:inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white/70 px-3 py-1.5 text-xs font-semibold text-ink-soft backdrop-blur transition-all hover:bg-white hover:text-emerald-deep hover:shadow-sm ${
-              pathname.startsWith("/profile") ? "border-emerald-deep/40 text-emerald-deep bg-white shadow-sm" : ""
-            }`}
-          >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span>{isBn ? "বুকিং ও প্রোফাইল" : "My Bookings"}</span>
-          </Link>
-          <LanguageToggle className="hidden sm:inline-flex" />
+          {/* Always visible Language toggle on all screen sizes */}
+          <LanguageToggle className="inline-flex scale-90 sm:scale-100" />
+
+          {/* Plan My Trip desktop/tablet CTA */}
           <motion.div whileTap={{ scale: 0.96 }} className="hidden md:inline-flex">
-            <Link href="/contact" className="btn btn-emerald !px-5 !py-2.5">
+            <Link href="/contact" className="btn btn-emerald !px-5 !py-2.5 text-sm">
               {t("nav.planTrip")}
             </Link>
           </motion.div>
+
           <motion.button
             whileTap={{ scale: 0.9 }}
             type="button"
             aria-label={open ? t("nav.close") : t("nav.menu")}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-white/70 bg-white/60 text-ink transition-colors hover:bg-white md:hidden"
+            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/70 bg-white/60 text-ink transition-colors hover:bg-white md:hidden"
           >
             <div className="relative h-3.5 w-5">
               <span

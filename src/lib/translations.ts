@@ -385,7 +385,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       specialOffersEyebrow: "সীমিত সময়ের ডিল",
       specialOffersSub:
         "সারা বাংলাদেশ জুড়ে আপনার পরবর্তী অ্যাডভেঞ্চারের জন্য বিশেষ মৌসুমী ছাড় ও ভাউচার।",
-      whyUs: "কেন অতিথির সাথে ভ্রমণ করবেন?",
+      whyUs: "কেন সাভার ট্যুর লাভার-এর সাথে ভ্রমণ করবেন?",
       whyUsEyebrow: "আমাদের মানদণ্ড",
       whyUsSub:
         "বাংলাদেশে ভ্রমণের ক্ষেত্রে আমরা যেমন নির্ভরযোগ্য সেবা নিজেরা চেয়েছিলাম, সেটাই গড়ে তুলেছি।",

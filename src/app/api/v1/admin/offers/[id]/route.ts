@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePublicContent } from "@/server/revalidatePublicContent";
 import { getAuthUserFromHeader } from "@/server/auth";
 import { deleteOffer, saveOffer } from "@/server/db";
 
@@ -15,6 +16,7 @@ export async function PUT(
     const { id } = await props.params;
     const body = await request.json();
     const offer = await saveOffer({ ...body, id });
+    revalidatePublicContent();
     return NextResponse.json(offer);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update offer.";
@@ -37,5 +39,6 @@ export async function DELETE(
     return NextResponse.json({ detail: "Offer not found." }, { status: 404 });
   }
 
+  revalidatePublicContent();
   return NextResponse.json({ success: true, id });
 }

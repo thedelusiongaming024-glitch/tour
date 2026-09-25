@@ -22,6 +22,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "User not found." }, { status: 401 });
     }
 
+    // Refresh tokens have no server-side session record, so revocation works
+    // by comparing against the last time this user's tokens were revoked
+    // (set by /auth/staff/logout). A token issued before that point is dead
+    // even though its signature and expiry are still otherwise valid.
+    if (typeof user.tokens_valid_from === "number" && payload.iat < user.tokens_valid_from) {
+      return NextResponse.json({ detail: "Session has been revoked. Please log in again." }, { status: 401 });
+    }
+
     const tokens = generateTokens(user);
     return NextResponse.json(tokens);
   } catch (err: unknown) {

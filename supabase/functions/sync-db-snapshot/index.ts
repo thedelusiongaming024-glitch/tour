@@ -33,6 +33,31 @@ Deno.serve(async (req: Request) => {
       auth: { persistSession: false },
     });
 
+    // PostgREST silently caps a single request at 1,000 rows, and this
+    // function used to additionally slap its own .limit(200)/.limit(100) on
+    // customers/bookings — so once either table grew past that, the
+    // snapshot (and anything restored from it) silently lost data. This
+    // pages through every row instead.
+    async function selectAllRows(
+      table: string,
+      orderColumn?: string,
+      ascending = true
+    ): Promise<{ data: Record<string, any>[] | null; error: { message: string } | null }> {
+      const pageSize = 1000;
+      const rows: Record<string, any>[] = [];
+      for (let from = 0; ; from += pageSize) {
+        let query = supabase.from(table).select("*");
+        if (orderColumn) query = query.order(orderColumn, { ascending });
+        // Stable tiebreaker so rows are never skipped or duplicated between pages.
+        query = query.order("id", { ascending: true });
+        const { data, error } = await query.range(from, from + pageSize - 1);
+        if (error) return { data: null, error };
+        rows.push(...(data ?? []));
+        if (!data || data.length < pageSize) break;
+      }
+      return { data: rows, error: null };
+    }
+
     // 1. Fetch all catalog data concurrently from PostgreSQL tables
     const [
       destsRes,
@@ -45,15 +70,15 @@ Deno.serve(async (req: Request) => {
       custsRes,
       bookingsRes,
     ] = await Promise.all([
-      supabase.from("destinations").select("*").order("name"),
-      supabase.from("tours").select("*").order("created_at", { ascending: false }),
-      supabase.from("offers").select("*").order("created_at", { ascending: false }),
-      supabase.from("testimonials").select("*").order("created_at", { ascending: false }),
-      supabase.from("blog_posts").select("*").order("created_at", { ascending: false }),
-      supabase.from("homepage_blocks").select("*").order("display_order"),
-      supabase.from("staff_users").select("*"),
-      supabase.from("customers").select("*").limit(200),
-      supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(100),
+      selectAllRows("destinations", "name"),
+      selectAllRows("tours", "created_at", false),
+      selectAllRows("offers", "created_at", false),
+      selectAllRows("testimonials", "created_at", false),
+      selectAllRows("blog_posts", "created_at", false),
+      selectAllRows("homepage_blocks", "display_order"),
+      selectAllRows("staff_users"),
+      selectAllRows("customers"),
+      selectAllRows("bookings", "created_at", false),
     ]);
 
     // Format Destinations

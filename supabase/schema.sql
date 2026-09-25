@@ -265,7 +265,11 @@ CREATE POLICY "Public Read Testimonials" ON public.testimonials FOR SELECT USING
 CREATE POLICY "Public Read Published Blog Posts" ON public.blog_posts FOR SELECT USING (is_published = true);
 CREATE POLICY "Public Read Homepage Blocks" ON public.homepage_blocks FOR SELECT USING (true);
 
--- Booking & Customer & CMS policies (permits frontend/api operations with anon or service_role key)
+-- Everything else is private. There are deliberately NO policies for bookings, customers, payments,
+-- tickets, staff, inquiries or alerts: only the server (service_role key, which bypasses RLS) may
+-- touch them. Earlier versions of this file granted the public role FULL access ("USING (true)") to
+-- all of these tables, which exposed every customer's data and let anyone edit or delete anything.
+-- Remove any leftovers from those versions:
 DROP POLICY IF EXISTS "Allow public all on customers" ON public.customers;
 DROP POLICY IF EXISTS "Allow public all on customer_activities" ON public.customer_activities;
 DROP POLICY IF EXISTS "Allow public all on bookings" ON public.bookings;
@@ -278,16 +282,4 @@ DROP POLICY IF EXISTS "Allow public all on offers" ON public.offers;
 DROP POLICY IF EXISTS "Allow public all on testimonials" ON public.testimonials;
 DROP POLICY IF EXISTS "Allow public all on homepage_blocks" ON public.homepage_blocks;
 
-CREATE POLICY "Allow public all on customers" ON public.customers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on customer_activities" ON public.customer_activities FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on bookings" ON public.bookings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on payments" ON public.payments FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on clearance_tickets" ON public.clearance_tickets FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on destinations" ON public.destinations FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on tours" ON public.tours FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on blog_posts" ON public.blog_posts FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on offers" ON public.offers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on testimonials" ON public.testimonials FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all on homepage_blocks" ON public.homepage_blocks FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
-
+ALTER TABLE public.staff_users ENABLE ROW LEVEL SECURITY;

@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSafeReducedMotion } from "@/lib/useSafeReducedMotion";
 import { useEffect, useState } from "react";
 import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { normalizeImageUrl } from "@/lib/media";
@@ -51,7 +52,7 @@ export function HeroSlideshow({ slides, scenes, interval = 6000 }: HeroSlideshow
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
-  const reduce = useReducedMotion();
+  const reduce = useSafeReducedMotion();
 
   const activeSlides = (slides && slides.length > 0) ? slides : FALLBACK_DEFAULT_SLIDES;
 
@@ -143,7 +144,7 @@ export function HeroSlideshow({ slides, scenes, interval = 6000 }: HeroSlideshow
       />
 
       {/* Now-showing destination label */}
-      <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-3 px-4 sm:bottom-8">
+      <div className="absolute bottom-3 xs:bottom-4 sm:bottom-7 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5 sm:gap-2.5 px-3 max-w-full pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.span
             key={activeSlide.id || index}
@@ -151,26 +152,25 @@ export function HeroSlideshow({ slides, scenes, interval = 6000 }: HeroSlideshow
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.4 }}
-            className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-deep shadow-xs"
+            className="glass inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 text-[10px] xs:text-[11px] sm:text-xs font-semibold uppercase tracking-[0.12em] text-emerald-deep shadow-xs max-w-[85vw] truncate pointer-events-auto"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
-            {activeSlide.title}
-            {activeSlide.subtitle ? ` · ${activeSlide.subtitle}` : ""}
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
+            <span className="truncate">{activeSlide.title}{activeSlide.subtitle ? ` · ${activeSlide.subtitle}` : ""}</span>
           </motion.span>
         </AnimatePresence>
 
         {/* Progress dots */}
         {activeSlides.length > 1 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
             {activeSlides.map((slide, i) => (
               <button
                 key={slide.id || i}
                 type="button"
                 aria-label={`Show ${slide.title}`}
                 onClick={() => setIndex(i)}
-                className={`h-1.5 rounded-full transition-all duration-500 ${
+                className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
                   i === (index % activeSlides.length)
-                    ? "w-7 bg-emerald-deep shadow-xs"
+                    ? "w-5 sm:w-7 bg-emerald-deep shadow-xs"
                     : "w-1.5 bg-ink/30 hover:bg-ink/60"
                 }`}
               />

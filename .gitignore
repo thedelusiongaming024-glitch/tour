@@ -6,9 +6,13 @@ node_modules/
 out/
 build/
 
-# env files (never commit real secrets/config — see .env.local.example)
+# env files (never commit real secrets/config — see .env.example)
+.env
 .env.local
 .env*.local
+
+# local database (contains customer data + staff password hashes)
+.data/
 
 # misc
 *.tsbuildinfo

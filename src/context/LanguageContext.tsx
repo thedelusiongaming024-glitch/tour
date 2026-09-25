@@ -15,8 +15,8 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-const STORAGE_KEY = "atithi_lang";
-const COOKIE_NAME = "atithi_lang";
+const STORAGE_KEY = "tourlover_lang";
+const COOKIE_NAME = "tourlover_lang";
 
 function getInitialLanguage(): Language {
   if (typeof window === "undefined") return "en";

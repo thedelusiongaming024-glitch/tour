@@ -32,7 +32,7 @@ const BENGALI_VALUES_MAP: Record<string, { title: string; description: string }>
   },
   "Hospitality first": {
     title: "আতিথেয়তা সবার আগে",
-    description: "বাঙালির সংস্কৃতিতে অতিথি দেবতুল্য। বুকিং নম্বরের মতো নয়, আমরা আপনাকে ঘরের মানুষের মতোই আতিথেয়তা জানাই।",
+    description: "সাভার ট্যুর লাভার-এ ভ্রমণকারীদের আতিথেয়তা সবার আগে। বুকিং নম্বরের মতো নয়, আমরা আপনাকে পরিবারের মানুষের মতোই আপন করে নিই।",
   },
   "Considered detail": {
     title: "সূক্ষ্ম বিষয়ের যত্ন",

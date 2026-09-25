@@ -36,6 +36,15 @@ export function TourTicketModal({ booking, isOpen, onClose, isBn = false }: Tour
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isPrinting, setIsPrinting] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
+  const printTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Clean up any pending print timeouts when the modal unmounts
+  useEffect(() => {
+    return () => {
+      for (const id of printTimeoutsRef.current) clearTimeout(id);
+      printTimeoutsRef.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     if (!booking) return;
@@ -195,7 +204,7 @@ export function TourTicketModal({ booking, isOpen, onClose, isBn = false }: Tour
 
         .financial-strip {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
           gap: 12px;
           padding: 16px 26px;
           background: #f0fdf4;
@@ -365,6 +374,16 @@ export function TourTicketModal({ booking, isOpen, onClose, isBn = false }: Tour
                     ${due > 0 ? "ADVANCE CONFIRMED" : "CONFIRMED & FULLY PAID"}
                   </div>
                 </div>
+                <div>
+                  <div style="font-size: 10px; color: #475569; text-transform: uppercase; font-weight: 700;">Payment Method</div>
+                  <div style="font-size: 12px; font-weight: 800; color: #064e3b; margin-top: 3px;">
+                    ${
+                      booking.payment_method === "cash_on_hand" || booking.payment_method === "cash"
+                        ? `💵 CASH ON HAND ${booking.cash_approved_by ? `<div style="font-size: 9px; color: #64748b; font-weight: 600;">(Approved: ${booking.cash_approved_by})</div>` : ""}`
+                        : "💳 ONLINE (SSLCommerz)"
+                    }
+                  </div>
+                </div>
               </div>
 
               <!-- Security QR Code & Conductor Clearance -->
@@ -421,14 +440,14 @@ export function TourTicketModal({ booking, isOpen, onClose, isBn = false }: Tour
     `);
     doc.close();
 
-    setTimeout(() => {
+    printTimeoutsRef.current.push(setTimeout(() => {
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
       setIsPrinting(false);
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-    }, 500);
+      printTimeoutsRef.current.push(setTimeout(() => {
+        try { document.body.removeChild(iframe); } catch {}
+      }, 1000));
+    }, 500));
   };
 
   return (
@@ -596,7 +615,7 @@ export function TourTicketModal({ booking, isOpen, onClose, isBn = false }: Tour
               )}
 
               {/* Financial Breakdown Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 sm:p-6 bg-emerald-50/50 border-b border-dashed border-slate-300">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3 p-4 sm:p-6 bg-emerald-50/50 border-b border-dashed border-slate-300">
                 <div className="rounded-xl border border-emerald-100 bg-white/80 p-2.5">
                   <span className="text-[10px] font-bold uppercase text-slate-500">
                     {isBn ? "মোট প্যাকেজ মূল্য" : "Total Price"}
@@ -630,6 +649,21 @@ export function TourTicketModal({ booking, isOpen, onClose, isBn = false }: Tour
                       ? isBn ? "অগ্রিম নিশ্চিত" : "ADVANCE PAID"
                       : isBn ? "সম্পূর্ণ নিশ্চিত" : "FULLY CONFIRMED"}
                   </p>
+                </div>
+                <div className="rounded-xl border border-emerald-100 bg-white/80 p-2.5 col-span-2 sm:col-span-1">
+                  <span className="text-[10px] font-bold uppercase text-slate-500">
+                    {isBn ? "পেমেন্ট মাধ্যম" : "Payment Method"}
+                  </span>
+                  <p className="mt-0.5 text-xs font-bold text-slate-900 truncate" title={booking.payment_method || "Online"}>
+                    {booking.payment_method === "cash_on_hand" || booking.payment_method === "cash"
+                      ? (isBn ? "💵 হাতে নগদ (ক্যাশ)" : "💵 Cash on Hand")
+                      : (isBn ? "💳 অনলাইন (SSLCommerz)" : "💳 SSLCommerz")}
+                  </p>
+                  {booking.cash_approved_by && (
+                    <span className="text-[9px] text-emerald-800 font-semibold block mt-0.5">
+                      ✓ {isBn ? `অনুমোদিত: ${booking.cash_approved_by}` : `Verified: ${booking.cash_approved_by}`}
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -59,10 +59,22 @@ export interface DbTour {
   total_seats: number;
   departures: DbDeparture[];
   itinerary: { day_number: number; title: string; description: string }[];
-  gallery: { id: string; image: string; caption: string }[];
+  gallery: DbTourGalleryItem[];
   faqs: { question: string; answer: string }[];
   is_featured: boolean;
   status: "published" | "draft" | "archived";
+}
+
+export interface DbTourGalleryItem {
+  id: string;
+  image: string;
+  caption?: string;
+  title?: string;
+  location?: string;
+  price?: string;
+  badge?: string;
+  watermarkText?: string;
+  slot?: string;
 }
 
 export interface DbOffer {
@@ -308,10 +320,16 @@ export interface DbStaffUser {
   email: string | null;
   first_name: string;
   last_name: string;
+  // Unix seconds. Any refresh token whose `iat` is older than this is
+  // rejected, so logging out (or an admin forcing a logout) invalidates
+  // every refresh token issued before that point, even ones we never saw
+  // again. Unset = no tokens have ever been revoked for this user.
+  tokens_valid_from?: number;
 }
 
 export type BookingStatus =
   | "pending_payment"
+  | "pending_cash_approval"
   | "confirmed_advance_paid"
   | "confirmed_fully_paid"
   | "cleared_on_tour_day"
@@ -342,6 +360,10 @@ export interface DbBooking {
   total_price: string;
   final_price: string;
   payment_plan: "full" | "partial";
+  payment_method?: "sslcommerz" | "cash_on_hand" | "cash" | string;
+  cash_approval_expires_at?: string;
+  cash_approved_by?: string;
+  cash_approved_at?: string;
   advance_required_percent: string;
   advance_amount: string;
   amount_paid: string;
@@ -359,6 +381,12 @@ export interface DbBooking {
   travelers: DbTraveler[];
   created_at: string;
   updated_at: string;
+  // Set when a payment confirmed a booking whose seat hold had already
+  // expired (2h) and one or more of its seats were, in the meantime,
+  // claimed by a different active booking. The payment is still accepted
+  // (money already moved), but seating needs a human to sort out — see
+  // confirmPaymentSuccessInner in server/db.ts.
+  seat_conflict_notice?: string;
 }
 
 export interface DbPayment {
@@ -366,8 +394,8 @@ export interface DbPayment {
   booking_id: string;
   amount: string;
   payment_type: "advance" | "final" | "full";
-  payment_method: "sslcommerz" | "host_cash" | "host_pos" | "customer_self_pay";
-  status: "pending" | "success" | "failed" | "cancelled";
+  payment_method: "sslcommerz" | "host_cash" | "host_pos" | "customer_self_pay" | "cash_on_hand" | "cash" | string;
+  status: "pending" | "pending_cash_approval" | "success" | "failed" | "cancelled";
   tran_id: string;
   gateway_session_key?: string;
   val_id?: string;
@@ -397,19 +425,32 @@ export interface DbAlert {
   created_at: string;
 }
 
+export type ExpenseCategory = "hotel" | "transport" | "guide" | "food" | "marketing" | "office" | "other";
+
 export interface DbExpense {
   id: string;
-  category: string;
+  category: ExpenseCategory | string;
   amount: string;
   date: string;
   description: string;
+  created_at?: string;
+  updated_at?: string;
 }
+
+export type SupplierCategory = "hotel" | "transport" | "boat" | "guide" | "food" | "resort" | "other";
 
 export interface DbSupplier {
   id: string;
   name: string;
+  category?: SupplierCategory | string;
+  contact_person?: string;
+  phone?: string;
+  email?: string;
   outstanding_balance: string;
   is_active: boolean;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface DbContactInquiry {
@@ -449,6 +490,33 @@ export interface DbCustomerUser {
   activities?: DbCustomerActivity[];
 }
 
+export interface DbAnalyticsEvent {
+  id: string;
+  event_name:
+    | "page_view"
+    | "tour_view"
+    | "destination_view"
+    | "initiate_checkout"
+    | "booking_created"
+    | "payment_success"
+    | "contact_inquiry"
+    | "search";
+  path?: string;
+  title?: string;
+  referrer?: string;
+  user_agent?: string;
+  ip_hash?: string;
+  session_id?: string;
+  visitor_id?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface DatabaseSchema {
   destinations: DbDestination[];
   tours: DbTour[];
@@ -457,7 +525,7 @@ export interface DatabaseSchema {
   blogPosts: DbBlogPost[];
   homepageBlocks: DbHomepageBlock[];
   staffUsers: DbStaffUser[];
-  customers?: DbCustomerUser[];
+  customers: DbCustomerUser[];
   bookings: DbBooking[];
   payments: DbPayment[];
   clearanceTickets: DbClearanceTicket[];
@@ -465,5 +533,6 @@ export interface DatabaseSchema {
   expenses: DbExpense[];
   suppliers: DbSupplier[];
   contactInquiries: DbContactInquiry[];
+  analyticsEvents: DbAnalyticsEvent[];
 }
 

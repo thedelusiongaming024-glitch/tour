@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { fetchDatabaseFromSupabase, syncDatabaseToSupabase } from "@/server/supabase";
 
@@ -6,7 +7,27 @@ import { fetchDatabaseFromSupabase, syncDatabaseToSupabase } from "@/server/supa
  * Triggered automatically by Supabase Cloud whenever database tables are modified.
  * Recompiles the snapshot and updates atithi-data/db.json in the storage bucket.
  */
+function isAuthorizedWebhook(request: Request): boolean {
+  const secret = process.env.SUPABASE_WEBHOOK_SECRET?.trim();
+  if (!secret) {
+    // Fail closed in production; allow local development without configuration.
+    return process.env.NODE_ENV !== "production";
+  }
+  const provided =
+    request.headers.get("x-webhook-secret") ||
+    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+    "";
+  const a = Buffer.from(provided);
+  const b = Buffer.from(secret);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 export async function POST(request: Request) {
+  // This endpoint rebuilds and re-uploads the full database snapshot, so it must not be callable by
+  // anonymous internet traffic.
+  if (!isAuthorizedWebhook(request)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
   const startTime = Date.now();
 
   try {
@@ -65,6 +86,6 @@ export async function GET() {
   return NextResponse.json({
     status: "ready",
     endpoint: "/api/v1/supabase/webhook",
-    purpose: "Supabase Database Webhook to mirror PostgreSQL changes into Storage Bucket (atithi-data/db.json)",
+    purpose: "Supabase Database Webhook to mirror PostgreSQL changes into Storage Bucket",
   });
 }

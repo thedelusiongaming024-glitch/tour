@@ -1,5 +1,6 @@
 "use client";
 
+import { getAuthHeaders } from "@/lib/clientAuth";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -45,7 +46,11 @@ export default function StandaloneTicketPage() {
     async function loadTicket() {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/v1/tickets/${params.bookingId}`);
+        const linkToken = searchParams.get("token");
+        const res = await fetch(
+          `/api/v1/tickets/${params.bookingId}${linkToken ? `?token=${encodeURIComponent(linkToken)}` : ""}`,
+          { headers: getAuthHeaders(), credentials: "same-origin" }
+        );
         if (!res.ok) {
           throw new Error("Could not find ticket for this booking reference.");
         }
@@ -53,7 +58,11 @@ export default function StandaloneTicketPage() {
         setBooking(data.booking);
 
         const origin = typeof window !== "undefined" ? window.location.origin : "https://savartourlover.com";
-        const qr = await QRCode.toDataURL(`${origin}/clearance/${data.booking.id}`, {
+        // Embed the signed clearance token so scanning the QR on the customer's own phone can pay the balance.
+        const clearanceLink = `${origin}/clearance/${data.booking.id}${
+          data.clearance_token ? `?token=${encodeURIComponent(data.clearance_token)}` : ""
+        }`;
+        const qr = await QRCode.toDataURL(clearanceLink, {
           width: 240,
           margin: 1,
           color: { dark: "#064e3b", light: "#ffffff" },
@@ -66,7 +75,7 @@ export default function StandaloneTicketPage() {
       }
     }
     loadTicket();
-  }, [params.bookingId]);
+  }, [params.bookingId, searchParams]);
 
   useEffect(() => {
     if (shouldAutoPrint && booking && qrCodeUrl && !printTriggeredRef.current) {
@@ -320,7 +329,7 @@ export default function StandaloneTicketPage() {
             )}
 
             {/* Financial Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 sm:p-6 bg-emerald-50/50 border-b border-dashed border-slate-300">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3 p-5 sm:p-6 bg-emerald-50/50 border-b border-dashed border-slate-300">
               <div className="rounded-xl border border-emerald-100 bg-white/90 p-2.5">
                 <span className="text-[10px] font-bold uppercase text-slate-500">
                   {isBn ? "মোট প্যাকেজ মূল্য" : "Total Price"}
@@ -354,6 +363,21 @@ export default function StandaloneTicketPage() {
                     ? isBn ? "অগ্রিম নিশ্চিত" : "ADVANCE CONFIRMED"
                     : isBn ? "সম্পূর্ণ নিশ্চিত" : "CONFIRMED & FULLY PAID"}
                 </p>
+              </div>
+              <div className="rounded-xl border border-emerald-100 bg-white/90 p-2.5 col-span-2 sm:col-span-1">
+                <span className="text-[10px] font-bold uppercase text-slate-500">
+                  {isBn ? "পেমেন্ট মাধ্যম" : "Payment Method"}
+                </span>
+                <p className="mt-0.5 text-xs font-bold text-slate-900 truncate">
+                  {booking.payment_method === "cash_on_hand" || booking.payment_method === "cash"
+                    ? (isBn ? "💵 হাতে নগদ" : "💵 Cash on Hand")
+                    : (isBn ? "💳 অনলাইন" : "💳 SSLCommerz")}
+                </p>
+                {booking.cash_approved_by && (
+                  <span className="text-[9px] text-emerald-800 font-semibold block mt-0.5">
+                    ✓ {isBn ? `অনুমোদিত: ${booking.cash_approved_by}` : `Verified: ${booking.cash_approved_by}`}
+                  </span>
+                )}
               </div>
             </div>
 

@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 import { verifyClearanceToken } from "@/server/clearance";
-import { clearTicketOnTourDay, createPayment, getBookingById, getClearanceTicket, completeDuePayment } from "@/server/db";
+import { createPayment, getBookingById, getClearanceTicket, completeDuePayment } from "@/server/db";
+import { getAuthUserFromHeader } from "@/server/auth";
+import { resolveBookingAccess } from "@/server/access";
+import { isPaymentSimulatorEnabled } from "@/lib/paymentMode";
+import { limitOr429 } from "@/server/rateLimit";
+
+const CASH_SETTLE_ROLES = ["super_admin", "finance_manager", "tour_host"];
 
 export async function POST(
   request: Request,
   props: { params: Promise<{ bookingId: string }> }
 ) {
+  const limited = await limitOr429(request, "clearance-pay", 30, 10 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const { bookingId } = await props.params;
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const token = body.token || new URL(request.url).searchParams.get("token");
     const method = body.method || "customer_self_pay";
 
@@ -36,7 +45,14 @@ export async function POST(
       return NextResponse.json({ detail: "No balance due. Booking is already fully paid." }, { status: 400 });
     }
 
+    // Marking a balance as paid in cash is a STAFF action. Previously anyone who knew a booking id
+    // could POST {"method":"host_cash"} and settle the balance for free (the token check was skipped
+    // entirely when no token was sent).
     if (method === "host_cash" || method === "admin_settle") {
+      const staff = getAuthUserFromHeader(request.headers.get("authorization"));
+      if (!staff || !CASH_SETTLE_ROLES.includes(staff.role)) {
+        return NextResponse.json({ detail: "Staff authentication required to settle a balance." }, { status: 403 });
+      }
       const result = await completeDuePayment(bookingId, method === "host_cash" ? "host_cash" : "customer_self_pay");
       return NextResponse.json({
         status: "cleared",
@@ -52,6 +68,13 @@ export async function POST(
       });
     }
 
+    // Online payment of the balance: the caller must prove access to this booking
+    // (valid signed token, the signed-in owner, or staff).
+    const access = resolveBookingAccess(request, booking, token, ticket.token_expires_at);
+    if (!access) {
+      return NextResponse.json({ detail: "A valid clearance link or sign-in is required." }, { status: 401 });
+    }
+
     // Initiate final balance payment session under SSLCommerz Gateway
     const payment = await createPayment({
       booking_id: booking.id,
@@ -61,11 +84,12 @@ export async function POST(
     });
 
     const origin = new URL(request.url).origin;
+    const simulatorUrl = `${origin}/payments/simulator?tran_id=${encodeURIComponent(payment.tran_id)}&amount=${payment.amount}&reference=${encodeURIComponent(booking.reference)}&title=${encodeURIComponent(booking.tour_title + " (Balance Due)")}`;
     let redirect_url: string;
 
     const { initiateSSLCommerzPayment, isSSLCommerzConfigured } = await import("@/lib/sslcommerz");
 
-    if (isSSLCommerzConfigured() && method === "customer_self_pay") {
+    if (isSSLCommerzConfigured()) {
       const sslRes = await initiateSSLCommerzPayment({
         tran_id: payment.tran_id,
         amount: payment.amount,
@@ -80,12 +104,20 @@ export async function POST(
 
       if (sslRes.success && sslRes.gatewayUrl) {
         redirect_url = sslRes.gatewayUrl;
-      } else {
+      } else if (isPaymentSimulatorEnabled()) {
         console.warn("SSLCommerz due initiation failed, using fallback:", sslRes.error);
-        redirect_url = `${origin}/payments/simulator?tran_id=${payment.tran_id}&amount=${payment.amount}&reference=${booking.reference}&title=${encodeURIComponent(booking.tour_title + " (Balance Due)")}`;
+        redirect_url = simulatorUrl;
+      } else {
+        console.error("SSLCommerz due initiation failed:", sslRes.error);
+        return NextResponse.json(
+          { detail: "The payment gateway is temporarily unavailable. Please try again shortly." },
+          { status: 502 }
+        );
       }
+    } else if (isPaymentSimulatorEnabled()) {
+      redirect_url = simulatorUrl;
     } else {
-      redirect_url = `${origin}/payments/simulator?tran_id=${payment.tran_id}&amount=${payment.amount}&reference=${booking.reference}&title=${encodeURIComponent(booking.tour_title + " (Balance Due)")}`;
+      return NextResponse.json({ detail: "Online payment is not available right now." }, { status: 503 });
     }
 
     return NextResponse.json(

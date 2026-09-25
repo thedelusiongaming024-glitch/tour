@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
-import { getCustomerByPhone, normalizePhoneNumber } from "@/server/db";
-import { generateCustomerToken } from "@/server/auth";
+import { getCustomerByPhone, normalizePhoneNumber, getOrCreateCustomerByPhone } from "@/server/db";
+import { customerCookieOptions, generateCustomerToken } from "@/server/auth";
+import { limitOr429 } from "@/server/rateLimit";
 
+/**
+ * Customer sign-in & registration by phone number.
+ * If account doesn't exist and full_name is provided, an account is created.
+ */
 export async function POST(request: Request) {
+  const limited = await limitOr429(request, "customer-login", 10, 10 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
-    const { phone_number } = body;
+    const { phone_number, full_name, email } = body;
 
     if (!phone_number || typeof phone_number !== "string" || !phone_number.trim()) {
       return NextResponse.json(
@@ -15,16 +23,25 @@ export async function POST(request: Request) {
     }
 
     const normalized = normalizePhoneNumber(phone_number);
-    const customer = getCustomerByPhone(normalized || phone_number);
+    let customer = getCustomerByPhone(normalized || phone_number);
 
     if (!customer) {
-      return NextResponse.json(
-        {
-          error: "No account found with this phone number. Please check the number or book a tour to get started.",
-          notFound: true,
-        },
-        { status: 404 }
-      );
+      if (full_name && typeof full_name === "string" && full_name.trim().length >= 2) {
+        const res = await getOrCreateCustomerByPhone({
+          phone_number: normalized || phone_number,
+          full_name: full_name.trim(),
+          email: typeof email === "string" && email.trim() ? email.trim() : undefined,
+        });
+        customer = res.customer;
+      } else {
+        return NextResponse.json(
+          {
+            error: "No account found with this phone number. Please check the number or book a tour to get started.",
+            notFound: true,
+          },
+          { status: 404 }
+        );
+      }
     }
 
     customer.last_login_at = new Date().toISOString();
@@ -39,11 +56,7 @@ export async function POST(request: Request) {
       { status: 200 }
     );
 
-    response.cookies.set("atithi_customer_token", token, {
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60,
-      sameSite: "lax",
-    });
+    response.cookies.set("tourlover_customer_token", token, customerCookieOptions());
 
     return response;
   } catch (err: unknown) {

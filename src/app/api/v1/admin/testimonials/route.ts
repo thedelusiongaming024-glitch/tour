@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePublicContent } from "@/server/revalidatePublicContent";
 import { getAuthUserFromHeader } from "@/server/auth";
 import { getAllTestimonialsAdmin, saveTestimonial } from "@/server/db";
 
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const testimonial = await saveTestimonial(body);
+    revalidatePublicContent();
     return NextResponse.json(testimonial, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to save testimonial.";

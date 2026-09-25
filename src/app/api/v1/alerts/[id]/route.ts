@@ -12,7 +12,7 @@ export async function PATCH(
   }
 
   const { id } = await props.params;
-  const ok = acknowledgeAlert(id);
+  const ok = await acknowledgeAlert(id);
   if (!ok) {
     return NextResponse.json({ detail: "Alert not found." }, { status: 404 });
   }

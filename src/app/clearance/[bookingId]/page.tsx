@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { getAuthHeaders } from "@/lib/clientAuth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
@@ -47,7 +48,8 @@ export default function ClearancePage() {
     async function resolve() {
       try {
         const res = await fetch(
-          `${API_BASE}/clearance/${params.bookingId}?token=${encodeURIComponent(token)}`
+          `${API_BASE}/clearance/${params.bookingId}${token ? `?token=${encodeURIComponent(token)}` : ""}`,
+          { headers: getAuthHeaders(), credentials: "same-origin" }
         );
         if (res.status === 410) {
           setState({ kind: "expired" });
@@ -79,7 +81,8 @@ export default function ClearancePage() {
       const activeToken = token || (state.kind === "resolved" && (state.data as any).token) || "";
       const res = await fetch(`${API_BASE}/clearance/${params.bookingId}/pay`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        credentials: "same-origin",
         body: JSON.stringify({ method: "customer_self_pay", token: activeToken }),
       });
       if (!res.ok) {
@@ -206,9 +209,14 @@ export default function ClearancePage() {
               </p>
             </div>
 
+            {!token && !(state.data as ResolveResponse & { token?: string }).token && (
+              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                To pay this balance online, open the link from your e-ticket or sign in to your account first.
+              </p>
+            )}
             <button
               onClick={handlePay}
-              disabled={paying}
+              disabled={paying || (!token && !(state.data as ResolveResponse & { token?: string }).token)}
               className="mt-4 w-full rounded-xl bg-emerald-deep px-4 py-3 font-medium text-white transition hover:brightness-110 disabled:opacity-60 shadow-xs"
             >
               {paying ? "Connecting to SSLCommerz…" : "Pay Due with SSLCommerz"}

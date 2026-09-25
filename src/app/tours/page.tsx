@@ -5,16 +5,35 @@ import { Reveal } from "@/components/Reveal";
 import { Stagger, StaggerItem } from "@/components/Stagger";
 import { SectionHeading } from "@/components/SectionHeading";
 import { TourCard } from "@/components/TourCard";
+import { ToursCategoryBar } from "@/components/ToursCategoryBar";
 import { Icon } from "@/components/Icon";
 import { fetchDestinations, fetchTours } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// ISR: cached for 120s instead of force-dynamic. Content here comes from
+// Supabase-backed catalog/CMS tables that change rarely (admin edits), so
+// re-rendering (and re-querying the DB) on every single visitor request
+// wastes Vercel function invocations and Supabase egress under real
+// traffic — both capped on the free tier. Admin writes call
+// revalidatePublicContent() (src/server/revalidatePublicContent.ts) to
+// invalidate this immediately instead of waiting out the TTL.
+export const revalidate = 120;
 
 export const metadata: Metadata = {
-  title: "Tour Packages",
+  title: "Tour Packages Across Bangladesh",
   description:
-    "Browse curated domestic tour packages across Bangladesh — group tours, honeymoons, family trips, adventure treks, and weekend getaways.",
+    "Browse curated domestic tour packages across Bangladesh — Sajek Valley, Cox's Bazar, Saint Martin, Sundarbans, Sylhet, and Bandarban. Guaranteed departures with transparent pricing.",
+  alternates: {
+    canonical: "/tours",
+  },
+  openGraph: {
+    title: "Tour Packages Across Bangladesh | Savar Tour Lover",
+    description:
+      "Browse curated domestic tour packages across Bangladesh — Sajek Valley, Cox's Bazar, Saint Martin, Sundarbans, Sylhet, and Bandarban.",
+    url: "https://savartourlover.com/tours",
+    siteName: "Savar Tour Lover",
+    type: "website",
+    images: [{ url: "/images/logo-badge.png" }],
+  },
 };
 
 const categories = [
@@ -66,8 +85,31 @@ export default async function ToursPage({
         return catA === catB || catA.includes(catB) || catB.includes(catA);
       });
 
+  const breadcrumbsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://savartourlover.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Tour Packages",
+        item: "https://savartourlover.com/tours",
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
+      />
       <section className="relative overflow-hidden px-4 pb-12 pt-32 sm:px-6 sm:pt-40">
         <Atmosphere intensity={0.25} />
         <div className="relative z-10 mx-auto max-w-6xl">
@@ -86,21 +128,7 @@ export default async function ToursPage({
         <div className="mx-auto max-w-6xl">
           {/* Category filter bar */}
           <Reveal>
-            <div className="glass mb-10 flex flex-wrap items-center gap-2 rounded-full p-2">
-              {categories.map((cat) => (
-                <Link
-                  key={cat}
-                  href={cat === "All" ? "/tours" : `/tours?category=${encodeURIComponent(cat)}`}
-                  className={
-                    cat === activeCategory
-                      ? "rounded-full bg-emerald px-4 py-2 text-sm font-semibold text-white"
-                      : "rounded-full px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-white/70 hover:text-ink"
-                  }
-                >
-                  {cat}
-                </Link>
-              ))}
-            </div>
+            <ToursCategoryBar categories={categories} activeCategory={activeCategory} />
           </Reveal>
 
           {tours.length === 0 ? (
@@ -108,7 +136,7 @@ export default async function ToursPage({
               No tours found in this category right now — check back soon or browse all packages.
             </p>
           ) : (
-            <Stagger className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
+            <Stagger className="grid grid-cols-2 gap-2.5 sm:gap-6 lg:grid-cols-3" stagger={0.08}>
               {tours.map((tour) => (
                 <StaggerItem key={tour.slug} className="h-full">
                   <TourCard tour={tour} />

@@ -1,37 +1,14 @@
 import { NextResponse } from "next/server";
 import { getCustomerById, getCustomerByPhone, getCustomerBookings, updateCustomer } from "@/server/db";
-import { getCustomerFromHeader, verifyJwt, CustomerJwtPayload } from "@/server/auth";
+import { getCustomerFromRequest } from "@/server/auth";
 
 function resolveCustomer(request: Request) {
-  // 1. Check Bearer Authorization header
-  const authHeader = request.headers.get("authorization");
-  const headerPayload = getCustomerFromHeader(authHeader);
-  if (headerPayload?.customer_id) {
-    const cust = getCustomerById(headerPayload.customer_id) || getCustomerByPhone(headerPayload.phone_number);
-    if (cust) return cust;
-  }
-
-  // 2. Check Cookie
-  const cookieHeader = request.headers.get("cookie") || "";
-  const match = cookieHeader.match(/atithi_customer_token=([^;]+)/);
-  if (match) {
-    const token = match[1];
-    const cookiePayload = verifyJwt<CustomerJwtPayload>(token);
-    if (cookiePayload && cookiePayload.role === "customer" && cookiePayload.customer_id) {
-      const cust = getCustomerById(cookiePayload.customer_id) || getCustomerByPhone(cookiePayload.phone_number);
-      if (cust) return cust;
-    }
-  }
-
-  // 3. Optional query param fallback for direct retrieval
-  const url = new URL(request.url);
-  const phone = url.searchParams.get("phone");
-  if (phone) {
-    const cust = getCustomerByPhone(phone);
-    if (cust) return cust;
-  }
-
-  return null;
+  // Authorization header first, then the session cookie. Both are signed tokens.
+  // (A `?phone=` query fallback used to return any customer's profile and bookings — and let anyone
+  // edit it via PUT — with no authentication at all. It has been removed.)
+  const payload = getCustomerFromRequest(request);
+  if (!payload) return null;
+  return getCustomerById(payload.customer_id) || getCustomerByPhone(payload.phone_number);
 }
 
 export async function GET(request: Request) {
@@ -44,7 +21,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const bookings = getCustomerBookings(customer.phone_number);
+    const bookings = getCustomerBookings(customer.phone_number, customer.id);
 
     return NextResponse.json({
       customer,
@@ -69,6 +46,13 @@ export async function PUT(request: Request) {
 
     const body = await request.json();
     const { full_name, email } = body;
+
+    if (typeof full_name === "string" && (full_name.trim().length < 2 || full_name.trim().length > 100)) {
+      return NextResponse.json({ error: "Please enter a valid name (2-100 characters)." }, { status: 400 });
+    }
+    if (typeof email === "string" && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+    }
 
     const updated = await updateCustomer(customer.id, {
       full_name: typeof full_name === "string" ? full_name.trim() : undefined,

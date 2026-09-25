@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAuthUserFromHeader } from "@/server/auth";
-import { getAllBookingsAdmin, updateBookingStatus, completeDuePayment } from "@/server/db";
+import {
+  getAllBookingsAdmin,
+  updateBookingStatus,
+  completeDuePayment,
+  approveCashPayment,
+  rejectCashPayment,
+} from "@/server/db";
 
 export async function GET(request: Request) {
   const user = getAuthUserFromHeader(request.headers.get("Authorization"));
@@ -20,9 +26,19 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, status, action, method } = body;
+    const { id, status, action, method, received_type, reason } = body;
     if (!id) {
       return NextResponse.json({ detail: "id is required." }, { status: 400 });
+    }
+
+    if (action === "approve_cash_payment") {
+      const result = await approveCashPayment(id, user.username, received_type === "full" ? "full" : "advance");
+      return NextResponse.json(result.booking);
+    }
+
+    if (action === "reject_cash_payment") {
+      const rejected = await rejectCashPayment(id, user.username, reason);
+      return NextResponse.json(rejected);
     }
 
     if (action === "settle_due") {

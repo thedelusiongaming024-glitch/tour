@@ -9,8 +9,14 @@ import { SceneBackdrop } from "@/components/SceneBackdrop";
 import { Icon } from "@/components/Icon";
 import { fetchDestination, fetchTour } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// ISR: cached for 180s instead of force-dynamic. Content here comes from
+// Supabase-backed catalog/CMS tables that change rarely (admin edits), so
+// re-rendering (and re-querying the DB) on every single visitor request
+// wastes Vercel function invocations and Supabase egress under real
+// traffic — both capped on the free tier. Admin writes call
+// revalidatePublicContent() (src/server/revalidatePublicContent.ts) to
+// invalidate this immediately instead of waiting out the TTL.
+export const revalidate = 180;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -22,9 +28,36 @@ export async function generateMetadata({
   const { slug } = await params;
   const destination = await fetchDestination(slug);
   if (!destination) return { title: "Destination not found" };
+
+  const title = `${destination.name} Travel Guide`;
+  const description = `${destination.tagline || destination.name}. ${destination.description.slice(0, 150)}`;
+  const imageUrl = destination.cover?.imageUrl || "/images/logo-badge.png";
+
   return {
-    title: destination.name,
-    description: `${destination.tagline}. ${destination.description.slice(0, 150)}`,
+    title,
+    description,
+    alternates: {
+      canonical: `/destinations/${slug}`,
+    },
+    openGraph: {
+      title: `${title} | Savar Tour Lover`,
+      description,
+      url: `https://savartourlover.com/destinations/${slug}`,
+      siteName: "Savar Tour Lover",
+      type: "website",
+      images: [
+        {
+          url: imageUrl,
+          alt: destination.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | Savar Tour Lover`,
+      description,
+      images: [imageUrl],
+    },
   };
 }
 
@@ -37,8 +70,53 @@ export default async function DestinationPage({ params }: PageProps) {
     await Promise.all(destination.tourSlugs.map((s) => fetchTour(s)))
   ).filter((t): t is NonNullable<typeof t> => Boolean(t));
 
+  const destinationJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TouristDestination",
+        "@id": `https://savartourlover.com/destinations/${destination.slug}#destination`,
+        name: destination.name,
+        description: destination.description,
+        image: destination.cover?.imageUrl || undefined,
+        containedInPlace: {
+          "@type": "Country",
+          name: "Bangladesh",
+        },
+        touristType: destination.region,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://savartourlover.com",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Destinations",
+            item: "https://savartourlover.com/destinations",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: destination.name,
+            item: `https://savartourlover.com/destinations/${destination.slug}`,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(destinationJsonLd) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden px-4 pb-14 pt-32 sm:px-6 sm:pt-40">
         <Atmosphere intensity={0.28} />

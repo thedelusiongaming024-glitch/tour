@@ -236,7 +236,7 @@ body {
 
 /* Slow ambient drift for atmosphere blobs — gives glass panels a living,
    premium backdrop instead of a static gradient. */
-@keyframes atithi-float {
+@keyframes stl-float {
   0%,
   100% {
     transform: translate(0, 0) scale(1);
@@ -247,11 +247,11 @@ body {
 }
 
 .atmosphere-blob {
-  animation: atithi-float 16s ease-in-out infinite;
+  animation: stl-float 16s ease-in-out infinite;
 }
 
 /* Gentle "live" pulse for eyebrow indicator dots */
-@keyframes atithi-pulse-dot {
+@keyframes stl-pulse-dot {
   0%,
   100% {
     opacity: 1;
@@ -264,7 +264,7 @@ body {
 }
 
 .pulse-dot {
-  animation: atithi-pulse-dot 2.2s ease-in-out infinite;
+  animation: stl-pulse-dot 2.2s ease-in-out infinite;
 }
 
 /* ============================================================
@@ -329,7 +329,7 @@ body {
 
 /* Slow gilt shimmer ring — dormant until hover, so it reads as an
    intentional accent rather than constant background noise */
-@keyframes atithi-ring-rotate {
+@keyframes stl-ring-rotate {
   to {
     transform: rotate(360deg);
   }
@@ -357,7 +357,7 @@ body {
   mask-composite: exclude;
   pointer-events: none;
   transition: opacity 0.4s ease;
-  animation: atithi-ring-rotate 6s linear infinite;
+  animation: stl-ring-rotate 6s linear infinite;
   animation-play-state: paused;
 }
 

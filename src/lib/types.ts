@@ -74,7 +74,7 @@ export interface TourDeparture {
 }
 
 export interface Tour {
-  id?: string;
+  id: string;
   slug: string;
   title: string;
   destinationSlug: string;
@@ -88,6 +88,7 @@ export interface Tour {
   description: string;
   cover: Scene;
   gallery: Scene[];
+  galleryItems?: TourGalleryItem[];
   itinerary: ItineraryDay[];
   inclusions: string[];
   exclusions: string[];
@@ -101,6 +102,20 @@ export interface Tour {
   pickupPoints?: string[];
   faqs: Faq[];
   featured?: boolean;
+}
+
+export interface TourGalleryItem {
+  id?: string;
+  image?: string;
+  imageUrl?: string;
+  title?: string;
+  caption?: string;
+  location?: string;
+  price?: string | number;
+  badge?: string;
+  watermarkText?: string;
+  slot?: string;
+  isFeatured?: boolean;
 }
 
 export interface JournalBlock {

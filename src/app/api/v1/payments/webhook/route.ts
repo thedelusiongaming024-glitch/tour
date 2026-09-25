@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { confirmPaymentSuccess, getPaymentByTranId } from "@/server/db";
+import { isPaymentSimulatorEnabled } from "@/lib/paymentMode";
 
+/**
+ * Callback used ONLY by the built-in payment simulator (local development / demos).
+ *
+ * It confirms a payment on the caller's word alone, so exposing it in production would let anyone
+ * mark any booking as paid with a single unauthenticated POST. Real payments are confirmed
+ * exclusively through the SSLCommerz success/IPN routes, which validate with the gateway.
+ */
 export async function POST(request: Request) {
+  if (!isPaymentSimulatorEnabled()) {
+    return NextResponse.json({ detail: "Not found." }, { status: 404 });
+  }
+
   try {
     const body = await request.json();
     const { tran_id, status = "VALID", val_id, card_type } = body;
 
-    if (!tran_id) {
+    if (!tran_id || typeof tran_id !== "string") {
       return NextResponse.json({ detail: "tran_id is required." }, { status: 400 });
     }
 

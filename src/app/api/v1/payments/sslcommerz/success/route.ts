@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { confirmPaymentSuccess, getPaymentByTranId, getBookingById } from "@/server/db";
-import { validateSSLCommerzPayment } from "@/lib/sslcommerz";
+import { verifyGatewayPayment } from "@/server/paymentVerification";
 
+/**
+ * SSLCommerz redirects the customer's browser here after a successful payment.
+ *
+ * This URL is public and the body is attacker-controllable, so nothing in it is trusted: the payment
+ * is confirmed only if SSLCommerz's Order Validation API vouches for this exact val_id + tran_id +
+ * amount. (Previously a missing val_id skipped validation entirely and confirmed the payment.)
+ */
 export async function POST(request: Request) {
   const origin = new URL(request.url).origin;
   let tran_id = "";
   let val_id = "";
-  let card_type = "SSLCommerz";
-  let value_a = "";
   let value_b = "";
 
   try {
@@ -16,15 +21,11 @@ export async function POST(request: Request) {
       const formData = await request.formData();
       tran_id = (formData.get("tran_id") as string) || "";
       val_id = (formData.get("val_id") as string) || "";
-      card_type = (formData.get("card_type") as string) || (formData.get("card_brand") as string) || "SSLCommerz";
-      value_a = (formData.get("value_a") as string) || "";
       value_b = (formData.get("value_b") as string) || "";
     } else {
       const body = await request.json().catch(() => ({}));
       tran_id = body.tran_id || "";
       val_id = body.val_id || "";
-      card_type = body.card_type || body.card_brand || "SSLCommerz";
-      value_a = body.value_a || "";
       value_b = body.value_b || "";
     }
 
@@ -33,11 +34,10 @@ export async function POST(request: Request) {
     }
 
     const payment = getPaymentByTranId(tran_id);
-    const bookingId = payment?.booking_id || value_a;
-    const booking = bookingId ? getBookingById(bookingId) : null;
+    const booking = payment ? getBookingById(payment.booking_id) : null;
     let reference = booking?.reference || value_b || "";
 
-    // If already confirmed by IPN webhook, redirect directly
+    // Already confirmed (e.g. by the IPN): just show the result.
     if (payment && payment.status === "success") {
       return NextResponse.redirect(
         `${origin}/payment-result?status=success&reference=${encodeURIComponent(reference)}`,
@@ -45,28 +45,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Server-to-server order validation with SSLCommerz
-    if (val_id) {
-      const validated = await validateSSLCommerzPayment(val_id);
-      if (validated.status !== "VALID" && validated.status !== "VALIDATED") {
-        console.error("SSLCommerz order validation rejected:", validated);
-        return NextResponse.redirect(
-          `${origin}/payment-result?status=fail&reference=${encodeURIComponent(reference)}`,
-          303
-        );
-      }
-      if (validated.card_type) {
-        card_type = validated.card_type;
-      }
-      if (!reference && validated.raw?.value_b) {
-        reference = validated.raw.value_b;
-      }
+    const verification = await verifyGatewayPayment(tran_id, val_id);
+    if (!verification.ok) {
+      console.error(`SSLCommerz success callback rejected for ${tran_id}: ${verification.reason}`);
+      return NextResponse.redirect(
+        `${origin}/payment-result?status=fail${reference ? `&reference=${encodeURIComponent(reference)}` : ""}`,
+        303
+      );
     }
 
-    // Confirm payment in local DB and sync to Supabase with fallback recovery
-    const result = await confirmPaymentSuccess(tran_id, val_id, card_type, {
-      bookingId: bookingId || undefined,
-      bookingRef: reference || undefined,
+    const result = await confirmPaymentSuccess(tran_id, val_id, verification.cardType, {
+      bookingId: verification.bookingId,
+      bookingRef: verification.bookingRef,
+      verifiedAmount: verification.amount,
     });
 
     if (result.booking?.reference) {

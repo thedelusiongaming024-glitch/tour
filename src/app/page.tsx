@@ -1,13 +1,20 @@
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// ISR: cached for 120s instead of force-dynamic. Content here comes from
+// Supabase-backed catalog/CMS tables that change rarely (admin edits), so
+// re-rendering (and re-querying the DB) on every single visitor request
+// wastes Vercel function invocations and Supabase egress under real
+// traffic — both capped on the free tier. Admin writes call
+// revalidatePublicContent() (src/server/revalidatePublicContent.ts) to
+// invalidate this immediately instead of waiting out the TTL.
+export const revalidate = 120;
 import { Atmosphere } from "@/components/Atmosphere";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { Reveal } from "@/components/Reveal";
 import { Stagger, StaggerItem } from "@/components/Stagger";
 import { SectionHeading } from "@/components/SectionHeading";
 import { DestinationCard } from "@/components/DestinationCard";
+import { PopularDestinationsCoverflow } from "@/components/PopularDestinationsCoverflow";
 import { PopularToursExplorer } from "@/components/PopularToursExplorer";
 import { ServiceCard } from "@/components/ServiceCard";
 import { OfferCard } from "@/components/OfferCard";
@@ -15,6 +22,7 @@ import { ReviewCard } from "@/components/ReviewCard";
 import { JournalCard } from "@/components/JournalCard";
 import { CtaBanner } from "@/components/CtaBanner";
 import { HomeHero } from "@/components/HomeHero";
+import { WhyUsItem } from "@/components/WhyUsItem";
 import { LocalizedButtonLink } from "@/components/LocalizedButtonLink";
 import { Icon } from "@/components/Icon";
 import { normalizeImageUrl } from "@/lib/media";
@@ -68,7 +76,7 @@ export default async function Home() {
   );
 
   // Featured destinations for homepage from database
-  const featuredDestinations = destinations.slice(0, 6);
+  const featuredDestinations = destinations.slice(0, 12);
 
   const popularTours = [...tours].sort(
     (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))
@@ -80,8 +88,7 @@ export default async function Home() {
   const testimonialsBlock = blocks.find((b) => b.blockType === "testimonials");
   const showDestinationsSection =
     homeCms.destinations_hidden !== true &&
-    destinationGridBlock?.content.hidden !== true &&
-    featuredDestinations.length > 0;
+    destinationGridBlock?.content.hidden !== true;
   const showFeaturedToursSection =
     homeCms.tours_hidden !== true &&
     featuredToursBlock?.content.hidden !== true &&
@@ -207,43 +214,21 @@ export default async function Home() {
       })}
 
       {showDestinationsSection && (
-      /* ============ POPULAR DESTINATIONS ============
-         featuredDestinations was already being computed (live CMS data,
-         sliced to 6, falling back to the hand-curated static selection)
-         but this section never existed — the homepage fetched and adapted
-         destination data, then dropped it on the floor. DestinationCard
-         was imported for exactly this and never rendered either. */
-      <section className="px-4 py-16 sm:px-6 sm:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-            <SectionHeading
-              align="left"
-              eyebrow={homeCms.destinations_eyebrow || str(destinationGridBlock?.content ?? {}, "eyebrow") || "Destinations"}
-              eyebrowBn="গন্তব্যসমূহ"
-              title={homeCms.destinations_title || str(destinationGridBlock?.content ?? {}, "heading") || "Popular destinations across Bangladesh"}
-              titleBn="বাংলাদেশ জুড়ে জনপ্রিয় ভ্রমণ গন্তব্য"
-              description={
-                homeCms.destinations_description ||
-                str(destinationGridBlock?.content ?? {}, "description") ||
-                "Beaches, hill tracts, mangrove forests, and tea country — pick a place, we'll handle the rest."
-              }
-              descriptionBn="সমুদ্র সৈকত, সবুজ পাহাড়, ম্যানগ্রোভ বন আর চায়ের বাগান — স্থান নির্বাচন করুন, বাকি দায়িত্ব আমাদের।"
-            />
-            <LocalizedButtonLink
-              href={homeCms.destinations_cta_href || "/destinations"}
-              labelEn={homeCms.destinations_cta_label || "All destinations"}
-              labelBn="সকল গন্তব্য"
-            />
-          </div>
-          <Stagger className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
-            {featuredDestinations.map((d) => (
-              <StaggerItem key={d.slug}>
-                <DestinationCard destination={d} />
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
-      </section>
+        <PopularDestinationsCoverflow
+          destinations={featuredDestinations.length > 0 ? featuredDestinations : undefined}
+          title={homeCms.destinations_title || str(destinationGridBlock?.content ?? {}, "heading") || "Popular Destinations"}
+          titleBn="জনপ্রিয় ভ্রমণ গন্তব্য"
+          subtitle={
+            homeCms.destinations_description ||
+            str(destinationGridBlock?.content ?? {}, "description") ||
+            "Explore Bangladesh's most iconic travel spots"
+          }
+          subtitleBn="বাংলাদেশের সবচেয়ে আকর্ষণীয় ও জনপ্রিয় ভ্রমণ স্পটসমূহ"
+          showAllLink={true}
+          allLinkHref={homeCms.destinations_cta_href || "/destinations"}
+          allLinkLabelEn={homeCms.destinations_cta_label || "All destinations"}
+          allLinkLabelBn="সকল গন্তব্য"
+        />
       )}
 
       {showFeaturedToursSection && (
@@ -295,20 +280,10 @@ export default async function Home() {
               }
               descriptionBn="আমরা কোনো থার্ড-পার্টি বুকিং সাইট নই যারা অপরিচিতদের হাতে আপনার ভ্রমণ ছেড়ে দেয়। আমরা লোকাল হোস্ট যারা সবকিছু পরিকল্পনা করে, সাথে থাকে এবং শতভাগ স্বচ্ছতা নিশ্চিত করে।"
             />
-            <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2" stagger={0.08}>
+            <Stagger className="grid grid-cols-2 gap-2.5 sm:gap-4" stagger={0.08}>
               {whyUsList.map((item) => (
                 <StaggerItem key={item.title}>
-                  <div className="glass glass-sweep flex h-full flex-col gap-3 rounded-3xl p-5">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold/15 text-gold">
-                      <Icon name={item.icon} className="h-5 w-5" />
-                    </span>
-                    <h3 className="font-display text-base font-semibold text-ink">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-ink-soft">
-                      {item.description}
-                    </p>
-                  </div>
+                  <WhyUsItem title={item.title} description={item.description} icon={item.icon} />
                 </StaggerItem>
               ))}
             </Stagger>
@@ -333,7 +308,7 @@ export default async function Home() {
             }
             descriptionBn="গ্রুপ বা ব্যক্তিগত, পরিবার কিংবা হানিমুন, উইকেন্ড ট্রিপ বা অ্যাডভেঞ্চার — বাংলাদেশে যে কোনো ভ্রমণ আয়োজনে আমরা আছি।"
           />
-          <Stagger className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
+          <Stagger className="mt-8 sm:mt-12 grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5" stagger={0.08}>
             {servicesList.map((service) => (
               <StaggerItem key={service.title} className="h-full">
                 <ServiceCard service={service} />
@@ -359,7 +334,7 @@ export default async function Home() {
               }
               descriptionBn="মৌসুমি ছাড় এবং গ্রুপ ডিসকাউন্ট — সঠিক কোড ব্যবহারে বুকিংয়ে পান বিশেষ সুবিধা।"
             />
-            <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
+            <Stagger className="mt-8 sm:mt-12 grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-5" stagger={0.1}>
               {specialOffers.map((offer) => (
                 <StaggerItem key={offer.code} className="h-full">
                   <OfferCard offer={offer} />
@@ -387,7 +362,7 @@ export default async function Home() {
             }
             descriptionBn="আমাদের সাথে যারা পাহাড়, নদী এবং সমুদ্র চষে বেড়িয়েছেন তাদের বাস্তব অভিজ্ঞতা।"
           />
-          <Stagger className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
+          <Stagger className="mt-8 sm:mt-12 grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5" stagger={0.08}>
             {reviews.slice(0, 6).map((review) => (
               <StaggerItem key={review.name} className="h-full">
                 <ReviewCard review={review} />
@@ -421,7 +396,7 @@ export default async function Home() {
                 labelBn="সকল ভ্রমণ গল্প"
               />
             </div>
-            <Stagger className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3" stagger={0.1}>
+            <Stagger className="mt-6 sm:mt-10 grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-5" stagger={0.1}>
               {journalPreview.map((post) => (
                 <StaggerItem key={post.slug} className="h-full">
                   <JournalCard post={post} />

@@ -197,8 +197,27 @@ function adaptTour(t: any): Tour {
     description: t.full_description || t.overview || t.short_description || "",
     cover: sceneForSlug(slug, title, t.hero_image),
     gallery: Array.isArray(t.gallery) && t.gallery.length > 0
-      ? t.gallery.map((g: any) => sceneForSlug(slug, g.caption || title, g.image || g.imageUrl))
+      ? t.gallery.map((g: any) => sceneForSlug(slug, g.title || g.caption || title, g.image || g.imageUrl))
       : [sceneForSlug(slug, title, t.hero_image)],
+    galleryItems: Array.isArray(t.gallery)
+      ? t.gallery.map((g: any, idx: number) => {
+          const img = normalizeImageUrl(g.image || g.imageUrl || "");
+          const itemTitle = g.title || g.caption || `${title} - View ${idx + 1}`;
+          return {
+            id: g.id || `g-${idx}`,
+            imageUrl: img,
+            image: img,
+            title: itemTitle,
+            caption: g.caption || itemTitle,
+            location: g.location || t.destination_name || "",
+            price: g.price !== undefined && g.price !== "" ? String(g.price) : "",
+            badge: g.badge || (idx === 0 ? "Featured" : idx === 5 ? "Outbound" : "Inbound"),
+            watermarkText: g.watermarkText || g.watermark_text || "",
+            slot: g.slot || "",
+            isFeatured: Boolean(g.isFeatured || g.badge === "Featured" || idx === 0),
+          };
+        })
+      : [],
     itinerary,
     inclusions,
     exclusions,
@@ -286,7 +305,7 @@ export async function fetchJournalPosts(): Promise<JournalPost[]> {
       date: p.published_at || p.created_at
         ? new Date(p.published_at || p.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
         : "Recent",
-      author: p.author || p.author_name || "Atithi Editorial",
+      author: p.author || p.author_name || "Savar Tour Lover Editorial",
       readTime: `${p.read_time_minutes || 4} min read`,
       cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
       body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],
@@ -310,7 +329,7 @@ export async function fetchJournalPost(slug: string): Promise<JournalPost | null
       date: rawDate
         ? new Date(rawDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
         : "Recent",
-      author: p.author || p.author_name || "Atithi Editorial",
+      author: p.author || p.author_name || "Savar Tour Lover Editorial",
       readTime: `${p.read_time_minutes || 4} min read`,
       cover: sceneForSlug(p.slug, p.title || "", p.cover_image || p.hero_image),
       body: p.body || p.content ? [{ paragraphs: (p.body || p.content || "").split("\n\n").filter(Boolean) }] : [],

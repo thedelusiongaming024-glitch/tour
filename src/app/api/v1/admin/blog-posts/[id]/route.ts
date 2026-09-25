@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePublicContent } from "@/server/revalidatePublicContent";
 import { getAuthUserFromHeader } from "@/server/auth";
 import { deleteBlogPost, saveBlogPost } from "@/server/db";
 
@@ -15,6 +16,7 @@ export async function PUT(
     const { id } = await props.params;
     const body = await request.json();
     const post = await saveBlogPost({ ...body, id });
+    revalidatePublicContent(post.slug ? [`/journal/${post.slug}`] : []);
     return NextResponse.json(post);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update blog post.";
@@ -37,5 +39,6 @@ export async function DELETE(
     return NextResponse.json({ detail: "Blog post not found." }, { status: 404 });
   }
 
+  revalidatePublicContent();
   return NextResponse.json({ success: true, id });
 }

@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { createInquiry } from "@/server/db";
+import { limitOr429 } from "@/server/rateLimit";
+import { trackServerEvent } from "@/server/tracking";
 
 export async function POST(request: Request) {
+  const limited = await limitOr429(request, "contact", 5, 10 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const { name, email, phone, destination, dates, trip_type, travelers, message } = body;
@@ -18,7 +23,24 @@ export async function POST(request: Request) {
       dates: dates || "",
       trip_type: trip_type || "Group Tour",
       travelers: Math.max(1, Number(travelers) || 1),
-      message: message || "",
+      message: typeof message === "string" ? message.slice(0, 2000) : "",
+    });
+
+    // Server-side lead tracking
+    const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0].trim();
+    void trackServerEvent({
+      event_name: "contact_inquiry",
+      path: "/contact",
+      title: `Contact Inquiry: ${trip_type || "Group Tour"} (${destination || "Custom"})`,
+      referrer: request.headers.get("referer") || "",
+      user_agent: request.headers.get("user-agent") || "",
+      ip: forwardedFor,
+      metadata: {
+        inquiry_id: inquiry.id,
+        destination: inquiry.destination,
+        trip_type: inquiry.trip_type,
+        travelers: inquiry.travelers,
+      },
     });
 
     return NextResponse.json(
